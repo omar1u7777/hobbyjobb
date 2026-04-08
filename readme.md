@@ -675,7 +675,7 @@ psql --version    # PostgreSQL 16+
 ### 1. Klona repot
 
 ```bash
-git clone https://github.com/team-hobbyjobb/hobbyjobb.git
+git clone https://github.com/omar1u7777/hobbyjobb.git
 cd hobbyjobb
 ```
 

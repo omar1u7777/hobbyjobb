@@ -1,0 +1,321 @@
+﻿<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lägg upp jobb – HobbyJobb</title>
+<style>
+:root{--bg:#F8FAFC;--blue:#2563EB;--dark:#0F172A;--muted:#64748B;--white:#FFFFFF;--r:10px;--sh:0 2px 8px rgba(0,0,0,.07);--shlg:0 12px 32px rgba(0,0,0,.10)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--dark);background:var(--bg);line-height:1.6}
+.container{max-width:1160px;margin:0 auto;padding:0 24px}
+nav{background:var(--white);border-bottom:1px solid #E2E8F0;position:sticky;top:0;z-index:100}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{font-size:20px;font-weight:800;color:var(--dark);text-decoration:none}
+.logo span{color:var(--blue)}
+.nav-links{display:flex;gap:28px;list-style:none}
+.nav-links a{text-decoration:none;color:var(--muted);font-size:15px;font-weight:500;transition:color .15s}
+.nav-links a:hover{color:var(--dark)}
+.nav-actions{display:flex;align-items:center;gap:14px}
+.login{color:var(--dark);font-weight:500;font-size:15px;cursor:pointer;text-decoration:none}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;text-decoration:none;transition:all .15s;border:none}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:#1D4ED8;transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,99,235,.3)}
+.btn-outline{background:transparent;color:var(--dark);border:2px solid #D1D5DB}
+.btn-outline:hover{border-color:var(--blue);color:var(--blue)}
+.breadcrumb{padding:16px 0;font-size:14px;color:var(--muted)}
+.breadcrumb a{color:var(--muted);text-decoration:none;transition:color .15s}
+.breadcrumb a:hover{color:var(--blue)}
+.breadcrumb span{margin:0 8px;color:#CBD5E1}
+.page-hero{padding:32px 0 0}
+.page-hero h1{font-size:clamp(24px,3vw,34px);font-weight:900;margin-bottom:6px}
+.page-hero p{font-size:16px;color:var(--muted);margin-bottom:28px}
+.steps-bar{display:flex;gap:0;margin-bottom:32px;background:var(--white);border-radius:var(--r);border:1px solid #E2E8F0;overflow:hidden}
+.step-item{flex:1;padding:14px 16px;text-align:center;font-size:13px;font-weight:600;color:var(--muted);border-right:1px solid #E2E8F0;transition:all .15s}
+.step-item:last-child{border-right:none}
+.step-item.done{background:#DCFCE7;color:#16A34A}
+.step-item.active{background:var(--blue);color:#fff}
+.step-item .sn{display:inline-flex;width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.25);align-items:center;justify-content:center;font-size:11px;font-weight:800;margin-right:6px}
+.step-item.active .sn{background:rgba(255,255,255,.35)}
+.step-item.done .sn{background:#BBF7D0;color:#16A34A}
+.page-body{padding-bottom:64px}
+.layout{display:grid;grid-template-columns:1fr 340px;gap:28px;align-items:start}
+.form-card{background:var(--white);border-radius:var(--r);border:1px solid #E2E8F0;padding:28px;margin-bottom:20px}
+.form-card h2{font-size:17px;font-weight:700;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid #F1F5F9}
+.form-group{margin-bottom:20px}
+.form-group label{display:block;font-size:13px;font-weight:600;color:var(--dark);margin-bottom:7px}
+.form-group .hint{font-size:12px;color:var(--muted);margin-top:5px}
+.form-group input,.form-group select,.form-group textarea{width:100%;padding:12px 14px;border:1.5px solid #D1D5DB;border-radius:8px;font-size:15px;color:var(--dark);background:var(--bg);transition:border .15s;outline:none;font-family:inherit}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--blue);background:var(--white)}
+.form-group input::placeholder,.form-group textarea::placeholder{color:#94A3B8}
+.form-group textarea{resize:vertical;min-height:120px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.cat-picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+.cat-item{background:#F8FAFC;border:2px solid transparent;border-radius:8px;padding:14px 10px;text-align:center;cursor:pointer;transition:all .15s}
+.cat-item:hover{border-color:#CBD5E1}
+.cat-item.active{background:#EFF6FF;border-color:var(--blue)}
+.cat-item .ci{font-size:22px;margin-bottom:6px}
+.cat-item .cn{font-size:12px;font-weight:700}
+.price-type{display:flex;gap:10px}
+.price-opt{flex:1;padding:12px;border-radius:8px;border:2px solid #D1D5DB;text-align:center;cursor:pointer;transition:all .15s;font-size:14px;font-weight:600;color:var(--muted);background:none}
+.price-opt.active{background:#EFF6FF;border-color:var(--blue);color:var(--blue)}
+.hobby-warn{background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:8px;padding:16px;margin-bottom:20px;display:flex;gap:12px}
+.hw-icon{font-size:20px;flex-shrink:0}
+.hw-text{font-size:13px;color:#92400E;line-height:1.6}
+.hw-text strong{color:#78350F}
+.preview-card{background:var(--white);border-radius:var(--r);border:1px solid #E2E8F0;padding:24px;position:sticky;top:88px}
+.preview-card h3{font-size:15px;font-weight:700;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid #F1F5F9}
+.preview-job{border:1.5px solid #E2E8F0;border-radius:8px;padding:16px;margin-bottom:16px}
+.pj-top{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.pj-ico{width:38px;height:38px;border-radius:8px;background:#EFF6FF;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.pj-title{font-size:14px;font-weight:700}
+.pj-cat{font-size:12px;color:var(--blue);font-weight:600}
+.pj-meta{font-size:13px;color:var(--muted);margin-bottom:8px}
+.pj-price{font-size:22px;font-weight:800;color:var(--blue)}
+.tip-list{display:flex;flex-direction:column;gap:10px}
+.tip{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--muted);line-height:1.5}
+.tip-icon{font-size:16px;flex-shrink:0}
+.btn-full{width:100%;justify-content:center;padding:14px;font-size:16px}
+.btn-draft{width:100%;justify-content:center;padding:11px;margin-top:10px;font-size:14px}
+footer{background:var(--dark);color:#94A3B8;padding:40px 0 24px}
+.fg{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:28px}
+.fb .logo{color:#fff;display:block;margin-bottom:8px}.fb p{font-size:14px;line-height:1.7;max-width:240px}
+.fc h4{color:#fff;font-size:13px;font-weight:700;margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em}
+.fc ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.fc a{color:#94A3B8;text-decoration:none;font-size:14px;transition:color .15s}
+.fc a:hover{color:#fff}
+.fb2{border-top:1px solid #1E293B;padding-top:20px;display:flex;justify-content:space-between;font-size:13px;flex-wrap:wrap;gap:10px}
+.fl{display:flex;gap:16px}.fl a{color:#64748B;text-decoration:none}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.preview-card{position:static}.nav-links{display:none}.fg{grid-template-columns:1fr 1fr}.steps-bar{flex-direction:column;padding:4px}.step-item{border-right:none;border-bottom:1px solid #E2E8F0;text-align:left}}
+@media(max-width:600px){.form-row{grid-template-columns:1fr}.cat-picker{grid-template-columns:repeat(3,1fr)}.fg{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="container nav-inner">
+    <a href="landing.html" class="logo">hobby<span>jobb</span></a>
+    <ul class="nav-links">
+      <li><a href="listings.html">Hitta jobb</a></li>
+      <li><a href="landing.html#hobbyinfo">Hobbyinfo</a></li>
+      <li><a href="landing.html#hur">Hur det fungerar</a></li>
+      <li><a href="landing.html#faq">FAQ</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="login.html" class="login">Logga in</a>
+      <a href="login.html" class="btn btn-primary">Kom igång</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="breadcrumb">
+    <a href="landing.html">Hem</a><span>›</span>
+    Lägg upp jobb
+  </div>
+</div>
+
+<div class="container page-hero">
+  <h1>Lägg upp ett jobb</h1>
+  <p>Beskriv ditt uppdrag och matchas med kvalificerade utförare i ditt område.</p>
+  <div class="steps-bar">
+    <div class="step-item active"><span class="sn">1</span>Beskriv jobbet</div>
+    <div class="step-item"><span class="sn">2</span>Plats och tid</div>
+    <div class="step-item"><span class="sn">3</span>Pris och villkor</div>
+    <div class="step-item"><span class="sn">4</span>Publicera</div>
+  </div>
+</div>
+
+<div class="page-body">
+  <div class="container">
+    <div class="layout">
+
+      <!-- FORM -->
+      <div>
+        <div class="hobby-warn">
+          <div class="hw-icon">⚠️</div>
+          <div class="hw-text">HobbyJobb är <strong>enbart för hobbyverksamhet</strong>. Uppdraget betalar max 30 000 kr per utförare och år. Kommersiella uppdrag godkänns inte. <a href="landing.html#hobbyinfo" style="color:var(--blue);font-weight:600">Läs mer</a></div>
+        </div>
+
+        <div class="form-card">
+          <h2>📝 Grundläggande information</h2>
+
+          <div class="form-group">
+            <label>Jobbtitel <span style="color:#EF4444">*</span></label>
+            <input type="text" placeholder="t.ex. Gräsklippning och kantskärning" maxlength="80" id="job-title" oninput="updatePreview()">
+            <div class="hint">Maximal 80 tecken · Var specifik för bättre svar</div>
+          </div>
+
+          <div class="form-group">
+            <label>Kategori <span style="color:#EF4444">*</span></label>
+            <div class="cat-picker">
+              <div class="cat-item active" onclick="selectCat(this,'🏠')"><div class="ci">🏠</div><div class="cn">Hem &amp; Trädgård</div></div>
+              <div class="cat-item" onclick="selectCat(this,'🐶')"><div class="ci">🐶</div><div class="cn">Djur</div></div>
+              <div class="cat-item" onclick="selectCat(this,'🚛')"><div class="ci">🚛</div><div class="cn">Flytt</div></div>
+              <div class="cat-item" onclick="selectCat(this,'🔧')"><div class="ci">🔧</div><div class="cn">Handyman</div></div>
+              <div class="cat-item" onclick="selectCat(this,'💻')"><div class="ci">💻</div><div class="cn">IT</div></div>
+              <div class="cat-item" onclick="selectCat(this,'🧹')"><div class="ci">🧹</div><div class="cn">Städning</div></div>
+              <div class="cat-item" onclick="selectCat(this,'🛍️')"><div class="ci">🛍️</div><div class="cn">Ärenden</div></div>
+              <div class="cat-item" onclick="selectCat(this,'🎨')"><div class="ci">🎨</div><div class="cn">Kreativt</div></div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Beskrivning <span style="color:#EF4444">*</span></label>
+            <textarea placeholder="Beskriv vad som behöver göras, vad som finns tillgängligt på plats och eventuella krav på utföraren..." id="job-desc"></textarea>
+            <div class="hint">Detaljerade beskrivningar attraherar fler och bättre sökanden</div>
+          </div>
+        </div>
+
+        <div class="form-card">
+          <h2>📍 Plats och tid</h2>
+
+          <div class="form-group">
+            <label>Adress eller område <span style="color:#EF4444">*</span></label>
+            <input type="text" placeholder="t.ex. Östermalm, Stockholm eller Ringvägen 10">
+            <div class="hint">Exakt adress visas endast för godkänd utförare</div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group" style="margin-bottom:0">
+              <label>Önskat datum <span style="color:#EF4444">*</span></label>
+              <input type="date" min="2026-04-08">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label>Flexibelt datum</label>
+              <select>
+                <option>Nej, specifikt datum</option>
+                <option>Ja, inom en vecka</option>
+                <option>Ja, inom en månad</option>
+                <option>Löpande uppdrag</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-card">
+          <h2>💰 Pris och betalning</h2>
+
+          <div class="form-group">
+            <label>Betalningstyp</label>
+            <div class="price-type">
+              <button class="price-opt active" onclick="setPriceType(this,'fast')">🔒 Fast pris</button>
+              <button class="price-opt" onclick="setPriceType(this,'timme')">⏱️ Per timme</button>
+              <button class="price-opt" onclick="setPriceType(this,'offert')">📋 Begär offert</button>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group" style="margin-bottom:0">
+              <label>Belopp (kr) <span style="color:#EF4444">*</span></label>
+              <input type="number" placeholder="0" min="0" max="30000" id="job-price" oninput="updatePreview()">
+            </div>
+            <div class="form-group" style="margin-bottom:0">
+              <label>Uppskattad tid</label>
+              <select>
+                <option>— Välj —</option>
+                <option>Under 1 timme</option>
+                <option>1–2 timmar</option>
+                <option>2–4 timmar</option>
+                <option>Halvdag</option>
+                <option>Heldag</option>
+                <option>Flera dagar</option>
+              </select>
+            </div>
+          </div>
+          <div class="hint" style="margin-top:8px">Betalningen hålls säkert i escrow via Stripe tills jobbet är bekräftat klart.</div>
+        </div>
+      </div>
+
+      <!-- PREVIEW -->
+      <div>
+        <div class="preview-card">
+          <h3>👁️ Förhandsvisning</h3>
+          <div class="preview-job">
+            <div class="pj-top">
+              <div class="pj-ico" id="prev-ico">🏠</div>
+              <div>
+                <div class="pj-title" id="prev-title">Din jobbtitel</div>
+                <div class="pj-cat" id="prev-cat">Hem &amp; Trädgård</div>
+              </div>
+            </div>
+            <div class="pj-meta">📍 Din adress · 📅 Ditt datum</div>
+            <div class="pj-price" id="prev-price">— kr</div>
+          </div>
+
+          <button class="btn btn-primary btn-full" onclick="window.location='listings.html'">🚀 Publicera jobb</button>
+          <button class="btn btn-outline btn-draft">💾 Spara som utkast</button>
+
+          <div style="margin-top:20px">
+            <div style="font-size:13px;font-weight:700;margin-bottom:10px">Tips för bra annons</div>
+            <div class="tip-list">
+              <div class="tip"><div class="tip-icon">✅</div>Var specifik om vad som behövs göras</div>
+              <div class="tip"><div class="tip-icon">✅</div>Ange om verktyg eller utrustning finns</div>
+              <div class="tip"><div class="tip-icon">✅</div>Sätt ett rimligt pris för hobbyverksamhet</div>
+              <div class="tip"><div class="tip-icon">⚠️</div>Kom ihåg 30 000 kr/år-gränsen</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="fg">
+      <div class="fb">
+        <a href="landing.html" class="logo">hobby<span>jobb</span></a>
+        <p>Sveriges plattform för lokala hobbybaserade smajobb.</p>
+      </div>
+      <div class="fc"><h4>Plattform</h4><ul>
+        <li><a href="listings.html">Hitta jobb</a></li>
+        <li><a href="post-job.html">Lägg upp jobb</a></li>
+        <li><a href="landing.html#hur">Hur det fungerar</a></li>
+      </ul></div>
+      <div class="fc"><h4>Konto</h4><ul>
+        <li><a href="login.html">Logga in</a></li>
+        <li><a href="login.html">Skapa konto</a></li>
+        <li><a href="profile.html">Min profil</a></li>
+      </ul></div>
+      <div class="fc"><h4>Info</h4><ul>
+        <li><a href="landing.html#hobbyinfo">Hobbyinfo</a></li>
+        <li><a href="landing.html#faq">FAQ</a></li>
+        <li><a href="https://www.skatteverket.se" target="_blank" rel="noopener">Skatteverket</a></li>
+      </ul></div>
+    </div>
+    <div class="fb2">
+      <span>© 2026 HobbyJobb · DA219B Grupp 5 · Högskolan Kristianstad</span>
+      <div class="fl"><a href="#">Integritetspolicy</a><a href="#">Användarvillkor</a></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+var currentCatIco = '🏠';
+var currentCatName = 'Hem &amp; Trädgård';
+
+function selectCat(el, ico) {
+  document.querySelectorAll('.cat-item').forEach(function(c){c.classList.remove('active')});
+  el.classList.add('active');
+  currentCatIco = ico;
+  currentCatName = el.querySelector('.cn').textContent;
+  updatePreview();
+}
+
+function setPriceType(el) {
+  document.querySelectorAll('.price-opt').forEach(function(b){b.classList.remove('active')});
+  el.classList.add('active');
+}
+
+function updatePreview() {
+  var title = document.getElementById('job-title').value || 'Din jobbtitel';
+  var price = document.getElementById('job-price').value;
+  document.getElementById('prev-title').textContent = title;
+  document.getElementById('prev-ico').textContent = currentCatIco;
+  document.getElementById('prev-cat').innerHTML = currentCatName;
+  document.getElementById('prev-price').textContent = price ? parseInt(price).toLocaleString('sv') + ' kr' : '— kr';
+}
+</script>
+</body>
+</html>

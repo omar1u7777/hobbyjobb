@@ -1,0 +1,248 @@
+﻿<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gräsklippning och kantskärning – HobbyJobb</title>
+<style>
+:root{--bg:#F8FAFC;--blue:#2563EB;--dark:#0F172A;--muted:#64748B;--white:#FFFFFF;--r:10px;--sh:0 2px 8px rgba(0,0,0,.07);--shlg:0 12px 32px rgba(0,0,0,.10)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--dark);background:var(--bg);line-height:1.6}
+.container{max-width:1160px;margin:0 auto;padding:0 24px}
+nav{background:var(--white);border-bottom:1px solid #E2E8F0;position:sticky;top:0;z-index:100}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{font-size:20px;font-weight:800;color:var(--dark);text-decoration:none}
+.logo span{color:var(--blue)}
+.nav-links{display:flex;gap:28px;list-style:none}
+.nav-links a{text-decoration:none;color:var(--muted);font-size:15px;font-weight:500;transition:color .15s}
+.nav-links a:hover{color:var(--dark)}
+.nav-actions{display:flex;align-items:center;gap:14px}
+.login{color:var(--dark);font-weight:500;font-size:15px;cursor:pointer;text-decoration:none}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;text-decoration:none;transition:all .15s;border:none}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:#1D4ED8;transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,99,235,.3)}
+.btn-outline{background:transparent;color:var(--dark);border:2px solid #D1D5DB}
+.btn-outline:hover{border-color:var(--blue);color:var(--blue)}
+.btn-green{background:#16A34A;color:#fff}
+.btn-green:hover{background:#15803D;transform:translateY(-1px)}
+.breadcrumb{padding:16px 0;font-size:14px;color:var(--muted)}
+.breadcrumb a{color:var(--muted);text-decoration:none;transition:color .15s}
+.breadcrumb a:hover{color:var(--blue)}
+.breadcrumb span{margin:0 8px;color:#CBD5E1}
+.page-body{padding:0 0 64px}
+.layout{display:grid;grid-template-columns:1fr 360px;gap:32px;align-items:start}
+.job-header{background:var(--white);border-radius:var(--r);border:1px solid #E2E8F0;padding:28px;margin-bottom:20px}
+.job-title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:16px}
+.job-title{font-size:clamp(20px,3vw,28px);font-weight:800;line-height:1.2}
+.job-badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.badge{display:inline-flex;align-items:center;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700}
+.badge-cat{background:#EFF6FF;color:var(--blue)}
+.badge-new{background:#DCFCE7;color:#16A34A}
+.badge-today{background:#DBEAFE;color:var(--blue)}
+.job-meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.jmg{background:#F8FAFC;border-radius:8px;padding:14px}
+.jmg-icon{font-size:20px;margin-bottom:4px}
+.jmg-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:2px}
+.jmg-val{font-size:15px;font-weight:700}
+.section{background:var(--white);border-radius:var(--r);border:1px solid #E2E8F0;padding:24px;margin-bottom:20px}
+.section h3{font-size:16px;font-weight:700;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid #F1F5F9}
+.section p{font-size:15px;color:var(--muted);line-height:1.75}
+.desc-list{list-style:none;display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.desc-list li{display:flex;align-items:flex-start;gap:10px;font-size:14px;color:var(--dark)}
+.desc-list li::before{content:'✓';color:#16A34A;font-weight:700;flex-shrink:0;margin-top:1px}
+.map-placeholder{background:#E2E8F0;border-radius:8px;height:180px;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:14px;font-weight:600;margin-top:4px}
+.poster-card{background:var(--white);border-radius:var(--r);border:1px solid #E2E8F0;padding:24px;position:sticky;top:88px}
+.poster-top{display:flex;align-items:center;gap:14px;margin-bottom:18px;padding-bottom:18px;border-bottom:1px solid #F1F5F9}
+.avatar{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--blue),#60A5FA);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#fff;flex-shrink:0}
+.poster-name{font-size:16px;font-weight:700}
+.stars{color:#F59E0B;font-size:14px}
+.poster-stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px}
+.pstat{text-align:center;background:#F8FAFC;border-radius:8px;padding:12px}
+.pstat-n{font-size:20px;font-weight:800}
+.pstat-l{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.price-box{background:#F0FDF4;border-radius:10px;border:1.5px solid #BBF7D0;padding:20px;margin-bottom:18px;text-align:center}
+.price-main{font-size:36px;font-weight:900;color:#16A34A}
+.price-sub{font-size:13px;color:#4B7C5A;margin-top:4px}
+.escrow-info{background:#EFF6FF;border-radius:8px;padding:14px;margin-bottom:18px;font-size:13px;color:#1E40AF;line-height:1.6}
+.escrow-info strong{display:block;margin-bottom:4px;font-size:14px}
+.btn-full{width:100%;justify-content:center;padding:14px;font-size:16px}
+.btn-msg{width:100%;justify-content:center;padding:12px;margin-top:10px;font-size:15px}
+.safety-note{font-size:12px;color:var(--muted);text-align:center;margin-top:12px;line-height:1.6}
+.safety-note a{color:var(--blue);text-decoration:none}
+.reviews{display:flex;flex-direction:column;gap:14px}
+.review{padding:16px;background:#F8FAFC;border-radius:8px}
+.rev-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.rev-name{font-size:13px;font-weight:700}
+.rev-date{font-size:12px;color:var(--muted)}
+.rev-text{font-size:14px;color:var(--muted);line-height:1.6}
+footer{background:var(--dark);color:#94A3B8;padding:40px 0 24px}
+.fg{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:28px}
+.fb .logo{color:#fff;display:block;margin-bottom:8px}.fb p{font-size:14px;line-height:1.7;max-width:240px}
+.fc h4{color:#fff;font-size:13px;font-weight:700;margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em}
+.fc ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.fc a{color:#94A3B8;text-decoration:none;font-size:14px;transition:color .15s}
+.fc a:hover{color:#fff}
+.fb2{border-top:1px solid #1E293B;padding-top:20px;display:flex;justify-content:space-between;font-size:13px;flex-wrap:wrap;gap:10px}
+.fl{display:flex;gap:16px}.fl a{color:#64748B;text-decoration:none}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.poster-card{position:static}.job-meta-grid{grid-template-columns:1fr 1fr}.nav-links{display:none}.fg{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.job-meta-grid{grid-template-columns:1fr}.fg{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="container nav-inner">
+    <a href="landing.html" class="logo">hobby<span>jobb</span></a>
+    <ul class="nav-links">
+      <li><a href="listings.html">Hitta jobb</a></li>
+      <li><a href="landing.html#hobbyinfo">Hobbyinfo</a></li>
+      <li><a href="landing.html#hur">Hur det fungerar</a></li>
+      <li><a href="landing.html#faq">FAQ</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="login.html" class="login">Logga in</a>
+      <a href="post-job.html" class="btn btn-outline">Lägg upp jobb</a>
+      <a href="login.html" class="btn btn-primary">Kom igång</a>
+    </div>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="breadcrumb">
+    <a href="landing.html">Hem</a><span>›</span>
+    <a href="listings.html">Hitta jobb</a><span>›</span>
+    <a href="listings.html">Hem och Trädgård</a><span>›</span>
+    Gräsklippning och kantskärning
+  </div>
+</div>
+
+<div class="page-body">
+  <div class="container">
+    <div class="layout">
+
+      <!-- LEFT COLUMN -->
+      <div>
+        <div class="job-header">
+          <div class="job-title-row">
+            <div class="job-title">Gräsklippning och kantskärning</div>
+            <button onclick="this.textContent = this.textContent==='🤍 Spara' ? '❤️ Sparad' : '🤍 Spara'" style="background:none;border:1.5px solid #D1D5DB;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:14px;font-weight:600;white-space:nowrap;color:var(--muted)">🤍 Spara</button>
+          </div>
+          <div class="job-badges">
+            <span class="badge badge-cat">🏠 Hem och Trädgård</span>
+            <span class="badge badge-today">Idag</span>
+            <span class="badge badge-new" style="background:#FEF3C7;color:#D97706">⚡ HobbyJobb</span>
+          </div>
+          <div class="job-meta-grid">
+            <div class="jmg"><div class="jmg-icon">📍</div><div class="jmg-label">Plats</div><div class="jmg-val">Östermalm, Stockholm</div></div>
+            <div class="jmg"><div class="jmg-icon">📅</div><div class="jmg-label">Datum</div><div class="jmg-val">8 april 2026</div></div>
+            <div class="jmg"><div class="jmg-icon">⏱️</div><div class="jmg-label">Uppskattad tid</div><div class="jmg-val">2–3 timmar</div></div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>📋 Beskrivning</h3>
+          <p>Jag söker någon som kan klippa min gräsmatta och skära kanternas i min trädgård på Östermalm. Gräsmattan är ca 80 kvm och har en lättkört form utan hinder.</p>
+          <ul class="desc-list">
+            <li>Klippa gräsmatta ca 80 kvm</li>
+            <li>Kantskärning runt gångstenar och rabatter</li>
+            <li>Samla upp gräsklippet i säckar</li>
+            <li>Gräsklippare finns tillgänglig på plats</li>
+          </ul>
+        </div>
+
+        <div class="section">
+          <h3>📍 Plats</h3>
+          <p style="margin-bottom:12px;font-size:14px"><strong>Östermalm, Stockholm</strong> · 1.2 km från dig</p>
+          <div class="map-placeholder">🗺️ Kartvy – exakt adress visas vid bokning</div>
+        </div>
+
+        <div class="section">
+          <h3>⭐ Recensioner av beställaren</h3>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+            <span style="font-size:28px;font-weight:900">4.9</span>
+            <div><div style="color:#F59E0B;font-size:18px">★★★★★</div><div style="font-size:13px;color:var(--muted)">Baserat på 32 jobb</div></div>
+          </div>
+          <div class="reviews">
+            <div class="review">
+              <div class="rev-top"><span class="rev-name">Erik M.</span><div><span class="stars">★★★★★</span><span class="rev-date" style="margin-left:8px">Mars 2026</span></div></div>
+              <div class="rev-text">Väldigt trevlig och tydlig beställare. Allt gick smidigt och pengarna frigjordes direkt efter jobbet!</div>
+            </div>
+            <div class="review">
+              <div class="rev-top"><span class="rev-name">Lisa K.</span><div><span class="stars">★★★★★</span><span class="rev-date" style="margin-left:8px">Feb 2026</span></div></div>
+              <div class="rev-text">Precis som beskrivet. Bra kommunikation och snabb betalning via escrow. Rekommenderar!</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN — BOOKING CARD -->
+      <div>
+        <div class="poster-card">
+          <div class="poster-top">
+            <div class="avatar">A</div>
+            <div>
+              <div class="poster-name">Anna Lindgren</div>
+              <div class="stars">★★★★★ <span style="font-size:13px;color:var(--muted);font-weight:600">4.9</span></div>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px">Beställare sedan jan 2025</div>
+            </div>
+          </div>
+
+          <div class="poster-stats">
+            <div class="pstat"><div class="pstat-n">32</div><div class="pstat-l">Jobb</div></div>
+            <div class="pstat"><div class="pstat-n">4.9</div><div class="pstat-l">Betyg</div></div>
+          </div>
+
+          <div class="price-box">
+            <div class="price-main">650 kr</div>
+            <div class="price-sub">Fast pris · Hobby-säkert</div>
+          </div>
+
+          <div class="escrow-info">
+            <strong>🔒 Säker betalning via Stripe</strong>
+            Pengarna hålls i escrow tills du bekräftar att jobbet är klart. 92 % frigörs till utföraren · 8 % plattformsavgift.
+          </div>
+
+          <button class="btn btn-green btn-full" onclick="window.location='login.html'">✓ Ansök om jobbet</button>
+          <button class="btn btn-outline btn-msg" onclick="window.location='login.html'">💬 Skicka meddelande</button>
+
+          <div class="safety-note">
+            Jobbet utförs under <a href="landing.html#hobbyinfo">hobbyverksamhetens regler</a>.<br>
+            Max 30 000 kr/år per utförare.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="fg">
+      <div class="fb">
+        <a href="landing.html" class="logo">hobby<span>jobb</span></a>
+        <p>Sveriges plattform för lokala hobbybaserade smajobb.</p>
+      </div>
+      <div class="fc"><h4>Plattform</h4><ul>
+        <li><a href="listings.html">Hitta jobb</a></li>
+        <li><a href="post-job.html">Lägg upp jobb</a></li>
+        <li><a href="landing.html#hur">Hur det fungerar</a></li>
+      </ul></div>
+      <div class="fc"><h4>Konto</h4><ul>
+        <li><a href="login.html">Logga in</a></li>
+        <li><a href="login.html">Skapa konto</a></li>
+        <li><a href="profile.html">Min profil</a></li>
+      </ul></div>
+      <div class="fc"><h4>Info</h4><ul>
+        <li><a href="landing.html#hobbyinfo">Hobbyinfo</a></li>
+        <li><a href="landing.html#faq">FAQ</a></li>
+        <li><a href="https://www.skatteverket.se" target="_blank" rel="noopener">Skatteverket</a></li>
+      </ul></div>
+    </div>
+    <div class="fb2">
+      <span>© 2026 HobbyJobb · DA219B Grupp 5 · Högskolan Kristianstad</span>
+      <div class="fl"><a href="#">Integritetspolicy</a><a href="#">Användarvillkor</a></div>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

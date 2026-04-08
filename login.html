@@ -1,0 +1,149 @@
+﻿<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logga in – HobbyJobb</title>
+<style>
+:root{--bg:#F8FAFC;--blue:#2563EB;--dark:#0F172A;--muted:#64748B;--white:#FFFFFF;--r:10px;--sh:0 2px 8px rgba(0,0,0,.07);--shlg:0 12px 32px rgba(0,0,0,.10)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--dark);background:var(--bg);line-height:1.6}
+.container{max-width:1160px;margin:0 auto;padding:0 24px}
+nav{background:var(--white);border-bottom:1px solid #E2E8F0;position:sticky;top:0;z-index:100}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{font-size:20px;font-weight:800;color:var(--dark);text-decoration:none}
+.logo span{color:var(--blue)}
+.nav-links{display:flex;gap:28px;list-style:none}
+.nav-links a{text-decoration:none;color:var(--muted);font-size:15px;font-weight:500;transition:color .15s}
+.nav-links a:hover{color:var(--dark)}
+.nav-actions{display:flex;align-items:center;gap:14px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;text-decoration:none;transition:all .15s;border:none}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:#1D4ED8;transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,99,235,.3)}
+.btn-outline{background:transparent;color:var(--dark);border:2px solid #D1D5DB}
+.btn-outline:hover{border-color:var(--blue);color:var(--blue)}
+.login-wrap{min-height:calc(100vh - 64px - 80px);display:flex;align-items:center;justify-content:center;padding:48px 24px}
+.auth-card{background:var(--white);border-radius:14px;box-shadow:var(--shlg);padding:40px;width:100%;max-width:440px;border:1px solid #E2E8F0}
+.auth-logo{text-align:center;margin-bottom:28px}
+.auth-logo .logo{font-size:24px}
+.tabs{display:flex;background:#F1F5F9;border-radius:8px;padding:4px;margin-bottom:28px}
+.tab{flex:1;text-align:center;padding:9px;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;color:var(--muted);transition:all .15s;border:none;background:none}
+.tab.active{background:var(--white);color:var(--dark);box-shadow:0 1px 4px rgba(0,0,0,.1)}
+.form-group{margin-bottom:18px}
+.form-group label{display:block;font-size:13px;font-weight:600;color:var(--dark);margin-bottom:6px}
+.form-group input{width:100%;padding:12px 14px;border:1.5px solid #D1D5DB;border-radius:8px;font-size:15px;color:var(--dark);background:var(--bg);transition:border .15s;outline:none;font-family:inherit}
+.form-group input:focus{border-color:var(--blue);background:var(--white)}
+.form-group input::placeholder{color:#94A3B8}
+.hobby-check{display:flex;gap:10px;align-items:flex-start;background:#FFFBEB;border:1.5px solid #FCD34D;border-radius:8px;padding:14px;margin-bottom:18px}
+.hobby-check input[type=checkbox]{width:18px;height:18px;margin-top:2px;flex-shrink:0;accent-color:var(--blue)}
+.hobby-check label{font-size:13px;color:#92400E;line-height:1.5;cursor:pointer}
+.hobby-check strong{color:#78350F}
+.btn-full{width:100%;justify-content:center;padding:14px}
+.divider{text-align:center;color:var(--muted);font-size:13px;margin:18px 0;position:relative}
+.divider::before,.divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:#E2E8F0}
+.divider::before{left:0}.divider::after{right:0}
+.forgot{text-align:right;margin-top:-10px;margin-bottom:18px}
+.forgot a{font-size:13px;color:var(--blue);text-decoration:none;font-weight:600}
+.switch-mode{text-align:center;margin-top:20px;font-size:14px;color:var(--muted)}
+.switch-mode a{color:var(--blue);font-weight:600;text-decoration:none}
+footer{background:var(--dark);color:#94A3B8;padding:32px 0;text-align:center;font-size:13px}
+footer .logo{color:#fff;display:inline-block;margin-bottom:8px}
+.fb2{margin-top:10px;display:flex;justify-content:center;gap:16px;flex-wrap:wrap}
+.fb2 a{color:#64748B;text-decoration:none}
+@media(max-width:900px){.nav-links{display:none}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="container nav-inner">
+    <a href="landing.html" class="logo">hobby<span>jobb</span></a>
+    <ul class="nav-links">
+      <li><a href="listings.html">Hitta jobb</a></li>
+      <li><a href="landing.html#hobbyinfo">Hobbyinfo</a></li>
+      <li><a href="landing.html#hur">Hur det fungerar</a></li>
+      <li><a href="landing.html#faq">FAQ</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="listings.html" class="btn btn-outline">Bläddra jobb</a>
+    </div>
+  </div>
+</nav>
+
+<div class="login-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <a href="landing.html" class="logo">hobby<span>jobb</span></a>
+      <p style="font-size:14px;color:var(--muted);margin-top:6px">Lokala hobbybaserade smajobb</p>
+    </div>
+    <div class="tabs">
+      <button class="tab active" id="tab-login" onclick="switchTab('login')">Logga in</button>
+      <button class="tab" id="tab-register" onclick="switchTab('register')">Skapa konto</button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <div id="form-login">
+      <div class="form-group">
+        <label>E-post</label>
+        <input type="email" placeholder="din@email.se">
+      </div>
+      <div class="form-group">
+        <label>Lösenord</label>
+        <input type="password" placeholder="••••••••">
+      </div>
+      <div class="forgot"><a href="#">Glömt lösenord?</a></div>
+      <button class="btn btn-primary btn-full" onclick="window.location='listings.html'">Logga in</button>
+      <div class="divider">eller</div>
+      <div class="switch-mode">Inget konto? <a href="#" onclick="switchTab('register');return false">Skapa konto gratis</a></div>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="form-register" style="display:none">
+      <div class="form-group">
+        <label>Fullständigt namn</label>
+        <input type="text" placeholder="Anna Johansson">
+      </div>
+      <div class="form-group">
+        <label>E-post</label>
+        <input type="email" placeholder="din@email.se">
+      </div>
+      <div class="form-group">
+        <label>Lösenord</label>
+        <input type="password" placeholder="Minst 8 tecken">
+      </div>
+      <div class="form-group">
+        <label>Bekräfta lösenord</label>
+        <input type="password" placeholder="Upprepa lösenord">
+      </div>
+      <div class="hobby-check">
+        <input type="checkbox" id="hobby-agree">
+        <label for="hobby-agree">Jag bekräftar att jag använder HobbyJobb <strong>enbart för hobbyverksamhet</strong> och förstår att inkomstgränsen är max 30 000 kr/år.</label>
+      </div>
+      <button class="btn btn-primary btn-full" onclick="window.location='listings.html'">Skapa konto gratis</button>
+      <div class="switch-mode" style="margin-top:16px">Har redan konto? <a href="#" onclick="switchTab('login');return false">Logga in</a></div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <a href="landing.html" class="logo">hobby<span>jobb</span></a>
+    <div>© 2026 HobbyJobb · DA219B Grupp 5 · Högskolan Kristianstad</div>
+    <div class="fb2">
+      <a href="#">Integritetspolicy</a>
+      <a href="#">Användarvillkor</a>
+      <a href="#">Cookies</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+function switchTab(t) {
+  document.getElementById('form-login').style.display = t === 'login' ? 'block' : 'none';
+  document.getElementById('form-register').style.display = t === 'register' ? 'block' : 'none';
+  document.getElementById('tab-login').classList.toggle('active', t === 'login');
+  document.getElementById('tab-register').classList.toggle('active', t === 'register');
+}
+</script>
+</body>
+</html>

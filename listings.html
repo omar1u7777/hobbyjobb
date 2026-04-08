@@ -1,0 +1,326 @@
+﻿<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hitta jobb – HobbyJobb</title>
+<style>
+:root{--bg:#F8FAFC;--blue:#2563EB;--dark:#0F172A;--muted:#64748B;--white:#FFFFFF;--r:10px;--sh:0 2px 8px rgba(0,0,0,.07);--shlg:0 12px 32px rgba(0,0,0,.10)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--dark);background:var(--bg);line-height:1.6}
+.container{max-width:1160px;margin:0 auto;padding:0 24px}
+nav{background:var(--white);border-bottom:1px solid #E2E8F0;position:sticky;top:0;z-index:100}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:64px}
+.logo{font-size:20px;font-weight:800;color:var(--dark);text-decoration:none}
+.logo span{color:var(--blue)}
+.nav-links{display:flex;gap:28px;list-style:none}
+.nav-links a{text-decoration:none;color:var(--muted);font-size:15px;font-weight:500;transition:color .15s}
+.nav-links a:hover,.nav-links a.active{color:var(--dark)}
+.nav-actions{display:flex;align-items:center;gap:14px}
+.login{color:var(--dark);font-weight:500;font-size:15px;cursor:pointer;text-decoration:none}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:8px;font-size:15px;font-weight:600;cursor:pointer;text-decoration:none;transition:all .15s;border:none}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:#1D4ED8;transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,99,235,.3)}
+.btn-outline{background:transparent;color:var(--dark);border:2px solid #D1D5DB}
+.btn-outline:hover{border-color:var(--blue);color:var(--blue)}
+.search-bar{background:var(--white);border-bottom:1px solid #E2E8F0;padding:20px 0}
+.search-inner{display:flex;gap:12px;align-items:center}
+.search-input{flex:1;display:flex;align-items:center;background:var(--bg);border:1.5px solid #D1D5DB;border-radius:8px;padding:10px 16px;gap:10px;transition:border .15s}
+.search-input:focus-within{border-color:var(--blue)}
+.search-input input{border:none;outline:none;background:transparent;font-size:15px;color:var(--dark);flex:1;font-family:inherit}
+.search-input input::placeholder{color:#94A3B8}
+.search-input .sico{color:var(--muted);font-size:17px}
+.loc-input{width:200px;display:flex;align-items:center;background:var(--bg);border:1.5px solid #D1D5DB;border-radius:8px;padding:10px 16px;gap:10px}
+.loc-input input{border:none;outline:none;background:transparent;font-size:15px;color:var(--dark);width:100%;font-family:inherit}
+.loc-input input::placeholder{color:#94A3B8}
+.page-body{padding:32px 0 64px}
+.layout{display:grid;grid-template-columns:260px 1fr;gap:28px;align-items:start}
+.sidebar{background:var(--white);border-radius:var(--r);border:1px solid #E2E8F0;padding:24px;position:sticky;top:88px}
+.sidebar h3{font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:14px}
+.filter-group{margin-bottom:24px;padding-bottom:24px;border-bottom:1px solid #F1F5F9}
+.filter-group:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.filter-group h4{font-size:14px;font-weight:700;margin-bottom:12px}
+.cat-opt{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:7px;cursor:pointer;transition:background .12s}
+.cat-opt:hover{background:#F1F5F9}
+.cat-opt.active{background:#EFF6FF;color:var(--blue)}
+.cat-opt .co-l{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:500}
+.cat-opt .co-c{font-size:12px;color:var(--muted);font-weight:600}
+.cat-opt.active .co-c{color:#93C5FD}
+.price-row{display:flex;gap:10px}
+.price-row input{flex:1;padding:9px 12px;border:1.5px solid #D1D5DB;border-radius:7px;font-size:14px;outline:none;font-family:inherit}
+.price-row input:focus{border-color:var(--blue)}
+.range-slider{width:100%;margin-top:10px;accent-color:var(--blue)}
+.dist-opts{display:flex;gap:8px;flex-wrap:wrap}
+.dist-opt{padding:6px 14px;border-radius:20px;font-size:13px;font-weight:600;border:1.5px solid #D1D5DB;cursor:pointer;transition:all .15s;background:none;color:var(--muted)}
+.dist-opt:hover,.dist-opt.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.reset-filters{width:100%;padding:10px;border-radius:8px;font-size:14px;font-weight:600;color:var(--muted);background:#F1F5F9;border:none;cursor:pointer;margin-top:8px;transition:background .15s}
+.reset-filters:hover{background:#E2E8F0}
+.results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.results-count{font-size:15px;color:var(--muted)}.results-count strong{color:var(--dark)}
+.sort-sel{padding:9px 14px;border:1.5px solid #D1D5DB;border-radius:8px;font-size:14px;color:var(--dark);background:var(--white);outline:none;cursor:pointer;font-family:inherit}
+.job-grid{display:flex;flex-direction:column;gap:14px}
+.job-card{background:var(--white);border-radius:var(--r);border:1px solid #E2E8F0;padding:20px 22px;display:flex;align-items:center;gap:18px;cursor:pointer;transition:all .15s;text-decoration:none;color:inherit}
+.job-card:hover{box-shadow:var(--shlg);transform:translateY(-2px);border-color:#CBD5E1}
+.jico{width:48px;height:48px;border-radius:10px;background:#EFF6FF;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.ji{flex:1;min-width:0}
+.jt{font-size:15px;font-weight:700;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.jmeta{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.jm{font-size:13px;color:var(--muted)}
+.jm-icon{margin-right:4px}
+.jtag{display:inline-block;font-size:11px;font-weight:700;padding:2px 9px;border-radius:4px;color:#fff}
+.t-new{background:#16A34A}.t-today{background:var(--blue)}.t-part{background:#D97706}
+.jright{text-align:right;flex-shrink:0}
+.jprice{font-size:20px;font-weight:800;color:var(--blue)}
+.jprice-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.stars{color:#F59E0B;font-size:13px}
+.pagination{display:flex;justify-content:center;gap:8px;margin-top:32px}
+.page-btn{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;cursor:pointer;border:1.5px solid #D1D5DB;background:var(--white);color:var(--muted);transition:all .15s}
+.page-btn:hover{border-color:var(--blue);color:var(--blue)}
+.page-btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
+footer{background:var(--dark);color:#94A3B8;padding:40px 0 24px}
+.fg{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:28px}
+.fb .logo{color:#fff;display:block;margin-bottom:8px}.fb p{font-size:14px;line-height:1.7;max-width:240px}
+.fc h4{color:#fff;font-size:13px;font-weight:700;margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em}
+.fc ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+.fc a{color:#94A3B8;text-decoration:none;font-size:14px;transition:color .15s}
+.fc a:hover{color:#fff}
+.fb2{border-top:1px solid #1E293B;padding-top:20px;display:flex;justify-content:space-between;font-size:13px;flex-wrap:wrap;gap:10px}
+.fl{display:flex;gap:16px}.fl a{color:#64748B;text-decoration:none}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.sidebar{position:static}.nav-links{display:none}.fg{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.fg{grid-template-columns:1fr}.loc-input{display:none}.search-inner{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="container nav-inner">
+    <a href="landing.html" class="logo">hobby<span>jobb</span></a>
+    <ul class="nav-links">
+      <li><a href="listings.html" class="active">Hitta jobb</a></li>
+      <li><a href="landing.html#hobbyinfo">Hobbyinfo</a></li>
+      <li><a href="landing.html#hur">Hur det fungerar</a></li>
+      <li><a href="landing.html#faq">FAQ</a></li>
+    </ul>
+    <div class="nav-actions">
+      <a href="login.html" class="login">Logga in</a>
+      <a href="post-job.html" class="btn btn-outline">Lägg upp jobb</a>
+      <a href="login.html" class="btn btn-primary">Kom igång</a>
+    </div>
+  </div>
+</nav>
+
+<div class="search-bar">
+  <div class="container">
+    <div class="search-inner">
+      <div class="search-input">
+        <span class="sico">🔍</span>
+        <input type="text" placeholder="Sök jobb – t.ex. gräsklippning, flytt...">
+      </div>
+      <div class="loc-input">
+        <span style="font-size:16px">📍</span>
+        <input type="text" placeholder="Stad eller postnummer">
+      </div>
+      <button class="btn btn-primary">Sök</button>
+    </div>
+  </div>
+</div>
+
+<div class="page-body">
+  <div class="container">
+    <div class="layout">
+
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <h3>Filter</h3>
+
+        <div class="filter-group">
+          <h4>Kategori</h4>
+          <div class="cat-opt active" onclick="setActive(this)"><div class="co-l"><span>🏠</span> Hem och Trädgård</div><span class="co-c">342</span></div>
+          <div class="cat-opt" onclick="setActive(this)"><div class="co-l"><span>🐶</span> Djur och Husdjur</div><span class="co-c">128</span></div>
+          <div class="cat-opt" onclick="setActive(this)"><div class="co-l"><span>🚛</span> Flytt och Transport</div><span class="co-c">89</span></div>
+          <div class="cat-opt" onclick="setActive(this)"><div class="co-l"><span>🔧</span> Handyman</div><span class="co-c">215</span></div>
+          <div class="cat-opt" onclick="setActive(this)"><div class="co-l"><span>💻</span> IT och Teknik</div><span class="co-c">74</span></div>
+          <div class="cat-opt" onclick="setActive(this)"><div class="co-l"><span>🧹</span> Städning</div><span class="co-c">284</span></div>
+          <div class="cat-opt" onclick="setActive(this)"><div class="co-l"><span>🛍️</span> Ärenden</div><span class="co-c">153</span></div>
+        </div>
+
+        <div class="filter-group">
+          <h4>Prisspann</h4>
+          <div class="price-row">
+            <input type="number" placeholder="Min kr" min="0">
+            <input type="number" placeholder="Max kr" min="0">
+          </div>
+          <input type="range" class="range-slider" min="0" max="5000" value="2500">
+        </div>
+
+        <div class="filter-group">
+          <h4>Avstånd</h4>
+          <div class="dist-opts">
+            <button class="dist-opt">1 km</button>
+            <button class="dist-opt active">5 km</button>
+            <button class="dist-opt">10 km</button>
+            <button class="dist-opt">25 km</button>
+            <button class="dist-opt">Alla</button>
+          </div>
+        </div>
+
+        <button class="reset-filters" onclick="resetFilters()">Rensa filter</button>
+      </aside>
+
+      <!-- JOB LISTINGS -->
+      <main>
+        <div class="results-header">
+          <div class="results-count">Visar <strong>47 jobb</strong> nära dig</div>
+          <select class="sort-sel">
+            <option>Sortera: Närmast</option>
+            <option>Sortera: Nyast</option>
+            <option>Sortera: Pris (lägst)</option>
+            <option>Sortera: Pris (högst)</option>
+          </select>
+        </div>
+
+        <div class="job-grid">
+          <a href="job-detail.html" class="job-card">
+            <div class="jico">🌿</div>
+            <div class="ji">
+              <div class="jt">Gräsklippning och kantskärning</div>
+              <div class="jmeta">
+                <span class="jm"><span class="jm-icon">📍</span>Östermalm · 1.2 km</span>
+                <span class="jm"><span class="jm-icon">📅</span>Idag</span>
+                <span class="jtag t-today">Idag</span>
+              </div>
+              <div class="jmeta" style="margin-top:6px"><span class="stars">★★★★★</span><span class="jm" style="margin-left:4px">Anna L. · 4.9 (32 jobb)</span></div>
+            </div>
+            <div class="jright"><div class="jprice">650 kr</div><div class="jprice-sub">Fast pris</div></div>
+          </a>
+
+          <a href="job-detail.html" class="job-card">
+            <div class="jico">🛒</div>
+            <div class="ji">
+              <div class="jt">IKEA-montering (3 möbler)</div>
+              <div class="jmeta">
+                <span class="jm"><span class="jm-icon">📍</span>Södermalm · 2.4 km</span>
+                <span class="jm"><span class="jm-icon">📅</span>Imorgon</span>
+                <span class="jtag t-new">Nytt</span>
+              </div>
+              <div class="jmeta" style="margin-top:6px"><span class="stars">★★★★☆</span><span class="jm" style="margin-left:4px">Björn K. · 4.6 (18 jobb)</span></div>
+            </div>
+            <div class="jright"><div class="jprice">850 kr</div><div class="jprice-sub">Fast pris</div></div>
+          </a>
+
+          <a href="job-detail.html" class="job-card">
+            <div class="jico">🐶</div>
+            <div class="ji">
+              <div class="jt">Hundpromenad, 2x/vecka i 4 veckor</div>
+              <div class="jmeta">
+                <span class="jm"><span class="jm-icon">📍</span>Vasastan · 0.8 km</span>
+                <span class="jm"><span class="jm-icon">📅</span>Löpande</span>
+                <span class="jtag t-part">Deltid</span>
+              </div>
+              <div class="jmeta" style="margin-top:6px"><span class="stars">★★★★★</span><span class="jm" style="margin-left:4px">Maria S. · 5.0 (51 jobb)</span></div>
+            </div>
+            <div class="jright"><div class="jprice">300 kr</div><div class="jprice-sub">Per tillfälle</div></div>
+          </a>
+
+          <a href="job-detail.html" class="job-card">
+            <div class="jico">🚚</div>
+            <div class="ji">
+              <div class="jt">Hjälp med mindre flytt (3 rum)</div>
+              <div class="jmeta">
+                <span class="jm"><span class="jm-icon">📍</span>Kungsholmen · 3.1 km</span>
+                <span class="jm"><span class="jm-icon">📅</span>Lördag 12 apr</span>
+                <span class="jtag t-today">Idag</span>
+              </div>
+              <div class="jmeta" style="margin-top:6px"><span class="stars">★★★★☆</span><span class="jm" style="margin-left:4px">Per A. · 4.7 (9 jobb)</span></div>
+            </div>
+            <div class="jright"><div class="jprice">1 200 kr</div><div class="jprice-sub">Fast pris</div></div>
+          </a>
+
+          <a href="job-detail.html" class="job-card">
+            <div class="jico">🔧</div>
+            <div class="ji">
+              <div class="jt">Montera hyllor och tavelkrokar</div>
+              <div class="jmeta">
+                <span class="jm"><span class="jm-icon">📍</span>Lidingö · 4.5 km</span>
+                <span class="jm"><span class="jm-icon">📅</span>Flexibelt</span>
+                <span class="jtag t-new">Nytt</span>
+              </div>
+              <div class="jmeta" style="margin-top:6px"><span class="stars">★★★★★</span><span class="jm" style="margin-left:4px">Lena H. · 4.8 (25 jobb)</span></div>
+            </div>
+            <div class="jright"><div class="jprice">450 kr</div><div class="jprice-sub">Fast pris</div></div>
+          </a>
+
+          <a href="job-detail.html" class="job-card">
+            <div class="jico">🧹</div>
+            <div class="ji">
+              <div class="jt">Storstädning 3 rum och kök</div>
+              <div class="jmeta">
+                <span class="jm"><span class="jm-icon">📍</span>Bromma · 5.8 km</span>
+                <span class="jm"><span class="jm-icon">📅</span>Fredag 11 apr</span>
+                <span class="jtag t-new">Nytt</span>
+              </div>
+              <div class="jmeta" style="margin-top:6px"><span class="stars">★★★★★</span><span class="jm" style="margin-left:4px">Sofia B. · 4.9 (40 jobb)</span></div>
+            </div>
+            <div class="jright"><div class="jprice">900 kr</div><div class="jprice-sub">Fast pris</div></div>
+          </a>
+        </div>
+
+        <div class="pagination">
+          <button class="page-btn active">1</button>
+          <button class="page-btn" onclick="this.closest('.pagination').querySelectorAll('.page-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">2</button>
+          <button class="page-btn" onclick="this.closest('.pagination').querySelectorAll('.page-btn').forEach(b=>b.classList.remove('active'));this.classList.add('active')">3</button>
+          <button class="page-btn">›</button>
+        </div>
+      </main>
+
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="fg">
+      <div class="fb">
+        <a href="landing.html" class="logo">hobby<span>jobb</span></a>
+        <p>Sveriges plattform för lokala hobbybaserade smajobb.</p>
+      </div>
+      <div class="fc"><h4>Plattform</h4><ul>
+        <li><a href="listings.html">Hitta jobb</a></li>
+        <li><a href="post-job.html">Lägg upp jobb</a></li>
+        <li><a href="landing.html#hur">Hur det fungerar</a></li>
+      </ul></div>
+      <div class="fc"><h4>Konto</h4><ul>
+        <li><a href="login.html">Logga in</a></li>
+        <li><a href="login.html">Skapa konto</a></li>
+        <li><a href="profile.html">Min profil</a></li>
+      </ul></div>
+      <div class="fc"><h4>Info</h4><ul>
+        <li><a href="landing.html#hobbyinfo">Hobbyinfo</a></li>
+        <li><a href="landing.html#faq">FAQ</a></li>
+        <li><a href="https://www.skatteverket.se" target="_blank" rel="noopener">Skatteverket</a></li>
+      </ul></div>
+    </div>
+    <div class="fb2">
+      <span>© 2026 HobbyJobb · DA219B Grupp 5 · Högskolan Kristianstad</span>
+      <div class="fl"><a href="#">Integritetspolicy</a><a href="#">Användarvillkor</a></div>
+    </div>
+  </div>
+</footer>
+
+<script>
+function setActive(el) {
+  el.closest('.filter-group').querySelectorAll('.cat-opt').forEach(function(c){c.classList.remove('active')});
+  el.classList.add('active');
+}
+document.querySelectorAll('.dist-opt').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    btn.closest('.dist-opts').querySelectorAll('.dist-opt').forEach(function(b){b.classList.remove('active')});
+    btn.classList.add('active');
+  });
+});
+function resetFilters() {
+  document.querySelectorAll('.cat-opt').forEach(function(c,i){c.classList.toggle('active',i===0)});
+  document.querySelectorAll('.dist-opt').forEach(function(b,i){b.classList.toggle('active',i===1)});
+}
+</script>
+</body>
+</html>

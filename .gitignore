@@ -1,0 +1,19 @@
+﻿# Beroenden
+node_modules/
+
+# Miljövariabler (far ALDRIG pushas till GitHub)
+.env
+.env.local
+.env.production
+
+# Byggfiler
+dist/
+build/
+
+# Loggar
+*.log
+npm-debug.log*
+
+# OS-filer
+.DS_Store
+Thumbs.db

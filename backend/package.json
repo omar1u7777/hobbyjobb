@@ -1,0 +1,13 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "HobbyJobb backend API – Node.js/Express + PostgreSQL + Stripe Connect",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "Student 1 – Omar Ahmad Alhaek",
+  "license": "ISC",
+  "type": "commonjs"
+}

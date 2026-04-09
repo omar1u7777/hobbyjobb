@@ -1,0 +1,11 @@
+const router = require('express').Router();
+const c = require('../controllers/jobController');
+const requireAuth = require('../middleware/requireAuth');
+const hobbyCheck = require('../middleware/hobbyLimitCheck');
+router.get('/', c.getJobs);
+router.get('/my', requireAuth, c.getMyJobs);
+router.get('/:id', c.getJob);
+router.post('/', requireAuth, hobbyCheck, c.createJob);
+router.put('/:id', requireAuth, c.updateJob);
+router.delete('/:id', requireAuth, c.deleteJob);
+module.exports = router;

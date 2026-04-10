@@ -849,7 +849,7 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 > Frontend är 🔒 blockad på att S1 är klar med auth innan S4 kan koppla ihop.
 
 ### 1A — Express-server & Grundstruktur (S1)
-- [ ] `backend/` mapp skapad med `npm init` — **S1**
+- [x] `backend/` mapp skapad med `npm init` — **S1**
 - [x] Alla npm-paket installerade (express, sequelize, pg, bcrypt, jsonwebtoken, cors, helmet, dotenv, express-rate-limit, stripe) — **S1**
 - [ ] `backend/server.js` — Express-app med cors, helmet, json-parser, routes — **S1**
 - [ ] `backend/config/database.js` — Sequelize anslutning till PostgreSQL — **S1**

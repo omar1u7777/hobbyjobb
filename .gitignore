@@ -17,3 +17,4 @@ npm-debug.log*
 # OS-filer
 .DS_Store
 Thumbs.db
+backend/.env

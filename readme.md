@@ -835,10 +835,10 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [x] Databasschema designat och dokumenterat (ER-diagram + alla tabeller)
 - [x] API-dokumentation skriven (alla endpoints, metoder, auth-krav)
 - [x] HTML-wireframes skapade (landing, login, listings, job-detail, post-job, profile)
-- [ ] **GitHub-repo skapat** med `main` + `develop` branch — **S1**
-- [ ] **Roller tilldelade** på GitHub (alla 5 studenter inbjudna som Collaborators) — **S1**
-- [ ] **Branch-skydd aktiverat** på `main` (kräver PR + review) — **S1**
-- [ ] `.gitignore` skapad (node_modules, .env, dist) — **S1**
+- [x] **GitHub-repo skapat** med `main` + `develop` branch — **S1**
+- [x] **Roller tilldelade** på GitHub (alla 5 studenter inbjudna som Collaborators) — **S1**
+- [x] **Branch-skydd aktiverat** på `main` (kräver PR + review) — **S1**
+- [x] `.gitignore` skapad (node_modules, .env, dist) — **S1**
 - [x] `backend/.env.example` skapad (alla nycklar som tomma strängar) — **S1**
 - [ ] `frontend/.env.example` skapad — **S3**
 

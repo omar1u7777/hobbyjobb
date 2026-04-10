@@ -11,8 +11,8 @@ const sequelize = new Sequelize(config.url, {
   dialectOptions: config.dialectOptions || {},
 });
 
-// Importera modeller (S2 skapar dessa filer)
-// const User = require('./User')(sequelize);
+// Importera modeller
+const User = require('./User')(sequelize);
 // const Category = require('./Category')(sequelize);
 // const Job = require('./Job')(sequelize);
 // const Application = require('./Application')(sequelize);
@@ -28,8 +28,8 @@ const sequelize = new Sequelize(config.url, {
 module.exports = {
   sequelize,
   Sequelize,
+  User,
   // Exportera modeller när de är skapade:
-  // User,
   // Category,
   // Job,
   // Application,

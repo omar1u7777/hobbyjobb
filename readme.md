@@ -852,7 +852,7 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [x] `backend/` mapp skapad med `npm init` — **S1**
 - [x] Alla npm-paket installerade (express, sequelize, pg, bcrypt, jsonwebtoken, cors, helmet, dotenv, express-rate-limit, stripe) — **S1**
 - [x] `backend/server.js` — Express-app med cors, helmet, json-parser, routes — **S1**
-- [ ] `backend/config/database.js` — Sequelize anslutning till PostgreSQL — **S1**
+- [x] `backend/config/database.js` — Sequelize anslutning till PostgreSQL — **S1**
 - [ ] `backend/config/constants.js` — HOBBY_ANNUAL_LIMIT=30000, STRIPE_FEE=0.08 etc. — **S1**
 - [ ] PostgreSQL-databas skapad lokalt (`createdb hobbyjobb_dev`) — **S1**
 

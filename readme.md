@@ -854,7 +854,7 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [x] `backend/server.js` — Express-app med cors, helmet, json-parser, routes — **S1**
 - [x] `backend/config/database.js` — Sequelize anslutning till PostgreSQL — **S1**
 - [x] `backend/config/constants.js` — HOBBY_ANNUAL_LIMIT=30000, STRIPE_FEE=0.08 etc. — **S1**
-- [ ] PostgreSQL-databas skapad lokalt (`createdb hobbyjobb_dev`) — **S1**
+- [x] PostgreSQL-databas skapad på Render — **S1**
 
 ### 1B — Sequelize-modeller & Migrations (S2)
 > 🔒 Kräver att 1A (database.js) är klar

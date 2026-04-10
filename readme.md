@@ -872,7 +872,7 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 
 ### 1C — Auth API (S1)
 > 🔒 Kräver att User-modellen (1B) är klar
-- [ ] `backend/src/middleware/errorHandler.js` — Global felhantering — **S1**
+- [x] `backend/src/middleware/errorHandler.js` — Global felhantering — **S1**
 - [ ] `backend/src/middleware/rateLimiter.js` — Max 100 req/15min — **S1**
 - [ ] `backend/src/middleware/requireAuth.js` — JWT-verifiering — **S1**
 - [ ] `backend/src/middleware/requireAdmin.js` — Admin-rollkontroll — **S1**

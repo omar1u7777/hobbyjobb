@@ -858,7 +858,7 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 
 ### 1B — Sequelize-modeller & Migrations (S2)
 > 🔒 Kräver att 1A (database.js) är klar
-- [ ] `backend/src/models/index.js` — Sequelize setup, alla associationer — **S1**
+- [x] `backend/src/models/index.js` — Sequelize setup, alla associationer — **S1**
 - [ ] `backend/src/models/User.js` + migration `001-create-users.js` — **S1**
 - [ ] `backend/src/models/Category.js` + migration `002-create-categories.js` — **S2**
 - [ ] `backend/src/models/Job.js` + migration `003-create-jobs.js` — **S2**

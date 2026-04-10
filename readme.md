@@ -839,7 +839,7 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [ ] **Roller tilldelade** på GitHub (alla 5 studenter inbjudna som Collaborators) — **S1**
 - [ ] **Branch-skydd aktiverat** på `main` (kräver PR + review) — **S1**
 - [ ] `.gitignore` skapad (node_modules, .env, dist) — **S1**
-- [ ] `backend/.env.example` skapad (alla nycklar som tomma strängar) — **S1**
+- [x] `backend/.env.example` skapad (alla nycklar som tomma strängar) — **S1**
 - [ ] `frontend/.env.example` skapad — **S3**
 
 ---

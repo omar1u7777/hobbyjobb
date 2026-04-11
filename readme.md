@@ -877,10 +877,10 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [x] `backend/src/middleware/requireAuth.js` — JWT-verifiering — **S1**
 - [x] `backend/src/middleware/requireAdmin.js` — Admin-rollkontroll — **S1**
 - [ ] `backend/src/middleware/hobbyLimitCheck.js` — Kontrollerar att användaren inte nått 30 000 kr — **S2**
-- [ ] `POST /api/auth/register` — Skapa konto, hasha lösenord med bcrypt, returnera JWT — **S1**
-- [ ] `POST /api/auth/login` — Verifiera lösenord, returnera JWT — **S1**
-- [ ] `POST /api/auth/logout` — Invalida token (client-side clear) — **S1**
-- [ ] `GET /api/auth/me` — Returnera inloggad användare från JWT — **S1**
+- [x] `POST /api/auth/register` — Controller klar ✅ (väntar på S2 User-migration) — **S1**
+- [x] `POST /api/auth/login` — Controller klar ✅ (väntar på S2 User-migration) — **S1**
+- [x] `POST /api/auth/logout` — Controller klar ✅ — **S1**
+- [x] `GET /api/auth/me` — Controller klar ✅ (väntar på S2 User-migration) — **S1**
 
 ### 1D — Jobs & Kategorier API (S2)
 > 🔒 Kräver att Job-modellen och requireAuth (1C) är klara

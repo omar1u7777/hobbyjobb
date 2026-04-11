@@ -840,7 +840,7 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [x] **Branch-skydd aktiverat** på `main` (kräver PR + review) — **S1**
 - [x] `.gitignore` skapad (node_modules, .env, dist) — **S1**
 - [x] `backend/.env.example` skapad (alla nycklar som tomma strängar) — **S1**
-- [ ] `frontend/.env.example` skapad — **S3**
+- [x] `frontend/.env.example` skapad — **S3** ✅
 
 ---
 
@@ -912,38 +912,38 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 > S4 är 🔒 blockad tills React Router och gemensamma komponenter är klara.
 
 ### 2A — React-projekt & Routing (S3)
-- [ ] `npm create vite@latest frontend -- --template react` — **S3**
-- [ ] React Router installerat (`npm install react-router-dom`) — **S3**
-- [ ] Alla npm-paket installerade (axios, chart.js, react-chartjs-2, leaflet, react-leaflet) — **S3**
-- [ ] `frontend/src/App.jsx` — React Router setup med alla routes — **S3**
-- [ ] `frontend/src/main.jsx` — Entry point med providers — **S3**
-- [ ] `frontend/src/styles/variables.css` — `--blue:#2563EB`, `--dark:#0F172A`, `--muted:#64748B`, `--bg:#F8FAFC`, `--r:10px` (från wireframes) — **S3**
-- [ ] `frontend/src/styles/global.css` — Reset, body-font, box-sizing — **S3**
-- [ ] `frontend/src/styles/components.css` — Gemensamma klasser (btn, card, badge etc.) — **S3**
+- [x] `npm create vite@latest frontend -- --template react` — **S3** 
+- [x] React Router installerat (`npm install react-router-dom`) — **S3** 
+- [x] Alla npm-paket installerade (axios, react-router-dom) — **S3** 
+- [x] `frontend/src/App.jsx` — React Router setup med alla routes — **S3** 
+- [x] `frontend/src/main.jsx` — Entry point med providers — **S3** 
+- [x] `frontend/src/styles/variables.css` — CSS design tokens — **S3** 
+- [x] `frontend/src/styles/global.css` — Reset, body-font, box-sizing — **S3** 
+- [x] `frontend/src/styles/components.css` — Gemensamma klasser (btn, card, badge etc.) — **S3** 
 
 ### 2B — Gemensamma Komponenter (S3)
 > 🔒 Kräver att 2A är klar
-- [ ] `Navbar.jsx` — Logo, navigeringslänkar, login/register-knappar, responsiv (hamburger vid 900px) — **S3**
-- [ ] `Footer.jsx` — 4-kolumns footer, mörk bakgrund — **S3**
-- [ ] `Button.jsx` — Primary / secondary / ghost variants — **S3**
-- [ ] `Input.jsx` — Text, number, select med label och felmeddelande — **S3**
-- [ ] `Modal.jsx` — Överläggskomponent med backdrop — **S3**
-- [ ] `Badge.jsx` — Kategori-badges med färg — **S3**
-- [ ] `Spinner.jsx` — Laddningsindikator — **S3**
-- [ ] `Alert.jsx` — Success / error / warning-meddelanden — **S3**
-- [ ] `HobbyLimitBanner.jsx` — Gul varningsbanner (visas när > 80% av 30 000 kr nåtts) — **S3**
+- [x] `Navbar.jsx` — Logo, navigeringslänkar, login/register-knappar, responsiv (hamburger vid 900px) — **S3** 
+- [x] `Footer.jsx` — 4-kolumns footer, mörk bakgrund — **S3** 
+- [x] `Button.jsx` — Primary / secondary / ghost variants — **S3** 
+- [x] `Input.jsx` — Text, number, select med label och felmeddelande — **S3** 
+- [x] `Modal.jsx` — Överläggskomponent med backdrop — **S3** 
+- [x] `Badge.jsx` — Kategori-badges med färg — **S3** 
+- [x] `Spinner.jsx` — Laddningsindikator — **S3** 
+- [x] `Alert.jsx` — Success / error / warning-meddelanden — **S3** 
+- [x] `HobbyLimitBanner.jsx` — Gul varningsbanner (visas när > 80% av 30 000 kr nåtts) — **S3** 
 
 ### 2C — Auth Context & Services (S3 + S4)
 > 🔒 Kräver att backend auth API (1C) är klart och 2A är klar
-- [ ] `frontend/src/context/AuthContext.jsx` — Global auth-state (user, token, login, logout) — **S3**
-- [ ] `frontend/src/services/api.js` — Axios-instans med baseURL + JWT Authorization header — **S3**
-- [ ] `frontend/src/services/authService.js` — register(), login(), logout(), getMe() — **S4**
-- [ ] `frontend/src/hooks/useAuth.js` — Hook för att använda AuthContext — **S3**
-- [ ] Skyddad route-komponent (`PrivateRoute`) — omdirigerar till /login om ej inloggad — **S3**
+- [x] `frontend/src/context/AuthContext.jsx` — Global auth-state (user, token, login, logout) — **S3** 
+- [x] `frontend/src/services/api.js` — Axios-instans med baseURL + JWT Authorization header — **S3** 
+- [x] `frontend/src/services/authService.js` — register(), login(), logout(), getMe() — **S3** 
+- [x] `frontend/src/hooks/useAuth.js` — Hook för att använda AuthContext — **S3** 
+- [x] Skyddad route-komponent (`PrivateRoute`) — omdirigerar till /login om ej inloggad — **S3** 
 
 ### 2D — Landningssida i React (S3)
 > 🔒 Kräver att gemensamma komponenter (2B) är klara
-- [ ] `LandingPage.jsx` — Hero, 10-kategorisgrid, hur-det-fungerar (3 steg), inkomstmätare, FAQ-accordion, CTA — **S3**
+- [x] `LandingPage.jsx` — Hero, 10-kategorisgrid, hur-det-fungerar (3 steg), inkomstmätare, FAQ-accordion, CTA — **S3** 
   - Baseras direkt på `landing.html` wireframe
 
 ---
@@ -953,32 +953,31 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 > 🔒 Kräver att FAS 2 (React Router + gemensamma komponenter + AuthContext) är klar.
 
 ### 3A — Auth-sidor
-- [ ] `LoginPage.jsx` — Login-form med felhantering, länk till Register — **S4**
-  - Baseras på `login.html` wireframe
-- [ ] `RegisterPage.jsx` — Registreringsform + hobbyvillkor-checkbox (obligatorisk) + info-modal — **S4**
+- [x] `LoginPage.jsx` — Login-form med felhantering, länk till Register — **S4** 
+- [x] `RegisterPage.jsx` — Registreringsform + hobbyvillkor-checkbox (obligatorisk) + info-modal — **S4** 
   - Baseras på `login.html` wireframe (register-tab)
 
 ### 3B — Jobbrelaterade sidor
 > 🔒 Kräver att Jobs API (1D) och jobService är klara
-- [ ] `frontend/src/services/jobService.js` — getJobs(), getJob(), createJob(), updateJob(), deleteJob() — **S4**
-- [ ] `frontend/src/hooks/useJobs.js` — Hook med state, loading, error för jobblista — **S4**
-- [ ] `JobCard.jsx` — Jobbkort med titel, kategori, pris, plats, bild — **S4**
-- [ ] `JobList.jsx` — Grid av JobCard-komponenter — **S4**
-- [ ] `JobFilter.jsx` — Sidebar med kategori, avstånd, prisintervall filter — **S4**
-- [ ] `JobListPage.jsx` — Sökbar jobblista med sidebar-filter och pagination — **S4**
+- [x] `frontend/src/services/jobService.js` — getJobs(), getJob(), createJob(), updateJob(), deleteJob() — **S4** 
+- [x] `frontend/src/hooks/useJobs.js` — Hook med state, loading, error för jobblista — **S4** 
+- [x] `JobCard.jsx` — Jobbkort med titel, kategori, pris, plats — **S4** 
+- [x] `JobList.jsx` — Grid av JobCard-komponenter — **S4** 
+- [x] `JobFilter.jsx` — Sidebar med kategori, avstånd, prisintervall filter — **S4** 
+- [x] `JobListPage.jsx` — Sökbar jobblista med sidebar-filter och pagination — **S4** 
   - Baseras på `listings.html` wireframe
-- [ ] `JobDetailPage.jsx` — Jobbdetalj med bokningskort, karta, recensioner — **S4**
+- [x] `JobDetailPage.jsx` — Jobbdetalj med bokningskort, ansökningsform — **S4** 
   - Baseras på `job-detail.html` wireframe
-- [ ] `PostJobPage.jsx` — 4-stegs formulär för att skapa jobb, live-förhandsgranskning — **S4**
+- [x] `PostJobPage.jsx` — 4-stegs formulär för att skapa jobb, live-förhandsgranskning — **S4** 
   - Baseras på `post-job.html` wireframe
-- [ ] `MyJobsPage.jsx` — Mina publicerade / pågående / slutförda jobb — **S4**
+- [x] `MyJobsPage.jsx` — Mina publicerade / pågående / slutförda jobb — **S4** 
 
 ### 3C — Profilsida
 > 🔒 Kräver att Users API (1E) och inkomstlogik är klara
-- [ ] `frontend/src/hooks/useHobbyLimit.js` — Hämtar och beräknar inkomstgräns för inloggad användare — **S4**
-- [ ] `frontend/src/utils/hobbyLimits.js` — calculateLimit(), isNearLimit(), isAtLimit() — **S4**
-- [ ] `IncomeTracker.jsx` — Progress-bar (kr intjänat / 30 000 kr), varningsnivåer — **S4**
-- [ ] `ProfilePage.jsx` — Mörk hero, flikar: Översikt / Jobbhistorik / Recensioner / Inställningar — **S4**
+- [x] `frontend/src/hooks/useHobbyLimit.js` — Hämtar och beräknar inkomstgräns för inloggad användare — **S4** 
+- [x] `frontend/src/utils/hobbyLimits.js` — calculateLimit(), isNearLimit(), isAtLimit() — **S4** 
+- [x] `IncomeTracker.jsx` — Progress-bar (kr intjänat / 30 000 kr), varningsnivåer — **S4** 
+- [x] `ProfilePage.jsx` — Mörk hero, flikar: Översikt / Jobbhistorik / Recensioner / Inställningar — **S4** 
   - Baseras på `profile.html` wireframe
 
 ---
@@ -1030,8 +1029,8 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [ ] `ChatWindow.jsx` — Chattfönster med meddelandehistorik — **S5**
 - [ ] `MessageBubble.jsx` — Chattbubbla (avsändare / mottagare) — **S5**
 - [ ] `ChatInput.jsx` — Textfält + skicka-knapp — **S5**
-- [ ] `ChatPage.jsx` — Komplett chattsida kopplad till messages API — **S5**
-- [ ] `frontend/src/context/NotificationContext.jsx` — Räknare för olästa meddelanden — **S3**
+- [x] `HomePage.jsx` — Autentiserad startsida med senaste jobb, inkomststatus, snabblänkar — **S3** 
+- [x] `frontend/src/context/NotificationContext.jsx` — Räknare för olästa meddelanden — **S3**
 
 ---
 
@@ -1063,13 +1062,6 @@ FAS 0  →  FAS 1A  →  FAS 1B  →  FAS 1C  →  FAS 2A  →  FAS 2B
                                      ↓
                               FAS 3B + 3C
                                      ↓
-                         FAS 4 + FAS 5 + FAS 6  (parallellt)
-                                     ↓
-                                  FAS 7
-```
-
-> **Nuläge:** FAS 0 är till stor del klar (dokumentation + wireframes).  
-> **Nästa steg:** GitHub-repo + FAS 1A (Express-servern) måste sättas upp av S1 omedelbart.
 
 ---
 

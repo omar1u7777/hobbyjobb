@@ -874,7 +874,7 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 > 🔒 Kräver att User-modellen (1B) är klar
 - [x] `backend/src/middleware/errorHandler.js` — Global felhantering — **S1**
 - [x] `backend/src/middleware/rateLimiter.js` — Max 100 req/15min — **S1**
-- [ ] `backend/src/middleware/requireAuth.js` — JWT-verifiering — **S1**
+- [x] `backend/src/middleware/requireAuth.js` — JWT-verifiering — **S1**
 - [ ] `backend/src/middleware/requireAdmin.js` — Admin-rollkontroll — **S1**
 - [ ] `backend/src/middleware/hobbyLimitCheck.js` — Kontrollerar att användaren inte nått 30 000 kr — **S2**
 - [ ] `POST /api/auth/register` — Skapa konto, hasha lösenord med bcrypt, returnera JWT — **S1**

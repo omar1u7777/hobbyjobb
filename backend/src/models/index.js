@@ -4,15 +4,22 @@ const dbConfig = require('../../config/database');
 const env = process.env.NODE_ENV || 'development';
 const config = dbConfig[env];
 
-// Skapa Sequelize-instans
-const sequelize = new Sequelize(config.url, {
-  dialect: config.dialect,
-  logging: config.logging,
-  dialectOptions: config.dialectOptions || {},
-});
+// Skapa Sequelize-instans (eller null om ingen DB_URL)
+let sequelize = null;
+let User = null;
 
-// Importera modeller
-const User = require('./User')(sequelize);
+if (config.url) {
+  sequelize = new Sequelize(config.url, {
+    dialect: config.dialect,
+    logging: config.logging,
+    dialectOptions: config.dialectOptions || {},
+  });
+  
+  // Importera modeller
+  User = require('./User')(sequelize);
+} else {
+  console.warn('⚠️  DATABASE_URL not configured - models not loaded');
+}
 // const Category = require('./Category')(sequelize);
 // const Job = require('./Job')(sequelize);
 // const Application = require('./Application')(sequelize);

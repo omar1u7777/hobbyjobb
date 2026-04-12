@@ -1,3 +1,5 @@
+import api from './api.js';
+
 export const authService = {
   async register({ name, email, password, hobbyAgreed }) {
     const { data } = await api.post('/auth/register', { name, email, password, hobbyAgreed });

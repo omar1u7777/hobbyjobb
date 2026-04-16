@@ -858,13 +858,13 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 
 ### 1B — Sequelize-modeller & Migrations (S2)
 > 🔒 Kräver att 1A (database.js) är klar
-- [x] `backend/src/models/index.js` — Sequelize setup, alla associationer — **S1**
+- [x] `backend/src/models/index.js` — Sequelize setup, alla associationer — **S1 + S2** ✅
 - [x] `backend/src/models/User.js` + migration `001-create-users.js` — **S1**
-- [ ] `backend/src/models/Category.js` + migration `002-create-categories.js` — **S2**
-- [ ] `backend/src/models/Job.js` + migration `003-create-jobs.js` — **S2**
-- [ ] `backend/src/models/Application.js` + migration `004-create-applications.js` — **S2**
-- [ ] `backend/src/models/Message.js` + migration `005-create-messages.js` — **S2**
-- [ ] `backend/src/models/Review.js` + migration `006-create-reviews.js` — **S2**
+- [x] `backend/src/models/Category.js` + migration `002-create-categories.js` — **S2** ✅
+- [x] `backend/src/models/Job.js` + migration `003-create-jobs.js` — **S2** ✅
+- [x] `backend/src/models/Application.js` + migration `004-create-applications.js` — **S2** ✅
+- [x] `backend/src/models/Message.js` + migration `005-create-messages.js` — **S2** ✅
+- [x] `backend/src/models/Review.js` + migration `006-create-reviews.js` — **S2** ✅
 - [ ] `backend/src/models/Payment.js` + migration `007-create-payments.js` — **S1**
 - [ ] Alla migrationer körda framgångsrikt (`npx sequelize-cli db:migrate`) — **S2**
 - [ ] Seed-data: `001-categories.js` (10 kategorier) — **S2**

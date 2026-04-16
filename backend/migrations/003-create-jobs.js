@@ -21,5 +21,8 @@ module.exports = {
       updated_at: { type: S.DATE, allowNull: false, defaultValue: S.literal('NOW()') },
     });
   },
-  async down(qi) { await qi.dropTable('jobs'); },
+  async down(qi) {
+    await qi.dropTable('jobs');
+    await qi.sequelize.query('DROP TYPE IF EXISTS "enum_jobs_status";');
+  },
 };

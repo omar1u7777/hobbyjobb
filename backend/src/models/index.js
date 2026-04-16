@@ -7,6 +7,11 @@ const config = dbConfig[env];
 // Skapa Sequelize-instans (eller null om ingen DB_URL)
 let sequelize = null;
 let User = null;
+let Category = null;
+let Job = null;
+let Application = null;
+let Message = null;
+let Review = null;
 
 if (config.url) {
   sequelize = new Sequelize(config.url, {
@@ -17,30 +22,51 @@ if (config.url) {
   
   // Importera modeller
   User = require('./User')(sequelize);
+  Category = require('./Category')(sequelize);
+  Job = require('./Job')(sequelize);
+  Application = require('./Application')(sequelize);
+  Message = require('./Message')(sequelize);
+  Review = require('./Review')(sequelize);
+
+  // Definiera associationer
+  User.hasMany(Job, { foreignKey: 'poster_id', as: 'postedJobs' });
+  Job.belongsTo(User, { foreignKey: 'poster_id', as: 'poster' });
+
+  Category.hasMany(Job, { foreignKey: 'category_id', as: 'jobs' });
+  Job.belongsTo(Category, { foreignKey: 'category_id', as: 'category' });
+
+  Job.hasMany(Application, { foreignKey: 'job_id', as: 'applications' });
+  Application.belongsTo(Job, { foreignKey: 'job_id', as: 'job' });
+
+  User.hasMany(Application, { foreignKey: 'applicant_id', as: 'applications' });
+  Application.belongsTo(User, { foreignKey: 'applicant_id', as: 'applicant' });
+
+  User.hasMany(Message, { foreignKey: 'sender_id', as: 'sentMessages' });
+  User.hasMany(Message, { foreignKey: 'receiver_id', as: 'receivedMessages' });
+  Message.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
+  Message.belongsTo(User, { foreignKey: 'receiver_id', as: 'receiver' });
+
+  Job.hasMany(Message, { foreignKey: 'job_id', as: 'messages' });
+  Message.belongsTo(Job, { foreignKey: 'job_id', as: 'job' });
+
+  Job.hasMany(Review, { foreignKey: 'job_id', as: 'reviews' });
+  Review.belongsTo(Job, { foreignKey: 'job_id', as: 'job' });
+
+  User.hasMany(Review, { foreignKey: 'reviewer_id', as: 'writtenReviews' });
+  User.hasMany(Review, { foreignKey: 'reviewee_id', as: 'receivedReviews' });
+  Review.belongsTo(User, { foreignKey: 'reviewer_id', as: 'reviewer' });
+  Review.belongsTo(User, { foreignKey: 'reviewee_id', as: 'reviewee' });
 } else {
   console.warn('⚠️  DATABASE_URL not configured - models not loaded');
 }
-// const Category = require('./Category')(sequelize);
-// const Job = require('./Job')(sequelize);
-// const Application = require('./Application')(sequelize);
-// const Message = require('./Message')(sequelize);
-// const Review = require('./Review')(sequelize);
-// const Payment = require('./Payment')(sequelize);
-
-// Definiera associationer (S2 definierar dessa)
-// User.hasMany(Job, { foreignKey: 'poster_id', as: 'postedJobs' });
-// Job.belongsTo(User, { foreignKey: 'poster_id', as: 'poster' });
-// ... etc
 
 module.exports = {
   sequelize,
   Sequelize,
   User,
-  // Exportera modeller när de är skapade:
-  // Category,
-  // Job,
-  // Application,
-  // Message,
-  // Review,
-  // Payment,
+  Category,
+  Job,
+  Application,
+  Message,
+  Review,
 };

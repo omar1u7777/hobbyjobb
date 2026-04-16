@@ -12,6 +12,7 @@ let Job = null;
 let Application = null;
 let Message = null;
 let Review = null;
+let Payment = null;
 
 if (config.url) {
   sequelize = new Sequelize(config.url, {
@@ -27,6 +28,7 @@ if (config.url) {
   Application = require('./Application')(sequelize);
   Message = require('./Message')(sequelize);
   Review = require('./Review')(sequelize);
+  Payment = require('./Payment')(sequelize);
 
   // Definiera associationer
   User.hasMany(Job, { foreignKey: 'poster_id', as: 'postedJobs' });
@@ -56,6 +58,14 @@ if (config.url) {
   User.hasMany(Review, { foreignKey: 'reviewee_id', as: 'receivedReviews' });
   Review.belongsTo(User, { foreignKey: 'reviewer_id', as: 'reviewer' });
   Review.belongsTo(User, { foreignKey: 'reviewee_id', as: 'reviewee' });
+
+  Job.hasMany(Payment, { foreignKey: 'job_id', as: 'payments' });
+  Payment.belongsTo(Job, { foreignKey: 'job_id', as: 'job' });
+
+  User.hasMany(Payment, { foreignKey: 'payer_id', as: 'paymentsMade' });
+  User.hasMany(Payment, { foreignKey: 'payee_id', as: 'paymentsReceived' });
+  Payment.belongsTo(User, { foreignKey: 'payer_id', as: 'payer' });
+  Payment.belongsTo(User, { foreignKey: 'payee_id', as: 'payee' });
 } else {
   console.warn('⚠️  DATABASE_URL not configured - models not loaded');
 }
@@ -69,4 +79,5 @@ module.exports = {
   Application,
   Message,
   Review,
+  Payment,
 };

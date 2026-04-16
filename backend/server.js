@@ -19,6 +19,10 @@ app.use(express.json());
 
 // Auth routes
 app.use('/api/auth', require('./src/routes/auth'));
+app.use('/api/categories', require('./src/routes/categories'));
+app.use('/api/jobs', require('./src/routes/jobs'));
+app.use('/api/applications', require('./src/routes/applications'));
+app.use('/api/users', require('./src/routes/users'));
 
 // Health check endpoint
 app.get('/', (req, res) => {

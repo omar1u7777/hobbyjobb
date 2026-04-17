@@ -1,6 +1,7 @@
 const { Op, fn, col, literal, where: sequelizeWhere } = require('sequelize');
 const { Job, Category, User, Application } = require('../models');
 const { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, JOB_STATUS } = require('../../config/constants');
+const { geocode } = require('../utils/geocode');
 
 const buildPagination = (page, limit, total) => ({
   page,
@@ -26,8 +27,18 @@ const getJobs = async (req, res, next) => {
         { description: { [Op.iLike]: `%${req.query.search}%` } },
       ];
     }
-    if (req.query.location) {
-      where.location = { [Op.iLike]: `%${req.query.location}%` };
+    // Geocode location search → distance-based filtering
+    let geoLat = req.query.lat ? Number(req.query.lat) : null;
+    let geoLng = req.query.lng ? Number(req.query.lng) : null;
+    if (req.query.location && (!geoLat || !geoLng)) {
+      const geo = await geocode(req.query.location);
+      if (geo) {
+        geoLat = geo.lat;
+        geoLng = geo.lng;
+      } else {
+        // Fallback: text match if geocoding fails
+        where.location = { [Op.iLike]: `%${req.query.location}%` };
+      }
     }
     if (req.query.category) where.category_id = req.query.category;
     if (req.query.minPrice) where.price = { ...(where.price || {}), [Op.gte]: Number(req.query.minPrice) };
@@ -45,10 +56,10 @@ const getJobs = async (req, res, next) => {
     const attributes = { include: [] };
 
     let distanceExpr = null;
-    if (req.query.lat && req.query.lng) {
-      const lat = Number(req.query.lat);
-      const lng = Number(req.query.lng);
-      const radius = Number(req.query.radius || 20);
+    if (geoLat && geoLng) {
+      const lat = geoLat;
+      const lng = geoLng;
+      const radius = Number(req.query.radius || 50);
 
       if (isNaN(lat) || isNaN(lng) || isNaN(radius)) {
         return res.status(400).json({ success: false, message: 'lat, lng and radius must be valid numbers' });
@@ -144,14 +155,27 @@ const createJob = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Invalid category_id' });
     }
 
+    // Auto-geocode location if lat/lng not provided
+    let resolvedLat = lat ?? null;
+    let resolvedLng = lng ?? null;
+    let resolvedLocation = location || null;
+    if (location && (!resolvedLat || !resolvedLng)) {
+      const geo = await geocode(location);
+      if (geo) {
+        resolvedLat = geo.lat;
+        resolvedLng = geo.lng;
+        if (geo.city) resolvedLocation = geo.city;
+      }
+    }
+
     const job = await Job.create({
       title,
       description,
       price,
       category_id,
-      location: location || null,
-      lat: lat ?? null,
-      lng: lng ?? null,
+      location: resolvedLocation,
+      lat: resolvedLat,
+      lng: resolvedLng,
       expires_at: expires_at || null,
       status: JOB_STATUS.OPEN,
       poster_id: req.user.id,
@@ -184,6 +208,16 @@ const updateJob = async (req, res, next) => {
     const updates = {};
     for (const field of allowedFields) {
       if (req.body[field] !== undefined) updates[field] = req.body[field];
+    }
+
+    // Auto-geocode if location changed but lat/lng not provided
+    if (updates.location && !updates.lat && !updates.lng) {
+      const geo = await geocode(updates.location);
+      if (geo) {
+        updates.lat = geo.lat;
+        updates.lng = geo.lng;
+        if (geo.city) updates.location = geo.city;
+      }
     }
 
     if (updates.category_id) {

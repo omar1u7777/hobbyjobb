@@ -49,7 +49,13 @@ module.exports = {
       throw new Error('Seed prerequisites missing: users or categories not found.');
     }
 
-    const locations = ['Kristianstad', 'Malmö', 'Lund', 'Helsingborg', 'Stockholm'];
+    const locationData = [
+      { name: 'Kristianstad', lat: 56.0294, lng: 14.1567 },
+      { name: 'Malmö',        lat: 55.6050, lng: 13.0038 },
+      { name: 'Lund',         lat: 55.7047, lng: 13.1910 },
+      { name: 'Helsingborg',  lat: 56.0465, lng: 12.6945 },
+      { name: 'Stockholm',    lat: 59.3293, lng: 18.0686 },
+    ];
     const hobbyTypes = ['trädgård', 'städning', 'flytt', 'it', 'foto'];
     const prices = [250, 350, 450, 550, 650, 750, 850];
 
@@ -61,13 +67,14 @@ module.exports = {
       const status = i % 5 === 0 ? 'completed' : 'open';
       const createdAt = new Date(now.getTime() - (i * 86400000));
 
+      const loc = locationData[i % locationData.length];
       demoJobs.push({
         title: `Demo jobb ${i + 1} – ${category.name}`,
         description: `Detta är ett seedat testjobb #${i + 1} i kategorin ${category.name}.`,
         price,
-        location: locations[i % locations.length],
-        lat: null,
-        lng: null,
+        location: loc.name,
+        lat: loc.lat,
+        lng: loc.lng,
         status,
         is_hobby_valid: true,
         hobby_type: hobbyTypes[i % hobbyTypes.length],

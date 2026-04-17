@@ -902,8 +902,8 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [x] `GET /api/users/:id` — Publik profil — **S2** ✅
 - [x] `PUT /api/users/:id` — Uppdatera profil (kräver auth + ägare) — **S2** ✅
 - [x] `GET /api/users/me/income` — Inkomstöversikt (kräver auth) — **S2** ✅
-- [ ] `GET /api/messages/:jobId` — Chatthistorik — **S5**
-- [ ] `POST /api/messages` — Skicka meddelande — **S5**
+- [x] `GET /api/messages/:jobId` — Chatthistorik — **S2** ✅
+- [x] `POST /api/messages` — Skicka meddelande — **S2** ✅
 
 ---
 

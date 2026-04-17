@@ -78,7 +78,10 @@ const getSentApplications = async (req, res, next) => {
         {
           model: Job,
           as: 'job',
-          include: [{ model: Category, as: 'category' }],
+          include: [
+            { model: Category, as: 'category' },
+            { model: User, as: 'poster', attributes: ['id', 'name', 'avatar'] },
+          ],
         },
       ],
       order: [['created_at', 'DESC']],

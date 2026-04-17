@@ -150,12 +150,12 @@ export default function MyJobsPage() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
                         <div>
                           <Link to={`/jobs/${a.job_id}`} style={{ fontSize: 15, fontWeight: 700, color: 'var(--dark)', display: 'block', marginBottom: 4 }}>
-                            {a.job_title ?? `Jobb #${a.job_id}`}
+                            {a.job?.title ?? a.job_title ?? `Jobb #${a.job_id}`}
                           </Link>
                           <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                             <StatusBadge status={a.status} />
                             <span style={{ fontSize: 13, color: 'var(--muted)' }}>
-                              {tab === 'received' ? `Från: ${a.applicant_name}` : `Beställare: ${a.poster_name}`}
+                              {tab === 'received' ? `Från: ${a.applicant?.name ?? a.applicant_name ?? 'Okänd'}` : `Beställare: ${a.job?.poster?.name ?? a.poster_name ?? 'Okänd'}`}
                             </span>
                             <span style={{ fontSize: 13, color: 'var(--muted)' }}>{formatDate(a.created_at)}</span>
                           </div>

@@ -1,7 +1,7 @@
 // git commit: "feat(landing): build full LandingPage with hero, categories, how-it-works, FAQ, and CTA"
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const CATEGORIES = [
   { icon: '🌿', label: 'Hem & Trädgård',    count: 342 },
@@ -31,6 +31,14 @@ const FAQS = [
 
 export default function LandingPage() {
   const [openFaq, setOpenFaq] = useState(null);
+  const [heroSearch, setHeroSearch] = useState('');
+  const navigate = useNavigate();
+
+  const handleHeroSearch = (e) => {
+    e.preventDefault();
+    const q = heroSearch.trim();
+    navigate(q ? `/jobs?search=${encodeURIComponent(q)}` : '/jobs');
+  };
 
   return (
     <main>
@@ -61,16 +69,18 @@ export default function LandingPage() {
           </p>
 
           {/* Search bar */}
-          <div style={{ display:'flex', gap:12, maxWidth:560, margin:'0 auto 28px', flexWrap:'wrap' }}>
+          <form onSubmit={handleHeroSearch} style={{ display:'flex', gap:12, maxWidth:560, margin:'0 auto 28px', flexWrap:'wrap' }}>
             <div style={{ flex:1, minWidth:220, display:'flex', alignItems:'center', background:'#fff', borderRadius:8, padding:'0 16px', gap:10 }}>
               <span>🔍</span>
               <input
+                value={heroSearch}
+                onChange={e => setHeroSearch(e.target.value)}
                 placeholder="Sök jobb – t.ex. gräsklippning..."
                 style={{ border:'none', outline:'none', background:'transparent', fontSize:15, color:'var(--dark)', padding:'13px 0', width:'100%' }}
               />
             </div>
-            <Link to="/jobs" className="btn btn-primary btn-lg">Sök jobb</Link>
-          </div>
+            <button type="submit" className="btn btn-primary btn-lg">Sök jobb</button>
+          </form>
 
           <p style={{ fontSize:13, color:'#94A3B8' }}>
             Över <strong style={{ color:'#fff' }}>1 200</strong> aktiva jobb · Helt gratis att ansöka

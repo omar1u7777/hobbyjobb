@@ -106,8 +106,28 @@ const getMyIncome = async (req, res, next) => {
   }
 };
 
+const getUserReviews = async (req, res, next) => {
+  try {
+    const reviews = await Review.findAll({
+      where: { reviewee_id: req.params.id },
+      include: [
+        { model: User, as: 'reviewer', attributes: ['id', 'name', 'avatar'] },
+      ],
+      order: [['created_at', 'DESC']],
+    });
+
+    return res.json({
+      success: true,
+      data: { reviews },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   getPublicUser,
   updateUser,
   getMyIncome,
+  getUserReviews,
 };

@@ -1,14 +1,22 @@
 // git commit: "feat(jobs): build JobListPage with search bar, filter sidebar, results grid, and pagination"
 
 import { Fragment, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useJobs } from '../hooks/useJobs.js';
 import JobList from '../components/jobs/JobList.jsx';
 import JobFilter from '../components/jobs/JobFilter.jsx';
 
 export default function JobListPage() {
-  const [search, setSearch] = useState('');
-  const [location, setLocation] = useState('');
-  const { jobs, total, pages, page, setPage, loading, error, params, updateParams } = useJobs({ limit: 20 });
+  const [urlParams] = useSearchParams();
+  const initialSearch = urlParams.get('search') || '';
+  const initialLocation = urlParams.get('location') || '';
+  const [search, setSearch] = useState(initialSearch);
+  const [location, setLocation] = useState(initialLocation);
+  const { jobs, total, pages, page, setPage, loading, error, params, updateParams } = useJobs({
+    limit: 20,
+    search: initialSearch || null,
+    location: initialLocation || null,
+  });
 
   const handleSearch = (e) => {
     e.preventDefault();

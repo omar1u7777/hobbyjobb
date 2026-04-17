@@ -140,7 +140,7 @@ export default function JobFilter({ params, onChange }) {
           onChange={e => onChange({ sort: e.target.value || null })}
           style={{ width: '100%', padding: '9px 12px', border: '1.5px solid var(--border)', borderRadius: 8, fontSize: 14, outline: 'none', fontFamily: 'var(--font)', background: 'var(--bg)' }}
         >
-          <option value="">Närmast</option>
+          <option value="distance">Närmast</option>
           <option value="newest">Nyast</option>
           <option value="price_asc">Pris (lägst)</option>
           <option value="price_desc">Pris (högst)</option>

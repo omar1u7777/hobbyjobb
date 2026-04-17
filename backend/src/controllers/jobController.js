@@ -141,7 +141,8 @@ const getJob = async (req, res, next) => {
 
 const createJob = async (req, res, next) => {
   try {
-    const { title, description, price, category_id, location, lat, lng, expires_at } = req.body;
+    const { title, description, price, category_id, location, lat, lng, expires_at, date, hobby_type } = req.body;
+    const resolvedExpiresAt = expires_at || date || null;
 
     if (!title || !description || !price || !category_id) {
       return res.status(400).json({
@@ -176,7 +177,8 @@ const createJob = async (req, res, next) => {
       location: resolvedLocation,
       lat: resolvedLat,
       lng: resolvedLng,
-      expires_at: expires_at || null,
+      hobby_type: hobby_type || null,
+      expires_at: resolvedExpiresAt,
       status: JOB_STATUS.OPEN,
       poster_id: req.user.id,
     });
@@ -263,6 +265,11 @@ const getMyJobs = async (req, res, next) => {
     const jobs = await Job.findAll({
       where: { poster_id: req.user.id },
       include: [{ model: Category, as: 'category' }],
+      attributes: {
+        include: [
+          [literal('(SELECT COUNT(*) FROM applications WHERE applications.job_id = "Job"."id")'), 'application_count'],
+        ],
+      },
       order: [['created_at', 'DESC']],
     });
 

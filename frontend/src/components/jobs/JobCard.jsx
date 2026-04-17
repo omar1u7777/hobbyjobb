@@ -5,7 +5,7 @@ import { formatPrice, formatDate, formatDistance } from '../../utils/formatters.
 import CategoryBadge, { getCategoryIcon } from './CategoryBadge.jsx';
 
 export default function JobCard({ job }) {
-  const isNew    = (new Date() - new Date(job.created_at)) < 24 * 3600_000;
+  const isNew    = (new Date() - new Date(job.createdAt ?? job.created_at)) < 24 * 3600_000;
   const isToday  = job.date && new Date(job.date).toDateString() === new Date().toDateString();
 
   return (
@@ -35,16 +35,15 @@ export default function JobCard({ job }) {
           {job.title}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          {job.location  && <span style={{ fontSize: 13, color: 'var(--muted)' }}>📍 {job.location}{job.distance != null ? ` · ${formatDistance(job.distance)}` : ''}</span>}
-          {job.date      && <span style={{ fontSize: 13, color: 'var(--muted)' }}>📅 {formatDate(job.date)}</span>}
+          {job.location  && <span style={{ fontSize: 13, color: 'var(--muted)' }}>📍 {job.location}{job.distance_km != null ? ` · ${formatDistance(job.distance_km)}` : ''}</span>}
+          {job.expires_at && <span style={{ fontSize: 13, color: 'var(--muted)' }}>📅 {formatDate(job.expires_at)}</span>}
           {job.category  && <CategoryBadge name={job.category.name} />}
           {isNew   && <span style={{ background: '#16A34A', color: '#fff', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4 }}>Nytt</span>}
           {isToday && <span style={{ background: 'var(--blue)', color: '#fff', fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4 }}>Idag</span>}
         </div>
-        {(job.poster_rating || job.poster_name) && (
+        {job.poster?.name && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 6 }}>
-            <span style={{ color: '#F59E0B', fontSize: 13 }}>{'★'.repeat(Math.round(job.poster_rating ?? 5))}</span>
-            <span style={{ fontSize: 13, color: 'var(--muted)' }}>{job.poster_name} · {job.poster_rating?.toFixed(1)} ({job.poster_job_count ?? 0} jobb)</span>
+            <span style={{ fontSize: 13, color: 'var(--muted)' }}>👤 {job.poster.name}{job.poster.location ? ` · ${job.poster.location}` : ''}</span>
           </div>
         )}
       </div>

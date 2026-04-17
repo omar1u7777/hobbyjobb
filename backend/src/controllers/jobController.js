@@ -35,12 +35,17 @@ const getJobs = async (req, res, next) => {
 
     const attributes = { include: [] };
 
+    let distanceExpr = null;
     if (req.query.lat && req.query.lng) {
       const lat = Number(req.query.lat);
       const lng = Number(req.query.lng);
       const radius = Number(req.query.radius || 20);
 
-      const distanceExpr = `6371 * acos(
+      if (isNaN(lat) || isNaN(lng) || isNaN(radius)) {
+        return res.status(400).json({ success: false, message: 'lat, lng and radius must be valid numbers' });
+      }
+
+      distanceExpr = `6371 * acos(
         cos(radians(${lat})) *
         cos(radians(CAST("Job"."lat" AS double precision))) *
         cos(radians(CAST("Job"."lng" AS double precision)) - radians(${lng})) +
@@ -58,6 +63,7 @@ const getJobs = async (req, res, next) => {
     if (req.query.sort === 'price_asc') order = [['price', 'ASC']];
     if (req.query.sort === 'price_desc') order = [['price', 'DESC']];
     if (req.query.sort === 'oldest') order = [['created_at', 'ASC']];
+    if (req.query.sort === 'distance' && distanceExpr) order = [[literal(distanceExpr), 'ASC']];
 
     const { rows, count } = await Job.findAndCountAll({
       where,

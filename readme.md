@@ -858,17 +858,17 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 
 ### 1B — Sequelize-modeller & Migrations (S2)
 > 🔒 Kräver att 1A (database.js) är klar
-- [x] `backend/src/models/index.js` — Sequelize setup, alla associationer — **S1**
+- [x] `backend/src/models/index.js` — Sequelize setup, alla associationer — **S1 + S2** ✅
 - [x] `backend/src/models/User.js` + migration `001-create-users.js` — **S1**
-- [ ] `backend/src/models/Category.js` + migration `002-create-categories.js` — **S2**
-- [ ] `backend/src/models/Job.js` + migration `003-create-jobs.js` — **S2**
-- [ ] `backend/src/models/Application.js` + migration `004-create-applications.js` — **S2**
-- [ ] `backend/src/models/Message.js` + migration `005-create-messages.js` — **S2**
-- [ ] `backend/src/models/Review.js` + migration `006-create-reviews.js` — **S2**
-- [ ] `backend/src/models/Payment.js` + migration `007-create-payments.js` — **S1**
+- [x] `backend/src/models/Category.js` + migration `002-create-categories.js` — **S2** ✅
+- [x] `backend/src/models/Job.js` + migration `003-create-jobs.js` — **S2** ✅
+- [x] `backend/src/models/Application.js` + migration `004-create-applications.js` — **S2** ✅
+- [x] `backend/src/models/Message.js` + migration `005-create-messages.js` — **S2** ✅
+- [x] `backend/src/models/Review.js` + migration `006-create-reviews.js` — **S2** ✅
+- [x] `backend/src/models/Payment.js` + migration `007-create-payments.js` — **S1** ✅
 - [ ] Alla migrationer körda framgångsrikt (`npx sequelize-cli db:migrate`) — **S2**
-- [ ] Seed-data: `001-categories.js` (10 kategorier) — **S2**
-- [ ] Seed-data: `002-demo-data.js` (5 testanvändare, 20 testjobb) — **S2**
+- [x] Seed-data: `001-categories.js` (10 kategorier) — **S2** ✅
+- [x] Seed-data: `002-demo-data.js` (5 testanvändare, 20 testjobb) — **S2** ✅
 
 ### 1C — Auth API (S1)
 > 🔒 Kräver att User-modellen (1B) är klar
@@ -876,7 +876,7 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [x] `backend/src/middleware/rateLimiter.js` — Max 100 req/15min — **S1**
 - [x] `backend/src/middleware/requireAuth.js` — JWT-verifiering — **S1**
 - [x] `backend/src/middleware/requireAdmin.js` — Admin-rollkontroll — **S1**
-- [ ] `backend/src/middleware/hobbyLimitCheck.js` — Kontrollerar att användaren inte nått 30 000 kr — **S2**
+- [x] `backend/src/middleware/hobbyLimitCheck.js` — Kontrollerar att användaren inte nått 30 000 kr — **S2** ✅
 - [x] `POST /api/auth/register` — ✅ Testad & fungerar — **S1**
 - [x] `POST /api/auth/login` — ✅ Testad & fungerar — **S1**
 - [x] `POST /api/auth/logout` — ✅ Testad & fungerar — **S1**
@@ -884,24 +884,24 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 
 ### 1D — Jobs & Kategorier API (S2)
 > 🔒 Kräver att Job-modellen och requireAuth (1C) är klara
-- [ ] `GET /api/categories` — Lista alla kategorier — **S2**
-- [ ] `GET /api/jobs` — Lista jobb med filter (kategori, lat/lng/radius, pris, sort, pagination) — **S2**
-- [ ] `POST /api/jobs` — Skapa jobb (kräver auth + hobbyLimitCheck) — **S2**
-- [ ] `GET /api/jobs/:id` — Hämta ett jobb — **S2**
-- [ ] `PUT /api/jobs/:id` — Uppdatera jobb (kräver auth + ägare) — **S2**
-- [ ] `DELETE /api/jobs/:id` — Ta bort jobb (kräver auth + ägare) — **S2**
-- [ ] `GET /api/jobs/my` — Mina jobb (kräver auth) — **S2**
-- [ ] Hobbyinkomstgräns i `hobbyCalculator.js` — summerar användarens intjänade kr innevarande år — **S2**
+- [x] `GET /api/categories` — Lista alla kategorier — **S2** ✅
+- [x] `GET /api/jobs` — Lista jobb med filter (kategori, lat/lng/radius, pris, sort, pagination) — **S2** ✅
+- [x] `POST /api/jobs` — Skapa jobb (kräver auth + hobbyLimitCheck) — **S2** ✅
+- [x] `GET /api/jobs/:id` — Hämta ett jobb — **S2** ✅
+- [x] `PUT /api/jobs/:id` — Uppdatera jobb (kräver auth + ägare) — **S2** ✅
+- [x] `DELETE /api/jobs/:id` — Ta bort jobb (kräver auth + ägare) — **S2** ✅
+- [x] `GET /api/jobs/my` — Mina jobb (kräver auth) — **S2** ✅
+- [x] Hobbyinkomstgräns i `hobbyCalculator.js` — summerar användarens intjänade kr innevarande år — **S2** ✅
 
 ### 1E — Ansökningar, Användare & Meddelanden API (S2)
 > 🔒 Kräver att 1C och 1D är klara
-- [ ] `POST /api/applications` — Ansök på jobb — **S2**
-- [ ] `GET /api/applications/received` — Mottagna ansökningar — **S2**
-- [ ] `GET /api/applications/sent` — Skickade ansökningar — **S2**
-- [ ] `PUT /api/applications/:id` — Acceptera / avvisa ansökan — **S2**
-- [ ] `GET /api/users/:id` — Publik profil — **S2**
-- [ ] `PUT /api/users/:id` — Uppdatera profil (kräver auth + ägare) — **S2**
-- [ ] `GET /api/users/me/income` — Inkomstöversikt (kräver auth) — **S2**
+- [x] `POST /api/applications` — Ansök på jobb — **S2** ✅
+- [x] `GET /api/applications/received` — Mottagna ansökningar — **S2** ✅
+- [x] `GET /api/applications/sent` — Skickade ansökningar — **S2** ✅
+- [x] `PUT /api/applications/:id` — Acceptera / avvisa ansökan — **S2** ✅
+- [x] `GET /api/users/:id` — Publik profil — **S2** ✅
+- [x] `PUT /api/users/:id` — Uppdatera profil (kräver auth + ägare) — **S2** ✅
+- [x] `GET /api/users/me/income` — Inkomstöversikt (kräver auth) — **S2** ✅
 - [ ] `GET /api/messages/:jobId` — Chatthistorik — **S5**
 - [ ] `POST /api/messages` — Skicka meddelande — **S5**
 

@@ -20,6 +20,15 @@ const getJobs = async (req, res, next) => {
     const offset = (page - 1) * limit;
 
     const where = {};
+    if (req.query.search) {
+      where[Op.or] = [
+        { title: { [Op.iLike]: `%${req.query.search}%` } },
+        { description: { [Op.iLike]: `%${req.query.search}%` } },
+      ];
+    }
+    if (req.query.location) {
+      where.location = { [Op.iLike]: `%${req.query.location}%` };
+    }
     if (req.query.category) where.category_id = req.query.category;
     if (req.query.minPrice) where.price = { ...(where.price || {}), [Op.gte]: Number(req.query.minPrice) };
     if (req.query.maxPrice) where.price = { ...(where.price || {}), [Op.lte]: Number(req.query.maxPrice) };
@@ -60,6 +69,7 @@ const getJobs = async (req, res, next) => {
     }
 
     let order = [['created_at', 'DESC']];
+    if (req.query.sort === 'newest') order = [['created_at', 'DESC']];
     if (req.query.sort === 'price_asc') order = [['price', 'ASC']];
     if (req.query.sort === 'price_desc') order = [['price', 'DESC']];
     if (req.query.sort === 'oldest') order = [['created_at', 'ASC']];

@@ -2,11 +2,13 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const rateLimiter = require('./src/middleware/rateLimiter');
 
 const app = express();
 
 // Security middleware
 app.use(helmet());
+app.use(rateLimiter);
 
 // CORS configuration
 app.use(cors({

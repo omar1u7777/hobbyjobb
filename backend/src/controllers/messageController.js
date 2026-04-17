@@ -162,7 +162,26 @@ const sendMessage = async (req, res, next) => {
   }
 };
 
+const getUnreadCount = async (req, res, next) => {
+  try {
+    const count = await Message.count({
+      where: {
+        receiver_id: req.user.id,
+        is_read: false,
+      },
+    });
+
+    return res.json({
+      success: true,
+      data: { count },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 module.exports = {
   getMessages,
   sendMessage,
+  getUnreadCount,
 };

@@ -62,6 +62,6 @@ export const jobService = {
 
   async getCategories() {
     const { data } = await api.get('/categories');
-    return data.categories ?? data;
+    return data.data?.categories ?? data.categories ?? [];
   },
 };

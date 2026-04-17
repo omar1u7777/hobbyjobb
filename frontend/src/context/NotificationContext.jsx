@@ -15,7 +15,7 @@ export function NotificationProvider({ children }) {
     if (!user) return;
     try {
       const { data } = await api.get('/messages/unread-count');
-      setUnreadCount(data.count ?? 0);
+      setUnreadCount(data.data?.count ?? data.count ?? 0);
     } catch (_) { /* silently fail */ }
   }, [user]);
 

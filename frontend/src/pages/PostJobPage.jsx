@@ -18,8 +18,18 @@ export default function PostJobPage() {
     setLoading(true);
     setError('');
     try {
-      const job = await jobService.createJob(form);
-      navigate(`/jobs/${job.id}`, { state: { created: true } });
+      const result = await jobService.createJob(form);
+
+      // jobService.createJob returns the inner data: { job, warning? }
+      const job = result?.job ?? result;
+      const hobbyWarning = result?.warning ?? result?.hobbyWarning ?? result?.hobby_warning ?? '';
+
+      navigate(`/jobs/${job.id}`, {
+        state: {
+          created: true,
+          hobbyWarning,
+        },
+      });
     } catch (e) {
       setError(e.message);
       window.scrollTo({ top: 0, behavior: 'smooth' });

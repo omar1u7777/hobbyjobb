@@ -29,22 +29,25 @@ export default function ProfilePage() {
   const { totalYear, pct, isNear } = useHobbyLimit();
 
   // Settings form (only used when isOwn)
-  const [settings, setSettings] = useState({ name: '', bio: '', location: '' });
+  const [settings, setSettings] = useState({ name: '', bio: '', location: '', avatar: '' });
 
   useEffect(() => {
     if (!userId) return;
     setLoading(true);
-    Promise.all([
-      userService.getProfile(userId),
-      userService.getReviews(userId),
-    ])
-      .then(([p, r]) => {
+
+    // Load profile — this is critical
+    userService.getProfile(userId)
+      .then(p => {
         setProfile(p);
-        setReviews(r);
-        if (isOwn) setSettings({ name: p.name ?? '', bio: p.bio ?? '', location: p.location ?? '' });
+        if (isOwn) setSettings({ name: p.name ?? '', bio: p.bio ?? '', location: p.location ?? '', avatar: p.avatar ?? '' });
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+
+    // Load reviews separately — non-fatal if it fails
+    userService.getReviews(userId)
+      .then(r => { if (Array.isArray(r)) setReviews(r); })
+      .catch(() => setReviews([]));
   }, [isOwn, userId]);
 
   const handleSave = async (e) => {
@@ -202,6 +205,10 @@ export default function ProfilePage() {
                     <div className="form-group">
                       <label>Plats</label>
                       <input type="text" placeholder="t.ex. Stockholm" value={settings.location} onChange={e => setSettings(s => ({ ...s, location: e.target.value }))} />
+                    </div>
+                    <div className="form-group">
+                      <label>Avatar URL</label>
+                      <input type="url" placeholder="https://..." value={settings.avatar} onChange={e => setSettings(s => ({ ...s, avatar: e.target.value }))} />
                     </div>
                     <div className="form-group">
                       <label>Bio</label>

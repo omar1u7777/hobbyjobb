@@ -15,11 +15,11 @@ export const userService = {
 
   async getMyIncome() {
     const { data } = await api.get('/users/me/income');
-    return data.data ?? data;
+    return data.data ?? data.income ?? data;
   },
 
   async getReviews(id) {
     const { data } = await api.get(`/users/${id}/reviews`);
-    return data.data?.reviews ?? data.reviews ?? [];
+    return data.data?.reviews ?? data.reviews ?? data;
   },
 };

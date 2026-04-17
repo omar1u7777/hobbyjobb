@@ -902,8 +902,10 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [x] `GET /api/users/:id` — Publik profil — **S2** ✅
 - [x] `PUT /api/users/:id` — Uppdatera profil (kräver auth + ägare) — **S2** ✅
 - [x] `GET /api/users/me/income` — Inkomstöversikt (kräver auth) — **S2** ✅
+- [x] `GET /api/users/:id/reviews` — Recensioner för användare — **S1** ✅
 - [x] `GET /api/messages/:jobId` — Chatthistorik — **S2** ✅
 - [x] `POST /api/messages` — Skicka meddelande — **S2** ✅
+- [x] `GET /api/messages/unread-count` — Antal olästa meddelanden — **S3** ✅ (via NotificationContext)
 
 ---
 
@@ -960,6 +962,7 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 ### 3B — Jobbrelaterade sidor
 > 🔒 Kräver att Jobs API (1D) och jobService är klara
 - [x] `frontend/src/services/jobService.js` — getJobs(), getJob(), createJob(), updateJob(), deleteJob() — **S4** 
+- [x] `frontend/src/services/applicationService.js` — apply(), getReceived(), getSent(), updateStatus() — **S4** 
 - [x] `frontend/src/hooks/useJobs.js` — Hook med state, loading, error för jobblista — **S4** 
 - [x] `JobCard.jsx` — Jobbkort med titel, kategori, pris, plats — **S4** 
 - [x] `JobList.jsx` — Grid av JobCard-komponenter — **S4** 

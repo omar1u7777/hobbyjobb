@@ -89,7 +89,7 @@ export default function ProfilePage() {
               <div>
                 <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 4 }}>{profile.name}</h1>
                 <p style={{ fontSize: 14, color: '#94A3B8', marginBottom: 8 }}>
-                  {profile.location ?? 'Plats okänd'} · Medlem sedan {new Date(profile.created_at).getFullYear()}
+                  {profile.location ?? 'Plats okänd'} · Medlem sedan {new Date(profile.createdAt ?? profile.created_at).getFullYear()}
                 </p>
                 <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                   {profile.is_verified && (
@@ -159,6 +159,14 @@ export default function ProfilePage() {
                     </div>
                   )}
                 </>
+              )}
+
+              {tab === 'Jobbhistorik' && (
+                <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--muted)' }}>
+                  <div style={{ fontSize: 48, marginBottom: 12 }}>📋</div>
+                  <p style={{ fontWeight: 600, marginBottom: 8 }}>Jobbhistorik kommer snart</p>
+                  <p style={{ fontSize: 13 }}>Här visas avslutade och pågående uppdrag.</p>
+                </div>
               )}
 
               {tab === 'Recensioner' && (

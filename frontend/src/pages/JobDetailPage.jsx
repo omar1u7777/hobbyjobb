@@ -75,8 +75,8 @@ export default function JobDetailPage() {
                   <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
                     {job.category && <CategoryBadge name={job.category.name} size="md" />}
                     <span style={{ fontSize: 13, color: 'var(--muted)' }}>📍 {job.location}</span>
-                    {job.date && <span style={{ fontSize: 13, color: 'var(--muted)' }}>📅 {formatDate(job.date)}</span>}
-                    <span style={{ fontSize: 13, color: 'var(--muted)' }}>🕐 Publicerad {formatDate(job.created_at)}</span>
+                    {job.expires_at && <span style={{ fontSize: 13, color: 'var(--muted)' }}>📅 {formatDate(job.expires_at)}</span>}
+                    <span style={{ fontSize: 13, color: 'var(--muted)' }}>🕐 Publicerad {formatDate(job.createdAt ?? job.created_at)}</span>
                   </div>
                 </div>
               </div>
@@ -92,14 +92,14 @@ export default function JobDetailPage() {
               <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Om beställaren</h2>
               <div style={{ display: 'flex', gap: 14, alignItems: 'center' }}>
                 <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg,var(--blue),#60A5FA)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 700, fontSize: 18, flexShrink: 0 }}>
-                  {job.poster_name?.[0]?.toUpperCase()}
+                  {(job.poster?.name ?? job.poster_name)?.[0]?.toUpperCase()}
                 </div>
                 <div>
-                  <div style={{ fontWeight: 700, fontSize: 15 }}>{job.poster_name}</div>
+                  <div style={{ fontWeight: 700, fontSize: 15 }}>{job.poster?.name ?? job.poster_name}</div>
                   <div style={{ color: '#F59E0B', fontSize: 13 }}>
-                    {'★'.repeat(Math.round(job.poster_rating ?? 5))}
+                    {'★'.repeat(5)}
                     <span style={{ color: 'var(--muted)', marginLeft: 6 }}>
-                      {job.poster_rating?.toFixed(1)} · {job.poster_job_count ?? 0} jobb
+                      · {job.applicationsCount ?? 0} jobb
                     </span>
                   </div>
                 </div>
@@ -136,7 +136,7 @@ export default function JobDetailPage() {
               <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {[
                   { icon: '📍', text: job.location },
-                  { icon: '📅', text: job.date ? formatDate(job.date) : 'Flexibelt' },
+                  { icon: '📅', text: job.expires_at ? formatDate(job.expires_at) : 'Flexibelt' },
                   { icon: '💼', text: job.hobby_type === 'recurring' ? 'Återkommande' : 'Engångsjobb' },
                 ].map(r => (
                   <div key={r.icon} style={{ display: 'flex', gap: 8, fontSize: 13, color: 'var(--muted)', alignItems: 'center' }}>

@@ -9,7 +9,8 @@ export default function Navbar() {
   const { user, logout } = useAuth();
   const { unreadCount }  = useNotification();
   const navigate         = useNavigate();
-  const [open, setOpen]  = useState(false);
+  const [dropOpen, setDropOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -87,7 +88,7 @@ export default function Navbar() {
               {/* Avatar dropdown */}
               <div style={{ position: 'relative' }}>
                 <button
-                  onClick={() => setOpen(!open)}
+                  onClick={() => setDropOpen(!dropOpen)}
                   style={{
                     width: 36,
                     height: 36,
@@ -103,7 +104,7 @@ export default function Navbar() {
                   {user.name?.[0]?.toUpperCase() ?? 'U'}
                 </button>
 
-                {open && (
+                {dropOpen && (
                   <div style={{
                     position: 'absolute',
                     right: 0,
@@ -115,7 +116,7 @@ export default function Navbar() {
                     minWidth: 180,
                     overflow: 'hidden',
                     zIndex: 200,
-                  }} onClick={() => setOpen(false)}>
+                  }} onClick={() => setDropOpen(false)}>
                     <DropItem to="/profil">👤 Min profil</DropItem>
                     <DropItem to="/mina-jobb">📋 Mina jobb</DropItem>
                     {user.is_admin && <DropItem to="/admin">⚙️ Admin</DropItem>}
@@ -155,7 +156,7 @@ export default function Navbar() {
           {/* Hamburger */}
           <button
             className="hamburger"
-            onClick={() => setOpen(!open)}
+            onClick={() => setMenuOpen(!menuOpen)}
             style={{
               display: 'none',
               background: 'none',
@@ -165,7 +166,7 @@ export default function Navbar() {
             }}
             aria-label="Meny"
           >
-            {open ? '✕' : '☰'}
+            {menuOpen ? '✕' : '☰'}
           </button>
         </div>
       </div>

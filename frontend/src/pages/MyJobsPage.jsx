@@ -119,7 +119,7 @@ export default function MyJobsPage() {
                         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
                           {j.category && <CategoryBadge name={j.category.name} />}
                           <span style={{ fontSize: 13, color: 'var(--muted)' }}>📍 {j.location}</span>
-                          <span style={{ fontSize: 13, color: 'var(--muted)' }}>📅 {formatDate(j.created_at)}</span>
+                          <span style={{ fontSize: 13, color: 'var(--muted)' }}>📅 {formatDate(j.createdAt ?? j.created_at)}</span>
                           <span style={{ fontSize: 13, color: 'var(--muted)' }}>👤 {j.application_count ?? 0} ansökan</span>
                         </div>
                       </div>
@@ -157,7 +157,7 @@ export default function MyJobsPage() {
                             <span style={{ fontSize: 13, color: 'var(--muted)' }}>
                               {tab === 'received' ? `Från: ${a.applicant?.name ?? a.applicant_name ?? 'Okänd'}` : `Beställare: ${a.job?.poster?.name ?? a.poster_name ?? 'Okänd'}`}
                             </span>
-                            <span style={{ fontSize: 13, color: 'var(--muted)' }}>{formatDate(a.created_at)}</span>
+                            <span style={{ fontSize: 13, color: 'var(--muted)' }}>{formatDate(a.createdAt ?? a.created_at)}</span>
                           </div>
                           {a.message && <p style={{ marginTop: 8, fontSize: 13, color: 'var(--ink)', background: 'var(--bg)', borderRadius: 6, padding: '8px 12px' }}>{a.message}</p>}
                         </div>
@@ -198,7 +198,9 @@ export default function MyJobsPage() {
 
 function StatusBadge({ status }) {
   const map = {
+    open:     { bg: 'var(--green-light)', color: 'var(--green-text)', label: '● Öppen' },
     active:   { bg: 'var(--green-light)', color: 'var(--green-text)', label: '● Aktiv' },
+    in_progress: { bg: 'var(--blue-light)', color: 'var(--blue)', label: '🔄 Pågår' },
     pending:  { bg: 'var(--yellow-light)', color: 'var(--yellow-text)', label: '⏳ Väntar' },
     accepted: { bg: 'var(--blue-light)', color: 'var(--blue)', label: '✅ Accepterad' },
     rejected: { bg: 'var(--red-light)', color: 'var(--red)', label: '✕ Avvisad' },

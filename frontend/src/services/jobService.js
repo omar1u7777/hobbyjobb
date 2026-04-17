@@ -18,7 +18,10 @@ export const jobService = {
 
   async getJob(id) {
     const { data } = await api.get(`/jobs/${id}`);
-    return data.data?.job ?? data.job ?? data;
+    const inner = data.data ?? data;
+    const job = inner.job ?? inner;
+    if (inner.applicationsCount != null) job.applicationsCount = inner.applicationsCount;
+    return job;
   },
 
   async getMyJobs() {

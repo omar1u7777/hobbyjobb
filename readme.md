@@ -866,7 +866,7 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [x] `backend/src/models/Message.js` + migration `005-create-messages.js` — **S2** ✅
 - [x] `backend/src/models/Review.js` + migration `006-create-reviews.js` — **S2** ✅
 - [x] `backend/src/models/Payment.js` + migration `007-create-payments.js` — **S1** ✅
-- [ ] Alla migrationer körda framgångsrikt (`npx sequelize-cli db:migrate`) — **S2**
+- [x] Alla migrationer körda framgångsrikt (`npx sequelize-cli db:migrate`) — **S1** ✅
 - [x] Seed-data: `001-categories.js` (10 kategorier) — **S2** ✅
 - [x] Seed-data: `002-demo-data.js` (5 testanvändare, 20 testjobb) — **S2** ✅
 

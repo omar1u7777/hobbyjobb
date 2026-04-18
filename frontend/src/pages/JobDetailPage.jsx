@@ -1,5 +1,5 @@
 // git commit: "feat(jobs): build JobDetailPage with job info, application form, and poster profile"
-
+import { applicationService } from '../services/applicationService.js';
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { jobService } from '../services/jobService.js';
@@ -38,7 +38,7 @@ export default function JobDetailPage() {
     setApplyLoading(true);
     setApplyErr('');
     try {
-      await jobService.applyToJob(id, applyMsg);
+      await applicationService.apply(id, applyMsg, null);
       setApplyOk(true);
     } catch (e) {
       setApplyErr(e.message);

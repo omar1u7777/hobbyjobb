@@ -1,37 +1,12 @@
+import UserTable from '../components/admin/UserTable.jsx';
+import JobTable from '../components/admin/JobTable.jsx';
+
 const STATS = [
   { id: 'jobs', label: 'Totalt jobb', value: '1 284', delta: '+8.3%', trend: 'up' },
   { id: 'users', label: 'Anvandare', value: '892', delta: '+4.1%', trend: 'up' },
   { id: 'revenue', label: 'Intakter (SEK)', value: '96 440', delta: '+11.7%', trend: 'up' },
   { id: 'flagged', label: 'Flaggade konton', value: '14', delta: '-2', trend: 'down' },
 ];
-
-const USERS = [
-  { id: 1, name: 'Anna Lindgren', hobbyTotal: '28 900', status: 'Nara grans', jobsMonth: 12 },
-  { id: 2, name: 'Bjorn Karlsson', hobbyTotal: '14 120', status: 'OK', jobsMonth: 7 },
-  { id: 3, name: 'Maria Svensson', hobbyTotal: '30 000', status: 'Sparrad', jobsMonth: 21 },
-  { id: 4, name: 'Erik Magnusson', hobbyTotal: '18 450', status: 'OK', jobsMonth: 9 },
-  { id: 5, name: 'Sofia Berg', hobbyTotal: '24 980', status: 'Nara grans', jobsMonth: 16 },
-];
-
-const JOBS = [
-  { id: 301, title: 'Grassklippning och kantskarning', category: 'Hem & Tradgard', price: '650', status: 'Aktivt' },
-  { id: 302, title: 'IKEA-montering av 3 mobler', category: 'Handyman', price: '850', status: 'Aktivt' },
-  { id: 303, title: 'Hundpromenad 2 ganger i veckan', category: 'Djur & Husdjur', price: '300', status: 'Aktivt' },
-  { id: 304, title: 'Storstadning 3 rum och kok', category: 'Stadning', price: '900', status: 'Flaggat' },
-  { id: 305, title: 'Hjalp med mindre flytt', category: 'Flytt & Transport', price: '1200', status: 'Pausat' },
-];
-
-function statusStyle(status) {
-  if (status === 'Sparrad' || status === 'Flaggat') {
-    return { background: 'var(--red-light)', color: 'var(--red)' };
-  }
-
-  if (status === 'Nara grans' || status === 'Pausat') {
-    return { background: 'var(--yellow-light)', color: 'var(--yellow-text)' };
-  }
-
-  return { background: 'var(--green-light)', color: 'var(--green-text)' };
-}
 
 function DeltaTag({ delta, trend }) {
   const isUp = trend === 'up';
@@ -51,20 +26,6 @@ function DeltaTag({ delta, trend }) {
     >
       {delta}
     </span>
-  );
-}
-
-function TableShell({ title, subtitle, children }) {
-  return (
-    <section className="section" style={{ marginBottom: 0 }}>
-      <div className="section-hdr" style={{ marginBottom: 14 }}>
-        <div>
-          <h3>{title}</h3>
-          <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{subtitle}</p>
-        </div>
-      </div>
-      {children}
-    </section>
   );
 }
 
@@ -104,79 +65,8 @@ export default function AdminDashboardPage() {
         </section>
 
         <section className="admin-tables-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <TableShell title="Anvandaroversikt" subtitle="Senast uppdaterad med mock-data">
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ textAlign: 'left', fontSize: 12, color: 'var(--muted)' }}>
-                    <th style={{ padding: '8px 6px' }}>Namn</th>
-                    <th style={{ padding: '8px 6px' }}>Hobby totalt</th>
-                    <th style={{ padding: '8px 6px' }}>Jobb/manad</th>
-                    <th style={{ padding: '8px 6px' }}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {USERS.map((user) => (
-                    <tr key={user.id} style={{ borderTop: '1px solid var(--border-light)' }}>
-                      <td style={{ padding: '10px 6px', fontSize: 13, fontWeight: 600 }}>{user.name}</td>
-                      <td style={{ padding: '10px 6px', fontSize: 13 }}>{user.hobbyTotal} kr</td>
-                      <td style={{ padding: '10px 6px', fontSize: 13 }}>{user.jobsMonth}</td>
-                      <td style={{ padding: '10px 6px' }}>
-                        <span
-                          style={{
-                            ...statusStyle(user.status),
-                            borderRadius: 999,
-                            padding: '4px 10px',
-                            fontSize: 11,
-                            fontWeight: 700,
-                          }}
-                        >
-                          {user.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </TableShell>
-
-          <TableShell title="Jobboversikt" subtitle="Aktiva och flaggade annonser">
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                <thead>
-                  <tr style={{ textAlign: 'left', fontSize: 12, color: 'var(--muted)' }}>
-                    <th style={{ padding: '8px 6px' }}>Titel</th>
-                    <th style={{ padding: '8px 6px' }}>Kategori</th>
-                    <th style={{ padding: '8px 6px' }}>Pris</th>
-                    <th style={{ padding: '8px 6px' }}>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {JOBS.map((job) => (
-                    <tr key={job.id} style={{ borderTop: '1px solid var(--border-light)' }}>
-                      <td style={{ padding: '10px 6px', fontSize: 13, fontWeight: 600 }}>{job.title}</td>
-                      <td style={{ padding: '10px 6px', fontSize: 13 }}>{job.category}</td>
-                      <td style={{ padding: '10px 6px', fontSize: 13 }}>{job.price} kr</td>
-                      <td style={{ padding: '10px 6px' }}>
-                        <span
-                          style={{
-                            ...statusStyle(job.status),
-                            borderRadius: 999,
-                            padding: '4px 10px',
-                            fontSize: 11,
-                            fontWeight: 700,
-                          }}
-                        >
-                          {job.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </TableShell>
+          <UserTable />
+          <JobTable />
         </section>
       </div>
 

@@ -21,6 +21,7 @@ import MyJobsPage from './pages/MyJobsPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import HobbyInfoPage from './pages/HobbyInfoPage.jsx';
 import AboutPage from './pages/AboutPage.jsx';
+import ChatPage from './pages/ChatPage.jsx';
 
 // Placeholder components for pages owned by other students (Student 1 / Student 5)
 // These will be replaced by the responsible students when they implement the real pages.
@@ -35,7 +36,6 @@ function ComingSoonPage({ name }) {
 
 const CheckoutPage        = () => <ComingSoonPage name="Checkout" />;
 const PaymentSuccessPage  = () => <ComingSoonPage name="Betalning klar" />;
-const ChatPage            = () => <ComingSoonPage name="Chatt" />;
 const AdminDashboardPage  = () => <ComingSoonPage name="Admin" />;
 
 /** Guard: redirects to /login if not authenticated */

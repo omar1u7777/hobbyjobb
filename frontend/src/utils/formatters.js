@@ -14,7 +14,7 @@ export function formatDate(dateStr) {
   const diff = Math.floor((now - d) / 86_400_000);
   if (diff === 0) return 'Idag';
   if (diff === 1) return 'Igår';
-  if (diff < 7)  return `${diff} dagar sedan`;
+  if (diff > 1 && diff < 7)  return `${diff} dagar sedan`;
   return d.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' });
 }
 

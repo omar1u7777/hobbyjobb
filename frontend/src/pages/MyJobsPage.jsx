@@ -129,14 +129,19 @@ export default function MyJobsPage() {
                         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
                           {j.category && <CategoryBadge name={j.category.name} />}
                           <span style={{ fontSize: 13, color: 'var(--muted)' }}>📍 {j.location}</span>
-                          <span style={{ fontSize: 13, color: 'var(--muted)' }}>📅 {formatDate(j.createdAt ?? j.created_at)}</span>
-                          <span style={{ fontSize: 13, color: 'var(--muted)' }}>👤 {j.application_count ?? 0} ansökan</span>
                         </div>
                       </div>
                       <div style={{ textAlign: 'right', flexShrink: 0 }}>
                         <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--blue)', marginBottom: 8 }}>{formatPrice(j.price)}</div>
                         <div style={{ display: 'flex', gap: 8 }}>
                           <Link to={`/jobs/${j.id}`} className="btn btn-ghost btn-sm">Visa</Link>
+                          <Link
+                            to={`/jobs/${j.id}/edit`}
+                            className="btn btn-sm"
+                            style={{ background: 'var(--blue-light)', color: 'var(--blue)', border: 'none', borderRadius: 8, padding: '7px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
+                          >
+                            Redigera
+                          </Link>
                           <button
                             className="btn btn-sm" onClick={() => setDeleteId(j.id)}
                             style={{ background: 'var(--red-light)', color: 'var(--red)', border: 'none', borderRadius: 8, padding: '7px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}

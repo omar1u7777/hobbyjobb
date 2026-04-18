@@ -17,6 +17,7 @@ import RegisterPage from './pages/RegisterPage.jsx';
 import JobListPage from './pages/JobListPage.jsx';
 import JobDetailPage from './pages/JobDetailPage.jsx';
 import PostJobPage from './pages/PostJobPage.jsx';
+import EditJobPage from './pages/EditJobPage.jsx';
 import MyJobsPage from './pages/MyJobsPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 
@@ -114,6 +115,14 @@ export default function App() {
             element={
               <PrivateRoute>
                 <PostJobPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/jobs/:id/edit"
+            element={
+              <PrivateRoute>
+                <EditJobPage />
               </PrivateRoute>
             }
           />

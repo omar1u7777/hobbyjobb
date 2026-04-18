@@ -99,7 +99,7 @@ export default function JobDetailPage() {
                   <div style={{ color: '#F59E0B', fontSize: 13 }}>
                     {'★'.repeat(5)}
                     <span style={{ color: 'var(--muted)', marginLeft: 6 }}>
-                      · {job.applicationsCount ?? 0} jobb
+                      · {job.poster?.jobs_completed ?? 0} jobb slutförda
                     </span>
                   </div>
                 </div>

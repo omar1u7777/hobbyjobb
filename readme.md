@@ -1009,21 +1009,22 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 ## 📊 FAS 5 — Admin Dashboard & Statistik (S5)
 > 🔒 Kräver att auth middleware (1C) och Jobs API (1D) är klara.
 
-- [ ] `GET /api/admin/stats` — Totalt antal jobb, användare, intäkter — **S5** *(via S1's admin-route)*
+- [x] `GET /api/admin/stats` — Totalt antal jobb, användare, intäkter, flaggade konton m.m. — **S5** 
 - [ ] `GET /api/admin/users` — Alla användare med hobbystatistik — **S5**
 - [ ] `PUT /api/admin/users/:id` — Aktivera/deaktivera konton — **S5**
-- [ ] `GET /api/admin/flagged` — Konton > 80% av hobbyinkomstgränsen — **S5**
+- [x] `GET /api/admin/flagged-accounts` — Konton > hobby-warning-threshold med risknivåfilter — **S5** 
 - [ ] `GET /api/admin/jobs` — Alla jobb (inkl. borttagna) — **S5**
 - [ ] `DELETE /api/admin/jobs/:id` — Ta bort jobb som admin — **S5**
-- [ ] `POST/PUT/DELETE /api/admin/categories` — CRUD för kategorier — **S5**
-- [x] `AdminDashboardPage.jsx` — Statistik-kort + alerts + tabeller (mock-data, API-koppling väntar) — **S5** 
+- [x] `GET/POST/PUT/DELETE /api/admin/categories` — CRUD för kategorier (case-insensitiv duplicate-check, blockerar delete vid aktiva jobb) — **S5** 
+- [x] `frontend/src/services/adminService.js` — API-wrapper för stats, flagged-accounts, category CRUD — **S5** 
+- [x] `AdminDashboardPage.jsx` — Statistik-kort + alerts + tabeller (live-data från `/admin/stats` med mock-fallback) — **S5** 
 - [x] `UserTable.jsx` — Sökbar tabell med hobbystatusfiltrering (mock-data) — **S5** 
 - [x] `JobTable.jsx` — Jobbhanteringstabell med sök (mock-data) — **S5** 
-- [ ] `CategoryManager.jsx` — CRUD-gränssnitt för kategorier — **S5**
-- [ ] `FlaggedAccounts.jsx` — Lista flaggade konton med åtgärdsknapp — **S5**
-- [ ] `JobsOverTimeChart.jsx` — Line chart: antal jobb per vecka (Chart.js) — **S5**
-- [ ] `CategoryPieChart.jsx` — Pie chart: fördelning per kategori (Chart.js) — **S5**
-- [ ] `IncomeBarChart.jsx` — Bar chart: plattformens intäkter per månad (Chart.js) — **S5**
+- [x] `CategoryManager.jsx` — CRUD-gränssnitt för kategorier (live-CRUD mot `/admin/categories` med mock-fallback) — **S5** 
+- [x] `FlaggedAccounts.jsx` — Lista flaggade konton med sök/filter (live-data från `/admin/flagged-accounts` med mock-fallback) — **S5** 
+- [x] `JobsOverTimeChart.jsx` — Line chart: antal jobb per månad (Chart.js, mock-data) — **S5** 
+- [x] `CategoryPieChart.jsx` — Pie chart: fördelning per kategori (Chart.js, mock-data) — **S5** 
+- [x] `IncomeBarChart.jsx` — Bar chart: plattformens intäkter per månad (Chart.js, mock-data) — **S5** 
 
 ---
 
@@ -1032,7 +1033,9 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 
 - [x] `HobbyInfoPage.jsx` — Informationssida om hobbyverksamhet, Skatteverkets regler, FAQ — **S5** 
 - [x] `AboutPage.jsx` — Om oss: teaminfo (namn, roll, foto), projektbeskrivning — **S5** 
-- [x] `ChatPage.jsx` — Konversationslista + ChatWindow (mock-data, API-koppling väntar) — **S5** 
+- [x] `ChatPage.jsx` — Konversationslista + ChatWindow (live-data från `/messages/conversations` med mock-fallback) — **S5** ✅
+- [x] `GET /api/messages/conversations` + `PATCH /api/messages/:jobId/read` — Bonus: konversationsgruppering & read-status — **S5** ✅
+- [x] `frontend/src/services/messageService.js` — API-wrapper för konversationer, meddelanden, read-status — **S5** ✅
 - [x] `ChatWindow.jsx` — Chattfönster med meddelandehistorik + auto-scroll — **S5** 
 - [x] `MessageBubble.jsx` — Chattbubbla (avsändare / mottagare) — **S5** 
 - [x] `ChatInput.jsx` — Textfält + skicka-knapp — **S5** 

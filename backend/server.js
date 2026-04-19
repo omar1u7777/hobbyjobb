@@ -6,6 +6,11 @@ const rateLimiter = require('./src/middleware/rateLimiter');
 
 const app = express();
 
+// Trust first proxy (Render/Vercel/Heroku sit behind a load balancer).
+// Required for express-rate-limit to see the real client IP and for
+// req.secure / secure cookies to work correctly behind HTTPS termination.
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 app.use(rateLimiter);
@@ -32,9 +37,12 @@ app.use('/api/users', require('./src/routes/users'));
 app.use('/api/messages', require('./src/routes/messages'));
 app.use('/api/admin', require('./src/routes/admin'));
 
-// Health check endpoint
+// Health check endpoints
 app.get('/', (req, res) => {
   res.json({ message: 'HobbyJobb API is running', status: 'ok' });
+});
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // Error handling middleware

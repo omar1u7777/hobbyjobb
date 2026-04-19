@@ -185,6 +185,27 @@ router.post('/webhook', async (req, res) => {
 });
 
 async function handlePaymentSuccess(paymentIntent) {
+  // Handle boost payments (no Payment row, update Job directly)
+  if (paymentIntent.metadata?.type === 'boost') {
+    if (!Job) return;
+    const jobId = Number(paymentIntent.metadata.jobId);
+    const durationHours = Number(paymentIntent.metadata.durationHours);
+    const job = await Job.findByPk(jobId);
+    if (!job) {
+      console.error('Job not found for boost:', jobId);
+      return;
+    }
+    const now = new Date();
+    const baseTime = job.boost_expires_at && new Date(job.boost_expires_at) > now
+      ? new Date(job.boost_expires_at)
+      : now;
+    const newExpiry = new Date(baseTime.getTime() + durationHours * 60 * 60 * 1000);
+    await job.update({ is_boosted: true, boost_expires_at: newExpiry });
+    console.log('Boost activated for job:', jobId);
+    return;
+  }
+
+  // Regular escrow payment
   if (!Payment) return;
   const payment = await Payment.findOne({
     where: { stripe_payment_id: paymentIntent.id },
@@ -339,6 +360,149 @@ router.post('/release/:jobId', requireAuth, async (req, res, next) => {
         paymentId: payment.id,
         amountReleased: Number(payment.amount_payee),
         status: 'released',
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * Boost packages: direct payment (no escrow).
+ * Platform keeps 100% of boost revenue.
+ */
+const BOOST_PACKAGES = {
+  standard: { price: 29, durationHours: 48, label: 'Standard Boost (48h)' },
+  super:    { price: 59, durationHours: 24 * 7, label: 'Super Boost (7 dagar)' },
+};
+
+/**
+ * POST /api/payments/boost
+ * Create PaymentIntent for job boost (no escrow, direct charge).
+ * Body: { jobId, package: 'standard' | 'super' }
+ * Returns: { clientSecret, paymentIntentId, amount, package }
+ */
+router.post('/boost', requireAuth, async (req, res, next) => {
+  try {
+    const { jobId, package: pkgName } = req.body;
+    const userId = req.user.id;
+
+    if (!jobId || !pkgName) {
+      return res.status(400).json({ success: false, message: 'jobId and package are required' });
+    }
+
+    const pkg = BOOST_PACKAGES[pkgName];
+    if (!pkg) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid package. Use one of: ${Object.keys(BOOST_PACKAGES).join(', ')}`,
+      });
+    }
+
+    if (!stripe || !Job) {
+      return res.status(503).json({ success: false, message: 'Service not configured' });
+    }
+
+    // Verify job ownership
+    const job = await Job.findByPk(jobId);
+    if (!job) {
+      return res.status(404).json({ success: false, message: 'Job not found' });
+    }
+    if (job.poster_id !== userId) {
+      return res.status(403).json({ success: false, message: 'Only the job owner can boost this job' });
+    }
+
+    // Create PaymentIntent for boost
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: stripeConfig.toOre(pkg.price),
+      currency: 'sek',
+      metadata: {
+        type: 'boost',
+        jobId: String(jobId),
+        userId: String(userId),
+        boostPackage: pkgName,
+        durationHours: String(pkg.durationHours),
+      },
+      automatic_payment_methods: { enabled: true },
+    });
+
+    res.json({
+      success: true,
+      data: {
+        clientSecret: paymentIntent.client_secret,
+        paymentIntentId: paymentIntent.id,
+        amount: pkg.price,
+        package: pkgName,
+        label: pkg.label,
+        durationHours: pkg.durationHours,
+      },
+    });
+  } catch (error) {
+    console.error('Boost checkout error:', error);
+    next(error);
+  }
+});
+
+/**
+ * POST /api/payments/boost/confirm
+ * Activate boost after client-side Stripe success (webhook fallback).
+ * Body: { paymentIntentId }
+ */
+router.post('/boost/confirm', requireAuth, async (req, res, next) => {
+  try {
+    const { paymentIntentId } = req.body;
+    if (!paymentIntentId) {
+      return res.status(400).json({ success: false, message: 'paymentIntentId required' });
+    }
+    if (!stripe || !Job) {
+      return res.status(503).json({ success: false, message: 'Service not configured' });
+    }
+
+    const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+    if (intent.metadata?.type !== 'boost') {
+      return res.status(400).json({ success: false, message: 'Not a boost PaymentIntent' });
+    }
+
+    // Only the user who paid can confirm
+    if (Number(intent.metadata.userId) !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Forbidden' });
+    }
+
+    if (intent.status !== 'succeeded') {
+      return res.status(400).json({
+        success: false,
+        message: 'Payment not completed',
+        stripeStatus: intent.status,
+      });
+    }
+
+    const jobId = Number(intent.metadata.jobId);
+    const durationHours = Number(intent.metadata.durationHours);
+
+    const job = await Job.findByPk(jobId);
+    if (!job) {
+      return res.status(404).json({ success: false, message: 'Job not found' });
+    }
+
+    // Extend existing boost or start fresh
+    const now = new Date();
+    const baseTime = job.boost_expires_at && new Date(job.boost_expires_at) > now
+      ? new Date(job.boost_expires_at)
+      : now;
+    const newExpiry = new Date(baseTime.getTime() + durationHours * 60 * 60 * 1000);
+
+    await job.update({
+      is_boosted: true,
+      boost_expires_at: newExpiry,
+    });
+
+    res.json({
+      success: true,
+      data: {
+        jobId: job.id,
+        is_boosted: true,
+        boost_expires_at: newExpiry,
       },
     });
   } catch (error) {

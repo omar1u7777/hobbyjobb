@@ -42,6 +42,26 @@ export const paymentService = {
     const { data } = await api.post(`/payments/release/${jobId}`);
     return data.data;
   },
+
+  /**
+   * Create a boost payment for a job (direct charge, no escrow).
+   * @param {number} jobId
+   * @param {'standard' | 'super'} packageName - 'standard' (29 kr, 48h) or 'super' (59 kr, 7 days)
+   * @returns {Promise<{clientSecret, paymentIntentId, amount, package, label, durationHours}>}
+   */
+  async createBoost(jobId, packageName) {
+    const { data } = await api.post('/payments/boost', { jobId, package: packageName });
+    return data.data;
+  },
+
+  /**
+   * Activate boost after client-side Stripe success.
+   * @param {string} paymentIntentId
+   */
+  async confirmBoost(paymentIntentId) {
+    const { data } = await api.post('/payments/boost/confirm', { paymentIntentId });
+    return data.data;
+  },
 };
 
 export default paymentService;

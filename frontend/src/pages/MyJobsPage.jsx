@@ -142,6 +142,14 @@ export default function MyJobsPage() {
                           >
                             Redigera
                           </Link>
+                          <Link
+                            to={`/jobs/${j.id}/boost`}
+                            className="btn btn-sm"
+                            style={{ background: '#FEF3C7', color: '#92400E', border: 'none', borderRadius: 8, padding: '7px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                            title={j.is_boosted ? 'Förläng boost' : 'Boosta jobbet'}
+                          >
+                            🚀 {j.is_boosted ? 'Förläng' : 'Boosta'}
+                          </Link>
                           <button
                             className="btn btn-sm" onClick={() => setDeleteId(j.id)}
                             style={{ background: 'var(--red-light)', color: 'var(--red)', border: 'none', borderRadius: 8, padding: '7px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}

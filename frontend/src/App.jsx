@@ -21,6 +21,7 @@ import EditJobPage from './pages/EditJobPage.jsx';
 import MyJobsPage from './pages/MyJobsPage.jsx';
 import CheckoutPage from './pages/CheckoutPage.jsx';
 import PaymentSuccessPage from './pages/PaymentSuccessPage.jsx';
+import BoostJobPage from './pages/BoostJobPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 
 // Placeholder components for pages owned by other students (Student 1 / Student 5)
@@ -156,6 +157,14 @@ export default function App() {
             element={
               <PrivateRoute>
                 <PaymentSuccessPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/jobs/:jobId/boost"
+            element={
+              <PrivateRoute>
+                <BoostJobPage />
               </PrivateRoute>
             }
           />

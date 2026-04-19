@@ -10,7 +10,9 @@ import { formatPrice } from '../utils/formatters.js';
 import Alert from '../components/common/Alert.jsx';
 import Spinner from '../components/common/Spinner.jsx';
 
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+const stripePromise = loadStripe(
+  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || import.meta.env.VITE_STRIPE_PUBLIC_KEY
+);
 
 const PACKAGES = [
   { key: 'standard', price: 29, label: 'Standard Boost',  duration: '48 timmar', icon: '⚡' },

@@ -11,7 +11,9 @@ import Alert from '../components/common/Alert.jsx';
 import Spinner from '../components/common/Spinner.jsx';
 
 // Initialize Stripe (public key from environment)
-const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+const stripePromise = loadStripe(
+  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || import.meta.env.VITE_STRIPE_PUBLIC_KEY
+);
 
 // Checkout Form Component (inside Stripe Elements)
 function CheckoutForm({ job, clientSecret }) {

@@ -92,6 +92,10 @@ export default function AdminDashboardPage() {
           .admin-charts-grid {
             grid-template-columns: 1fr !important;
           }
+
+          .admin-charts-top {
+            grid-template-columns: 1fr !important;
+          }
         }
 
         @media (max-width: 700px) {

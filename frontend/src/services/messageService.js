@@ -7,10 +7,10 @@ function normalizeConversation(item) {
   return {
     id: item.id ?? `c-${item.jobId}-${otherUser.id ?? 'unknown'}`,
     jobId: String(item.jobId ?? item.job_id ?? ''),
-    jobTitle: item.jobTitle ?? item.job_title ?? 'Okant jobb',
+    jobTitle: item.jobTitle ?? item.job_title ?? 'Okänt jobb',
     participant: {
       id: otherUser.id,
-      name: otherUser.name ?? 'Okand anvandare',
+      name: otherUser.name ?? 'Okänd användare',
       avatar: otherUser.avatar ?? null,
     },
     unread: item.unreadCount ?? item.unread ?? 0,

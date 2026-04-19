@@ -14,7 +14,7 @@ const incomeBarData = {
   labels: ['Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul'],
   datasets: [
     {
-      label: 'Intakt (SEK)',
+      label: 'Intäkt (SEK)',
       data: [9800, 11600, 12900, 14100, 15250, 16700],
       backgroundColor: ['#BFDBFE', '#93C5FD', '#60A5FA', '#3B82F6', '#2563EB', '#1D4ED8'],
       borderRadius: 6,
@@ -53,8 +53,8 @@ export default function IncomeBarChart() {
   return (
     <article className="card" style={{ padding: 16 }}>
       <div style={{ marginBottom: 10 }}>
-        <h2 style={{ fontSize: 16, marginBottom: 4 }}>Intakt per manad</h2>
-        <p style={{ fontSize: 12, color: 'var(--muted)' }}>Plattformens intakt under senaste halvaret</p>
+        <h2 style={{ fontSize: 16, marginBottom: 4 }}>Intäkt per månad</h2>
+        <p style={{ fontSize: 12, color: 'var(--muted)' }}>Plattformens intäkt under senaste halvåret</p>
       </div>
       <div style={{ height: 220 }}>
         <Bar options={incomeBarOptions} data={incomeBarData} />

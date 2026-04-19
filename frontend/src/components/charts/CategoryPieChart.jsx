@@ -4,7 +4,7 @@ import { Doughnut } from 'react-chartjs-2';
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const categoryPieData = {
-  labels: ['Handyman', 'Stadning', 'Djur', 'Tradgard', 'Flytt'],
+  labels: ['Handyman', 'Städning', 'Djur', 'Trädgård', 'Flytt'],
   datasets: [
     {
       label: 'Jobb per kategori',
@@ -35,7 +35,7 @@ export default function CategoryPieChart() {
   return (
     <article className="card" style={{ padding: 16 }}>
       <div style={{ marginBottom: 10 }}>
-        <h2 style={{ fontSize: 16, marginBottom: 4 }}>Kategori-fordelning</h2>
+        <h2 style={{ fontSize: 16, marginBottom: 4 }}>Kategori-fördelning</h2>
         <p style={{ fontSize: 12, color: 'var(--muted)' }}>Aktiva jobb i plattformen</p>
       </div>
       <div style={{ height: 240 }}>

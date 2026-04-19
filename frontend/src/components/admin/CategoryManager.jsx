@@ -1,11 +1,24 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { adminService } from '../../services/adminService.js';
 
 const INITIAL_CATEGORIES = [
-  { id: 1, name: 'Handyman', maxPrice: 1500, status: 'Aktiv', description: 'Montering, enklare reparationer och fix' },
-  { id: 2, name: 'Stadning', maxPrice: 1200, status: 'Aktiv', description: 'Hemstadning och storstadning' },
-  { id: 3, name: 'Djurpassning', maxPrice: 900, status: 'Aktiv', description: 'Hundpromenad, kattpassning och tillsyn' },
-  { id: 4, name: 'Flytt & Transport', maxPrice: 2200, status: 'Pausad', description: 'Mindre flyttar och lokal transport' },
+  { id: 1, name: 'Handyman', maxPrice: 1500, status: 'Aktiv', description: 'Montering, enklare reparationer och fix', jobsCount: 0 },
+  { id: 2, name: 'Städning', maxPrice: 1200, status: 'Aktiv', description: 'Hemstädning och storstädning', jobsCount: 0 },
+  { id: 3, name: 'Djurpassning', maxPrice: 900, status: 'Aktiv', description: 'Hundpromenad, kattpassning och tillsyn', jobsCount: 0 },
+  { id: 4, name: 'Flytt & Transport', maxPrice: 2200, status: 'Pausad', description: 'Mindre flyttar och lokal transport', jobsCount: 0 },
 ];
+
+function mapApiCategory(api) {
+  return {
+    id: api.id,
+    name: api.name,
+    maxPrice: api.max_price != null ? Number(api.max_price) : 0,
+    status: 'Aktiv',
+    description: api.description || '',
+    icon: api.icon || null,
+    jobsCount: Number(api.jobs_count ?? 0),
+  };
+}
 
 function chipStyle(status) {
   if (status === 'Pausad') {
@@ -27,6 +40,32 @@ export default function CategoryManager() {
   const [query, setQuery] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [apiLive, setApiLive] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadCategories() {
+      try {
+        const apiCategories = await adminService.getCategories();
+        if (cancelled) return;
+
+        if (Array.isArray(apiCategories) && apiCategories.length > 0) {
+          setCategories(apiCategories.map(mapApiCategory));
+          setApiLive(true);
+        }
+      } catch (_) {
+        // Keep mock data on failure
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    loadCategories();
+    return () => { cancelled = true; };
+  }, []);
 
   const filteredCategories = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -45,8 +84,9 @@ export default function CategoryManager() {
     setEditingId(null);
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
+    setError('');
 
     const payload = {
       name: form.name.trim(),
@@ -56,20 +96,58 @@ export default function CategoryManager() {
     };
 
     if (!payload.name || !payload.maxPrice || !payload.description) {
+      setError('Namn, maxpris och beskrivning krävs.');
       return;
     }
 
+    const apiPayload = {
+      name: payload.name,
+      description: payload.description,
+      max_price: payload.maxPrice,
+    };
+
+    if (apiLive) {
+      try {
+        if (editingId) {
+          const updated = await adminService.updateCategory(editingId, apiPayload);
+          const mapped = mapApiCategory(updated);
+          setCategories((current) => current.map((c) => (c.id === editingId ? { ...mapped, status: payload.status } : c)));
+        } else {
+          const created = await adminService.createCategory(apiPayload);
+          const mapped = mapApiCategory(created);
+          setCategories((current) => [{ ...mapped, status: payload.status }, ...current]);
+        }
+        resetForm();
+        return;
+      } catch (err) {
+        setError(err.response?.data?.message || err.message || 'Kunde inte spara kategori.');
+        return;
+      }
+    }
+
+    // Mock-only fallback
     if (editingId) {
       setCategories((current) => current.map((category) => (category.id === editingId ? { ...category, ...payload } : category)));
       resetForm();
       return;
     }
 
-    setCategories((current) => [{ id: Date.now(), ...payload }, ...current]);
+    setCategories((current) => [{ id: Date.now(), ...payload, jobsCount: 0 }, ...current]);
     resetForm();
   }
 
-  function handleDelete(categoryId) {
+  async function handleDelete(categoryId) {
+    setError('');
+
+    if (apiLive) {
+      try {
+        await adminService.deleteCategory(categoryId);
+      } catch (err) {
+        setError(err.response?.data?.message || err.message || 'Kunde inte ta bort kategorin.');
+        return;
+      }
+    }
+
     setCategories((current) => current.filter((category) => category.id !== categoryId));
     if (editingId === categoryId) {
       resetForm();
@@ -92,8 +170,11 @@ export default function CategoryManager() {
         <div>
           <h3>Kategorihantering</h3>
           <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
-            Mockad admin-CRUD tills /api/admin/categories kopplas in
+            {loading ? 'Laddar kategorier…' : apiLive ? 'Live-CRUD mot /api/admin/categories.' : 'Mock-CRUD — admin-API ej tillgängligt.'}
           </p>
+          {error ? (
+            <p style={{ marginTop: 6, fontSize: 12, color: 'var(--red)' }}>{error}</p>
+          ) : null}
         </div>
       </div>
 
@@ -135,7 +216,7 @@ export default function CategoryManager() {
             type="submit"
             style={{ border: 'none', borderRadius: 8, padding: '9px 12px', fontWeight: 700, cursor: 'pointer', color: 'var(--white)', background: 'var(--blue)' }}
           >
-            {editingId ? 'Spara andringar' : 'Lagg till kategori'}
+            {editingId ? 'Spara ändringar' : 'Lägg till kategori'}
           </button>
           {editingId ? (
             <button
@@ -154,7 +235,7 @@ export default function CategoryManager() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Sok kategori..."
+          placeholder="Sök kategori…"
           style={{ width: '100%', border: '1.5px solid var(--border)', borderRadius: 8, padding: '9px 12px', fontSize: 13, fontFamily: 'var(--font)' }}
         />
       </div>

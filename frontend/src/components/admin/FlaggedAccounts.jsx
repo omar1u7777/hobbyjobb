@@ -1,4 +1,24 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { adminService } from '../../services/adminService.js';
+
+const RISK_LABEL_SV = { high: 'Hög', medium: 'Medel', low: 'Låg' };
+const RISK_SV_TO_KEY = { 'Hög': 'high', 'Medel': 'medium', 'Låg': 'low', 'Alla': 'all' };
+
+function mapApiAccount(apiAccount) {
+  const riskKey = typeof apiAccount.risk === 'string' ? apiAccount.risk.toLowerCase() : 'low';
+  const reason = apiAccount.hobbyLimitReached
+    ? 'Gräns nådd'
+    : `Över ${apiAccount.limitPercent ?? 0}% av gränsen`;
+
+  return {
+    id: apiAccount.id,
+    name: apiAccount.name,
+    hobbyIncome: Number(apiAccount.hobbyTotalYear ?? 0),
+    risk: RISK_LABEL_SV[riskKey] || 'Låg',
+    reason,
+    status: apiAccount.hobbyLimitReached ? 'Låst' : 'Öppen',
+  };
+}
 
 const INITIAL_ACCOUNTS = [
   { id: 101, name: 'Lina Holm', hobbyIncome: 29200, risk: 'Hög', reason: 'Över 97% av gränsen', status: 'Öppen' },
@@ -36,6 +56,35 @@ export default function FlaggedAccounts() {
   const [accounts, setAccounts] = useState(INITIAL_ACCOUNTS);
   const [query, setQuery] = useState('');
   const [riskFilter, setRiskFilter] = useState('Alla');
+  const [apiLive, setApiLive] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadAccounts() {
+      try {
+        const apiAccounts = await adminService.getFlaggedAccounts({
+          search: query,
+          risk: RISK_SV_TO_KEY[riskFilter] || 'all',
+        });
+        if (cancelled) return;
+
+        if (Array.isArray(apiAccounts)) {
+          setAccounts(apiAccounts.map(mapApiAccount));
+          setApiLive(true);
+        }
+      } catch (_) {
+        // Keep mock data on failure
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    loadAccounts();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, riskFilter]);
 
   const filteredAccounts = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -67,7 +116,7 @@ export default function FlaggedAccounts() {
         <div>
           <h3>Flaggade konton</h3>
           <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
-            Systemövervakning med mock-data tills admin-API kopplas in
+            {loading ? 'Laddar från admin-API…' : apiLive ? 'Live-data från admin-API.' : 'Mock-data — admin-API ej tillgängligt.'}
           </p>
         </div>
       </div>

@@ -66,8 +66,8 @@ export default function JobsOverTimeChart() {
   return (
     <article className="card" style={{ padding: 16 }}>
       <div style={{ marginBottom: 10 }}>
-        <h2 style={{ fontSize: 16, marginBottom: 4 }}>Jobb over tid</h2>
-        <p style={{ fontSize: 12, color: 'var(--muted)' }}>Mockad trend for senaste 7 manaderna</p>
+        <h2 style={{ fontSize: 16, marginBottom: 4 }}>Jobb över tid</h2>
+        <p style={{ fontSize: 12, color: 'var(--muted)' }}>Mockad trend för senaste 7 månaderna</p>
       </div>
       <div style={{ height: 240 }}>
         <Line options={jobsOverTimeOptions} data={jobsOverTimeData} />

@@ -1,8 +1,9 @@
 const { Op, fn, col, literal } = require('sequelize');
 const { User, Job, Category, Payment, Message } = require('../models');
+const { HOBBY_ANNUAL_LIMIT, HOBBY_WARNING_THRESHOLD } = require('../../config/constants');
 
-const HOBBY_LIMIT = 30000;
-const HOBBY_WARN_THRESHOLD = 25000;
+const HOBBY_LIMIT = HOBBY_ANNUAL_LIMIT;
+const HOBBY_WARN_THRESHOLD = HOBBY_WARNING_THRESHOLD;
 
 const parseMoney = (value) => {
   const parsed = Number.parseFloat(value);

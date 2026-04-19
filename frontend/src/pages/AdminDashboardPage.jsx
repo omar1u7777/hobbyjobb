@@ -1,5 +1,6 @@
 import UserTable from '../components/admin/UserTable.jsx';
 import JobTable from '../components/admin/JobTable.jsx';
+import CategoryManager from '../components/admin/CategoryManager.jsx';
 import AdminStatsCharts from '../components/charts/AdminStatsCharts.jsx';
 
 const STATS = [
@@ -66,6 +67,8 @@ export default function AdminDashboardPage() {
         </section>
 
         <AdminStatsCharts />
+
+        <CategoryManager />
 
         <section className="admin-tables-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <UserTable />

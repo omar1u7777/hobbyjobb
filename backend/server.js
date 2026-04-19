@@ -16,11 +16,15 @@ app.use(cors({
   credentials: true
 }));
 
+// Stripe webhook route (needs raw body, before JSON parser)
+app.use('/api/payments/webhook', express.raw({ type: 'application/json' }), require('./src/routes/payments'));
+
 // JSON parser
 app.use(express.json());
 
 // Auth routes
 app.use('/api/auth', require('./src/routes/auth'));
+app.use('/api/payments', require('./src/routes/payments'));
 app.use('/api/categories', require('./src/routes/categories'));
 app.use('/api/jobs', require('./src/routes/jobs'));
 app.use('/api/applications', require('./src/routes/applications'));

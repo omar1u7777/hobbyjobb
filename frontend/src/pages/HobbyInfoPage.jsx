@@ -1,111 +1,93 @@
-import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
 
-const RULES = [
-  {
-    title: 'Hobbyinkomst upp till 30 000 kr/år',
-    description:
-      'Plattformen är byggd för hobbyverksamhet. Du får en varning när du närmar dig gränsen och annonsering stoppas vid uppnådd gräns.',
-    badge: 'Skatt',
-  },
-  {
-    title: 'Momsregistrering vid hög omsättning',
-    description:
-      'Om verksamheten blir större kan momsregistrering behövas. HobbyJobb visar tidiga varningar innan du når kritiska nivåer.',
-    badge: 'Moms',
-  },
-  {
-    title: 'Ingen yrkesmässig verksamhet',
-    description:
-      'Tjänsten är inte till för företagsdrift. Långsiktig och vinstdriven verksamhet ska bedrivas med korrekt företagsform.',
-    badge: 'Ansvar',
-  },
-  {
-    title: 'Du ansvarar för dina uppgifter',
-    description:
-      'Som användare ansvarar du för att deklarera korrekt och följa Skatteverkets aktuella regler för din situation.',
-    badge: 'Deklaration',
-  },
-];
-
+/* ─── FAQ data ────────────────────────────────────────────── */
 const FAQ_ITEMS = [
   {
-    question: 'Måste jag starta företag för att använda HobbyJobb?',
+    question: 'Måste jag betala skatt?',
     answer:
-      'Nej, plattformen är avsedd för hobbyverksamhet. Om din verksamhet blir varaktig och tydligt vinstdriven bör du utreda företagsform och F-skatt.',
+      'Nej, inte om du tjänar under 30 000 kr per år. Hobbyverksamhet under den gränsen är skattefri enligt Skatteverkets tumregel. Du behöver dock ändå redovisa inkomsten i din deklaration om den överstiger dina avdragsgilla kostnader.',
   },
   {
-    question: 'Vad händer om jag når inkomstgränsen?',
+    question: 'Vad händer om jag tjänar mer än 30 000 kr?',
     answer:
-      'Systemet varnar i god tid. När gränsen är passerad kan du inte lägga upp nya jobb förrän nästa period eller tills reglerna uppfylls igen.',
+      'Om du överskrider 30 000 kr/år bör du anmäla till Skatteverket. Verksamheten kan då klassas som näringsverksamhet och kräva F-skatt och momsregistrering. HobbyJobb varnar dig automatiskt när du närmar dig gränsen.',
   },
   {
-    question: 'Sköter HobbyJobb min deklaration?',
+    question: 'Kan jag ha hobbyverksamhet vid sidan av ett vanligt jobb?',
     answer:
-      'Nej. Vi visar översikt och varningar, men du ansvarar alltid själv för deklaration, kvitton och korrekt skattehantering.',
+      'Ja, det är fullt möjligt att ha hobbyverksamhet parallellt med en anställning. Det viktiga är att hobbyinkomsten inte överskrider 30 000 kr/år och att det inte är din huvudinkomst.',
   },
   {
-    question: 'Var hittar jag officiell information?',
+    question: 'Vilka typer av jobb räknas som hobbyverksamhet?',
     answer:
-      'Läs alltid senaste informationen direkt hos Skatteverket. Regler kan ändras över tid och ska tolkas utifrån din individuella situation.',
+      'Tillfälliga uppdrag som gräsklippning, hundpromenad, flytt, enklare hantverk, städning och liknande räknas normalt som hobbyverksamhet — så länge de utförs oregelbundet och inte i vinstsyfte som huvudsyssla.',
   },
 ];
 
+/* ─── FAQ accordion item ──────────────────────────────────── */
 function FaqItem({ item, isOpen, onToggle }) {
   return (
-    <article
+    <div
       style={{
-        border: '1px solid var(--border)',
-        borderRadius: 10,
-        background: 'var(--white)',
-        overflow: 'hidden',
+        borderBottom: '1px solid var(--border-light)',
       }}
     >
       <button
         onClick={onToggle}
         style={{
           width: '100%',
-          border: 'none',
           textAlign: 'left',
-          background: 'transparent',
-          padding: '16px 18px',
-          fontSize: 15,
-          fontWeight: 700,
-          color: 'var(--dark)',
+          padding: '18px 0',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
           display: 'flex',
-          alignItems: 'center',
           justifyContent: 'space-between',
+          alignItems: 'center',
+          fontSize: 15,
+          fontWeight: 600,
+          color: 'var(--dark)',
         }}
       >
-        <span>{item.question}</span>
-        <span style={{ color: 'var(--muted)', fontSize: 18 }}>{isOpen ? '-' : '+'}</span>
+        {item.question}
+        <span
+          style={{
+            color: 'var(--blue)',
+            fontSize: 20,
+            lineHeight: 1,
+            marginLeft: 16,
+            flexShrink: 0,
+          }}
+        >
+          {isOpen ? '−' : '+'}
+        </span>
       </button>
 
       {isOpen && (
-        <div
+        <p
           style={{
-            padding: '0 18px 16px',
-            color: 'var(--ink)',
+            color: 'var(--muted)',
             fontSize: 14,
             lineHeight: 1.7,
-            borderTop: '1px solid var(--border-light)',
+            paddingBottom: 18,
           }}
         >
           {item.answer}
-        </div>
+        </p>
       )}
-    </article>
+    </div>
   );
 }
 
+/* ─── Page ────────────────────────────────────────────────── */
 export default function HobbyInfoPage() {
-  const [openIndex, setOpenIndex] = useState(0);
-
-  const currentYear = useMemo(() => new Date().getFullYear(), []);
+  const [openFaq, setOpenFaq] = useState(null);
 
   return (
     <main style={{ padding: '42px 0 72px' }}>
       <div className="container">
+
+        {/* ── Hero / Rubrik ──────────────────────────────── */}
         <section
           className="card card-lg"
           style={{
@@ -120,108 +102,175 @@ export default function HobbyInfoPage() {
           </span>
 
           <h1 style={{ fontSize: 30, lineHeight: 1.2, fontWeight: 800, marginBottom: 10 }}>
-            Regler, ansvar och tryggare hobbyjobb
+            Hobbyverksamhet — Vad gäller?
           </h1>
 
           <p style={{ color: 'var(--ink)', maxWidth: 780, lineHeight: 1.75, marginBottom: 18 }}>
-            HobbyJobb hjälper dig att ta mindre uppdrag på ett ansvarsfullt sätt. Sidan sammanfattar
-            reglerna på en enkel nivå, men ersätter inte officiell juridisk information.
+            HobbyJobb hjälper dig att ta mindre uppdrag på ett ansvarsfullt sätt. Här hittar du
+            en sammanfattning av Skatteverkets regler — men sidan ersätter inte officiell juridisk
+            information.
           </p>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
-            <a
-              className="btn btn-primary"
-              href="https://www.skatteverket.se"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Läs hos Skatteverket
-            </a>
-            <Link to="/profil" className="btn btn-outline">
-              Se min inkomstöversikt
-            </Link>
+          <a
+            className="btn btn-primary"
+            href="https://www.skatteverket.se/privat/skatter/inkomst/hobbyverksamhet"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Läs hos Skatteverket →
+          </a>
+        </section>
+
+        {/* ── Sektion 1: Vad är hobbyverksamhet? ──────────── */}
+        <section className="section" style={{ marginBottom: 20 }}>
+          <div className="section-hdr">
+            <h2>Vad är hobbyverksamhet?</h2>
+          </div>
+
+          <div
+            className="card"
+            style={{ padding: '20px 24px', borderLeft: '4px solid var(--blue)' }}
+          >
+            <p style={{ color: 'var(--ink)', lineHeight: 1.8, marginBottom: 12 }}>
+              Hobbyverksamhet är inkomstbringande aktivitet som du bedriver{' '}
+              <strong>utan vinstsyfte</strong> och som <strong>inte är din huvudsyssla</strong>.
+              Typiska exempel är gräsklippning, hundpromenad, enklare hantverk eller tillfälliga
+              transportuppdrag.
+            </p>
+            <p style={{ color: 'var(--ink)', lineHeight: 1.8, marginBottom: 12 }}>
+              Enligt Skatteverkets tumregel får du tjäna upp till{' '}
+              <strong>30 000 kr per år</strong> inom hobbyverksamhet utan att behöva registrera
+              F-skatt eller momsregistrera dig.
+            </p>
+            <p style={{ color: 'var(--ink)', lineHeight: 1.8 }}>
+              Du behöver <strong>ingen moms</strong> och <strong>ingen F-skatt</strong> så länge
+              du håller dig under gränsen och inte driver verksamheten yrkesmässigt.
+            </p>
           </div>
         </section>
 
-        <section
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-            gap: 14,
-            marginBottom: 20,
-          }}
-          className="hobby-rules-grid"
-        >
-          {RULES.map((rule) => (
+        {/* ── Sektion 2: Regler ────────────────────────────── */}
+        <section className="section" style={{ marginBottom: 20 }}>
+          <div className="section-hdr">
+            <h2>Regler att känna till</h2>
+          </div>
+
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+              gap: 14,
+            }}
+          >
+            {/* Regel 1 */}
             <article
-              key={rule.title}
               className="card"
-              style={{
-                padding: '18px 18px 20px',
-                borderLeft: '4px solid var(--blue)',
-              }}
+              style={{ padding: '18px 20px 20px', borderTop: '3px solid var(--blue)' }}
             >
-              <span className="badge badge-blue" style={{ marginBottom: 8 }}>
-                {rule.badge}
-              </span>
-              <h2 style={{ fontSize: 18, marginBottom: 8, lineHeight: 1.35 }}>{rule.title}</h2>
-              <p style={{ color: 'var(--ink)', lineHeight: 1.7, fontSize: 14 }}>{rule.description}</p>
+              <div style={{ fontSize: 28, marginBottom: 10 }}>💰</div>
+              <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>
+                Max 30 000 kr/år
+              </h3>
+              <p style={{ color: 'var(--ink)', fontSize: 14, lineHeight: 1.7 }}>
+                Skatteverkets tumregel tillåter hobbyinkomst upp till 30 000 kr per kalenderår
+                utan F-skatt. HobbyJobb spärrar automatiskt annonsering när gränsen nås.
+              </p>
             </article>
-          ))}
+
+            {/* Regel 2 */}
+            <article
+              className="card"
+              style={{ padding: '18px 20px 20px', borderTop: '3px solid var(--blue)' }}
+            >
+              <div style={{ fontSize: 28, marginBottom: 10 }}>🏠</div>
+              <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>
+                Inte din huvudinkomst
+              </h3>
+              <p style={{ color: 'var(--ink)', fontSize: 14, lineHeight: 1.7 }}>
+                Hobbyverksamhet får inte vara din primära inkomstkälla. Om det blir varaktigt
+                och tydligt vinstdrivande kan Skatteverket klassa det som näringsverksamhet.
+              </p>
+            </article>
+
+            {/* Regel 3 */}
+            <article
+              className="card"
+              style={{ padding: '18px 20px 20px', borderTop: '3px solid var(--blue)' }}
+            >
+              <div style={{ fontSize: 28, marginBottom: 10 }}>🔧</div>
+              <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 8 }}>
+                Ingen dyr yrkesmässig utrustning
+              </h3>
+              <p style={{ color: 'var(--ink)', fontSize: 14, lineHeight: 1.7 }}>
+                Verksamheten ska inte kräva stor professionell utrustningsinvestering.
+                Tillfälliga uppdrag med normalt hushållsmaterial är okej.
+              </p>
+            </article>
+          </div>
         </section>
 
-        <section className="section" style={{ marginBottom: 18 }}>
+        {/* ── Sektion 3: FAQ ───────────────────────────────── */}
+        <section className="section" style={{ marginBottom: 20 }}>
           <div className="section-hdr">
-            <h3>Snabb checklista innan du publicerar jobb</h3>
+            <h2>Vanliga frågor</h2>
           </div>
 
-          <ul style={{ display: 'grid', gap: 10 }}>
-            <li style={listItemStyle}>Jag har läst och förstått hobbyreglerna.</li>
-            <li style={listItemStyle}>Jag har kontroll på min totala inkomst för året.</li>
-            <li style={listItemStyle}>Jag erbjuder tillfälliga uppdrag, inte företagsverksamhet.</li>
-            <li style={listItemStyle}>Jag sparar underlag för korrekt deklaration.</li>
-          </ul>
-        </section>
-
-        <section className="section">
-          <div className="section-hdr">
-            <h3>Vanliga frågor</h3>
-          </div>
-
-          <div style={{ display: 'grid', gap: 10 }}>
+          <div
+            className="card"
+            style={{ padding: '4px 24px 8px', maxWidth: 720 }}
+          >
             {FAQ_ITEMS.map((item, index) => (
               <FaqItem
                 key={item.question}
                 item={item}
-                isOpen={index === openIndex}
-                onToggle={() => setOpenIndex((curr) => (curr === index ? -1 : index))}
+                isOpen={index === openFaq}
+                onToggle={() =>
+                  setOpenFaq((curr) => (curr === index ? null : index))
+                }
               />
             ))}
           </div>
         </section>
 
+        {/* ── Sektion 4: Länk till Skatteverket ───────────── */}
+        <section
+          className="card"
+          style={{
+            padding: '24px 28px',
+            background: 'var(--bg)',
+            border: '1px solid var(--border)',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 16,
+          }}
+        >
+          <div>
+            <h3 style={{ fontSize: 17, fontWeight: 700, marginBottom: 6 }}>
+              Officiell information från Skatteverket
+            </h3>
+            <p style={{ color: 'var(--muted)', fontSize: 14, lineHeight: 1.6 }}>
+              Regler kan ändras — läs alltid senaste informationen direkt hos Skatteverket
+              och tolka dem utifrån din individuella situation.
+            </p>
+          </div>
+          <a
+            className="btn btn-primary"
+            href="https://www.skatteverket.se/privat/skatter/inkomst/hobbyverksamhet"
+            target="_blank"
+            rel="noreferrer"
+            style={{ flexShrink: 0 }}
+          >
+            Gå till Skatteverket →
+          </a>
+        </section>
+
         <p style={{ marginTop: 16, color: 'var(--muted)', fontSize: 12 }}>
-          Senast uppdaterad: april {currentYear}. Informationen är generell och inte individuell
-          skatterådgivning.
+          Senast uppdaterad: april 2026. Informationen är generell och utgör inte
+          individuell skatterådgivning.
         </p>
       </div>
-
-      <style>{`
-        @media (max-width: 900px) {
-          .hobby-rules-grid {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
     </main>
   );
 }
-
-const listItemStyle = {
-  background: 'var(--bg)',
-  border: '1px solid var(--border)',
-  borderRadius: 8,
-  padding: '10px 12px',
-  color: 'var(--ink)',
-  fontSize: 14,
-};

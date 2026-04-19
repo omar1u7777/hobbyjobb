@@ -984,22 +984,25 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
   - Baseras på `profile.html` wireframe
 
 ---
-
 ## 💳 FAS 4 — Betalningssystem (Stripe Connect)
 > Kräver att Jobs API och Auth är klara (FAS 1C + 1D).  
 > **Ansvarig: S1 (backend + frontend)**
 
-- [ ] Stripe-konto skapat på dashboard.stripe.com — **S1**
-- [ ] Connect aktiverat i Stripe Dashboard — **S1**
-- [ ] `backend/config/stripe.js` — Stripe-klient med API-nyckel — **S1**
-- [ ] `POST /api/payments/checkout` — Skapar Stripe PaymentIntent med application_fee_amount (8%) — **S1**
-- [ ] `POST /api/payments/confirm/:jobId` — Frigör escrow till utföraren (92%) — **S1**
-- [ ] `POST /api/payments/webhook` — Hanterar Stripe-events (payment_intent.succeeded etc.) — **S1**
-- [ ] `GET /api/payments/history` — Betalningshistorik för inloggad användare — **S1**
-- [ ] `POST /api/payments/boost` — Direkt betalning för Boost-annonsering — **S1**
-- [ ] `frontend/src/services/paymentService.js` — createCheckout(), confirmPayment(), getHistory() — **S1**
-- [ ] `CheckoutPage.jsx` — Stripe-betalningsflöde med kortinmatning — **S1**
-- [ ] `PaymentSuccessPage.jsx` — Bekräftelsesida efter genomförd betalning — **S1**
+- [x] Stripe-konto skapat på dashboard.stripe.com — **S1** 
+- [ ] Connect aktiverat i Stripe Dashboard — **S1** *(MVP: plattform håller escrow utan Connect)*
+- [x] `backend/config/stripe.js` — Stripe-klient med API-nyckel + fee-beräkning — **S1** 
+- [x] `POST /api/payments/checkout` — Skapar Stripe PaymentIntent med platform-fee (8%) — **S1** 
+- [x] `POST /api/payments/confirm` — Client-side confirm fallback (verifierar mot Stripe API) — **S1** 
+- [x] `POST /api/payments/release/:jobId` — Frigör escrow till utföraren (92%) + uppdaterar hobby_total_year — **S1** 
+- [x] `POST /api/payments/webhook` — Hanterar Stripe-events (payment_intent.succeeded etc.) — **S1** 
+- [x] `GET /api/payments/history` — Betalningshistorik för inloggad användare — **S1** 
+- [x] `POST /api/payments/boost` + `/boost/confirm` — Direkt betalning för Boost-annonsering (29 kr/48h eller 59 kr/7 dagar) — **S1** ✅
+- [x] `BoostJobPage.jsx` — Paketval + Stripe Elements för boost-betalning — **S1** ✅
+- [x] `MyJobsPage` — 🚀 "Boosta"-knapp per jobb — **S1** ✅
+- [x] `frontend/src/services/paymentService.js` — createCheckout(), confirmPayment(), releaseEscrow(), getHistory() — **S1** 
+- [x] `CheckoutPage.jsx` — Stripe Elements betalningsflöde med sammanfattning — **S1** 
+- [x] `PaymentSuccessPage.jsx` — Bekräftelsesida efter genomförd betalning — **S1** 
+- [x] `JobDetailPage` — "Betala & starta jobbet" + "Markera klart & frigör betalning" knappar — **S1** 
 
 ---
 

@@ -23,6 +23,10 @@ import CheckoutPage from './pages/CheckoutPage.jsx';
 import PaymentSuccessPage from './pages/PaymentSuccessPage.jsx';
 import BoostJobPage from './pages/BoostJobPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
+import HobbyInfoPage from './pages/HobbyInfoPage.jsx';
+import AboutPage from './pages/AboutPage.jsx';
+import ChatPage from './pages/ChatPage.jsx';
+import AdminDashboardPage from './pages/AdminDashboardPage.jsx';
 
 // Placeholder components for pages owned by other students (Student 1 / Student 5)
 // These will be replaced by the responsible students when they implement the real pages.
@@ -34,11 +38,6 @@ function ComingSoonPage({ name }) {
     </div>
   );
 }
-
-const ChatPage            = () => <ComingSoonPage name="Chatt" />;
-const AdminDashboardPage  = () => <ComingSoonPage name="Admin" />;
-const HobbyInfoPage       = () => <ComingSoonPage name="Hobbyinfo" />;
-const AboutPage           = () => <ComingSoonPage name="Om oss" />;
 
 /** Guard: redirects to /login if not authenticated */
 function PrivateRoute({ children }) {

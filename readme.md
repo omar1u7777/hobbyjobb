@@ -886,7 +886,7 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 > 🔒 Kräver att Job-modellen och requireAuth (1C) är klara
 - [x] `GET /api/categories` — Lista alla kategorier — **S2** ✅
 - [x] `GET /api/jobs` — Lista jobb med filter (kategori, lat/lng/radius, pris, sort, pagination) — **S2** ✅
-- [x] `POST /api/jobs` — Skapa jobb (kräver auth + hobbyLimitCheck) — **S2** ✅
+- [x] `POST /api/jobs` — Skapa jobb (kräver auth; hobbyLimitCheck flyttad till `/payments/release` där payee valideras) — **S2** ✅
 - [x] `GET /api/jobs/:id` — Hämta ett jobb — **S2** ✅
 - [x] `PUT /api/jobs/:id` — Uppdatera jobb (kräver auth + ägare) — **S2** ✅
 - [x] `DELETE /api/jobs/:id` — Ta bort jobb (kräver auth + ägare) — **S2** ✅

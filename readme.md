@@ -886,7 +886,7 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 > 🔒 Kräver att Job-modellen och requireAuth (1C) är klara
 - [x] `GET /api/categories` — Lista alla kategorier — **S2** ✅
 - [x] `GET /api/jobs` — Lista jobb med filter (kategori, lat/lng/radius, pris, sort, pagination) — **S2** ✅
-- [x] `POST /api/jobs` — Skapa jobb (kräver auth + hobbyLimitCheck) — **S2** ✅
+- [x] `POST /api/jobs` — Skapa jobb (kräver auth; hobbyLimitCheck flyttad till `/payments/release` där payee valideras) — **S2** ✅
 - [x] `GET /api/jobs/:id` — Hämta ett jobb — **S2** ✅
 - [x] `PUT /api/jobs/:id` — Uppdatera jobb (kräver auth + ägare) — **S2** ✅
 - [x] `DELETE /api/jobs/:id` — Ta bort jobb (kräver auth + ägare) — **S2** ✅
@@ -984,22 +984,25 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
   - Baseras på `profile.html` wireframe
 
 ---
-
 ## 💳 FAS 4 — Betalningssystem (Stripe Connect)
 > Kräver att Jobs API och Auth är klara (FAS 1C + 1D).  
 > **Ansvarig: S1 (backend + frontend)**
 
-- [ ] Stripe-konto skapat på dashboard.stripe.com — **S1**
-- [ ] Connect aktiverat i Stripe Dashboard — **S1**
-- [ ] `backend/config/stripe.js` — Stripe-klient med API-nyckel — **S1**
-- [ ] `POST /api/payments/checkout` — Skapar Stripe PaymentIntent med application_fee_amount (8%) — **S1**
-- [ ] `POST /api/payments/confirm/:jobId` — Frigör escrow till utföraren (92%) — **S1**
-- [ ] `POST /api/payments/webhook` — Hanterar Stripe-events (payment_intent.succeeded etc.) — **S1**
-- [ ] `GET /api/payments/history` — Betalningshistorik för inloggad användare — **S1**
-- [ ] `POST /api/payments/boost` — Direkt betalning för Boost-annonsering — **S1**
-- [ ] `frontend/src/services/paymentService.js` — createCheckout(), confirmPayment(), getHistory() — **S1**
-- [ ] `CheckoutPage.jsx` — Stripe-betalningsflöde med kortinmatning — **S1**
-- [ ] `PaymentSuccessPage.jsx` — Bekräftelsesida efter genomförd betalning — **S1**
+- [x] Stripe-konto skapat på dashboard.stripe.com — **S1** 
+- [ ] Connect aktiverat i Stripe Dashboard — **S1** *(MVP: plattform håller escrow utan Connect)*
+- [x] `backend/config/stripe.js` — Stripe-klient med API-nyckel + fee-beräkning — **S1** 
+- [x] `POST /api/payments/checkout` — Skapar Stripe PaymentIntent med platform-fee (8%) — **S1** 
+- [x] `POST /api/payments/confirm` — Client-side confirm fallback (verifierar mot Stripe API) — **S1** 
+- [x] `POST /api/payments/release/:jobId` — Frigör escrow till utföraren (92%) + uppdaterar hobby_total_year — **S1** 
+- [x] `POST /api/payments/webhook` — Hanterar Stripe-events (payment_intent.succeeded etc.) — **S1** 
+- [x] `GET /api/payments/history` — Betalningshistorik för inloggad användare — **S1** 
+- [x] `POST /api/payments/boost` + `/boost/confirm` — Direkt betalning för Boost-annonsering (29 kr/48h eller 59 kr/7 dagar) — **S1** ✅
+- [x] `BoostJobPage.jsx` — Paketval + Stripe Elements för boost-betalning — **S1** ✅
+- [x] `MyJobsPage` — 🚀 "Boosta"-knapp per jobb — **S1** ✅
+- [x] `frontend/src/services/paymentService.js` — createCheckout(), confirmPayment(), releaseEscrow(), getHistory() — **S1** 
+- [x] `CheckoutPage.jsx` — Stripe Elements betalningsflöde med sammanfattning — **S1** 
+- [x] `PaymentSuccessPage.jsx` — Bekräftelsesida efter genomförd betalning — **S1** 
+- [x] `JobDetailPage` — "Betala & starta jobbet" + "Markera klart & frigör betalning" knappar — **S1** 
 
 ---
 
@@ -1013,9 +1016,9 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [ ] `GET /api/admin/jobs` — Alla jobb (inkl. borttagna) — **S5**
 - [ ] `DELETE /api/admin/jobs/:id` — Ta bort jobb som admin — **S5**
 - [ ] `POST/PUT/DELETE /api/admin/categories` — CRUD för kategorier — **S5**
-- [ ] `AdminDashboardPage.jsx` — Statistik-kort + tabeller + filtreringsfunktioner — **S5**
-- [ ] `UserTable.jsx` — Sökbar tabell med hobbystatusfiltrering — **S5**
-- [ ] `JobTable.jsx` — Jobbhanteringstabell med sortering — **S5**
+- [x] `AdminDashboardPage.jsx` — Statistik-kort + alerts + tabeller (mock-data, API-koppling väntar) — **S5** 
+- [x] `UserTable.jsx` — Sökbar tabell med hobbystatusfiltrering (mock-data) — **S5** 
+- [x] `JobTable.jsx` — Jobbhanteringstabell med sök (mock-data) — **S5** 
 - [ ] `CategoryManager.jsx` — CRUD-gränssnitt för kategorier — **S5**
 - [ ] `FlaggedAccounts.jsx` — Lista flaggade konton med åtgärdsknapp — **S5**
 - [ ] `JobsOverTimeChart.jsx` — Line chart: antal jobb per vecka (Chart.js) — **S5**
@@ -1027,16 +1030,16 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 ## 🌐 FAS 6 — Informationssidor & Chatt (S5 + S3)
 > Kan påbörjas parallellt med FAS 4–5
 
-- [ ] `HobbyInfoPage.jsx` — Informationssida om hobbyverksamhet, Skatteverkets regler, FAQ — **S5**
-- [ ] `AboutPage.jsx` — Om oss: teaminfo (namn, roll, foto), projektbeskrivning — **S5**
-- [ ] `ChatWindow.jsx` — Chattfönster med meddelandehistorik — **S5**
-- [ ] `MessageBubble.jsx` — Chattbubbla (avsändare / mottagare) — **S5**
-- [ ] `ChatInput.jsx` — Textfält + skicka-knapp — **S5**
+- [x] `HobbyInfoPage.jsx` — Informationssida om hobbyverksamhet, Skatteverkets regler, FAQ — **S5** 
+- [x] `AboutPage.jsx` — Om oss: teaminfo (namn, roll, foto), projektbeskrivning — **S5** 
+- [x] `ChatPage.jsx` — Konversationslista + ChatWindow (mock-data, API-koppling väntar) — **S5** 
+- [x] `ChatWindow.jsx` — Chattfönster med meddelandehistorik + auto-scroll — **S5** 
+- [x] `MessageBubble.jsx` — Chattbubbla (avsändare / mottagare) — **S5** 
+- [x] `ChatInput.jsx` — Textfält + skicka-knapp — **S5** 
 - [x] `HomePage.jsx` — Autentiserad startsida med senaste jobb, inkomststatus, snabblänkar — **S3** 
 - [x] `frontend/src/context/NotificationContext.jsx` — Räknare för olästa meddelanden — **S3**
 
 ---
-
 ## 🚀 FAS 7 — Deployment & CI/CD (S1)
 > 🔒 Kräver att hela appen fungerar lokalt (FAS 1–6 klara).
 

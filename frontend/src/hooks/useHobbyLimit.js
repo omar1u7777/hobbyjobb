@@ -16,7 +16,7 @@ export function useHobbyLimit() {
     setLoading(true);
     userService.getMyIncome()
       .then((income) => {
-        const total = income?.totalEarned ?? income?.totalYear ?? income?.total_year ?? 0;
+        const total = income?.total ?? income?.totalEarned ?? income?.totalYear ?? income?.total_year ?? 0;
         setTotalYear(Number(total) || 0);
       })
       .catch(() => {})

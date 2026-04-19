@@ -14,7 +14,7 @@ export default function ChatWindow({ conversation, currentUserId, onSend }) {
     return (
       <section className="card" style={{ minHeight: 460, padding: 20 }}>
         <h2 style={{ fontSize: 18, marginBottom: 8 }}>Ingen konversation vald</h2>
-        <p style={{ color: 'var(--muted)' }}>Valj en konversation i listan for att oppna chatten.</p>
+        <p style={{ color: 'var(--muted)' }}>Välj en konversation i listan för att öppna chatten.</p>
       </section>
     );
   }

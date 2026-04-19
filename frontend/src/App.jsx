@@ -17,7 +17,11 @@ import RegisterPage from './pages/RegisterPage.jsx';
 import JobListPage from './pages/JobListPage.jsx';
 import JobDetailPage from './pages/JobDetailPage.jsx';
 import PostJobPage from './pages/PostJobPage.jsx';
+import EditJobPage from './pages/EditJobPage.jsx';
 import MyJobsPage from './pages/MyJobsPage.jsx';
+import CheckoutPage from './pages/CheckoutPage.jsx';
+import PaymentSuccessPage from './pages/PaymentSuccessPage.jsx';
+import BoostJobPage from './pages/BoostJobPage.jsx';
 import ProfilePage from './pages/ProfilePage.jsx';
 import HobbyInfoPage from './pages/HobbyInfoPage.jsx';
 import AboutPage from './pages/AboutPage.jsx';
@@ -34,9 +38,6 @@ function ComingSoonPage({ name }) {
     </div>
   );
 }
-
-const CheckoutPage        = () => <ComingSoonPage name="Checkout" />;
-const PaymentSuccessPage  = () => <ComingSoonPage name="Betalning klar" />;
 
 /** Guard: redirects to /login if not authenticated */
 function PrivateRoute({ children }) {
@@ -118,6 +119,14 @@ export default function App() {
             }
           />
           <Route
+            path="/jobs/:id/edit"
+            element={
+              <PrivateRoute>
+                <EditJobPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
             path="/mina-jobb"
             element={
               <PrivateRoute>
@@ -147,6 +156,14 @@ export default function App() {
             element={
               <PrivateRoute>
                 <PaymentSuccessPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/jobs/:jobId/boost"
+            element={
+              <PrivateRoute>
+                <BoostJobPage />
               </PrivateRoute>
             }
           />

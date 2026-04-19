@@ -1,8 +1,7 @@
-// git commit: "feat(jobs): build MyJobsPage with tabs for published, active, and completed jobs"
-
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { jobService } from '../services/jobService.js';
+import { applicationService } from '../services/applicationService.js'; // ✅ NY
 import { formatPrice, formatDate } from '../utils/formatters.js';
 import CategoryBadge from '../components/jobs/CategoryBadge.jsx';
 import Alert from '../components/common/Alert.jsx';
@@ -24,19 +23,30 @@ export default function MyJobsPage() {
   const [deleteId, setDeleteId] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  const flattenApp = (a) => ({
+    ...a,
+    job_id: a.job_id ?? a.job?.id,
+    job_title: a.job_title ?? a.job?.title,
+    applicant_name: a.applicant_name ?? a.applicant?.name,
+    poster_name: a.poster_name ?? a.job?.poster?.name,
+    message: a.message,
+    status: a.status,
+    created_at: a.created_at ?? a.createdAt,
+  });
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
       if (tab === 'published') {
         const data = await jobService.getMyJobs();
-        setJobs(data);
+        setJobs(Array.isArray(data) ? data : []);
       } else if (tab === 'received') {
-        const data = await jobService.getReceivedApplications();
-        setApplications(data);
+        const data = await applicationService.getReceived();
+        setApplications(Array.isArray(data) ? data.map(flattenApp) : []);
       } else {
-        const data = await jobService.getSentApplications();
-        setApplications(data);
+        const data = await applicationService.getSent();
+        setApplications(Array.isArray(data) ? data.map(flattenApp) : []);
       }
     } catch (e) {
       setError(e.message);
@@ -62,7 +72,7 @@ export default function MyJobsPage() {
 
   const handleApplicationStatus = async (id, status) => {
     try {
-      await jobService.updateApplication(id, status);
+      await applicationService.updateStatus(id, status); // ✅ BYTT
       setApplications(prev => prev.map(a => a.id === id ? { ...a, status } : a));
     } catch (e) {
       setError(e.message);
@@ -119,14 +129,27 @@ export default function MyJobsPage() {
                         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
                           {j.category && <CategoryBadge name={j.category.name} />}
                           <span style={{ fontSize: 13, color: 'var(--muted)' }}>📍 {j.location}</span>
-                          <span style={{ fontSize: 13, color: 'var(--muted)' }}>📅 {formatDate(j.createdAt ?? j.created_at)}</span>
-                          <span style={{ fontSize: 13, color: 'var(--muted)' }}>👤 {j.application_count ?? 0} ansökan</span>
                         </div>
                       </div>
                       <div style={{ textAlign: 'right', flexShrink: 0 }}>
                         <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--blue)', marginBottom: 8 }}>{formatPrice(j.price)}</div>
                         <div style={{ display: 'flex', gap: 8 }}>
                           <Link to={`/jobs/${j.id}`} className="btn btn-ghost btn-sm">Visa</Link>
+                          <Link
+                            to={`/jobs/${j.id}/edit`}
+                            className="btn btn-sm"
+                            style={{ background: 'var(--blue-light)', color: 'var(--blue)', border: 'none', borderRadius: 8, padding: '7px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center' }}
+                          >
+                            Redigera
+                          </Link>
+                          <Link
+                            to={`/jobs/${j.id}/boost`}
+                            className="btn btn-sm"
+                            style={{ background: '#FEF3C7', color: '#92400E', border: 'none', borderRadius: 8, padding: '7px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                            title={j.is_boosted ? 'Förläng boost' : 'Boosta jobbet'}
+                          >
+                            🚀 {j.is_boosted ? 'Förläng' : 'Boosta'}
+                          </Link>
                           <button
                             className="btn btn-sm" onClick={() => setDeleteId(j.id)}
                             style={{ background: 'var(--red-light)', color: 'var(--red)', border: 'none', borderRadius: 8, padding: '7px 14px', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
@@ -150,12 +173,12 @@ export default function MyJobsPage() {
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 12 }}>
                         <div>
                           <Link to={`/jobs/${a.job_id}`} style={{ fontSize: 15, fontWeight: 700, color: 'var(--dark)', display: 'block', marginBottom: 4 }}>
-                            {a.job?.title ?? a.job_title ?? `Jobb #${a.job_id}`}
+                            {a.job_title ?? `Jobb #${a.job_id}`}
                           </Link>
                           <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
                             <StatusBadge status={a.status} />
                             <span style={{ fontSize: 13, color: 'var(--muted)' }}>
-                              {tab === 'received' ? `Från: ${a.applicant?.name ?? a.applicant_name ?? 'Okänd'}` : `Beställare: ${a.job?.poster?.name ?? a.poster_name ?? 'Okänd'}`}
+                              {tab === 'received' ? `Från: ${a.applicant_name}` : `Beställare: ${a.poster_name}`}
                             </span>
                             <span style={{ fontSize: 13, color: 'var(--muted)' }}>{formatDate(a.createdAt ?? a.created_at)}</span>
                           </div>

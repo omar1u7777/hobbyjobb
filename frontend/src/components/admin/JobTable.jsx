@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
 
 const MOCK_JOBS = [
-  { id: 301, title: 'Grassklippning och kantskarning', category: 'Hem & Tradgard', price: 650, status: 'Aktivt' },
-  { id: 302, title: 'IKEA-montering av 3 mobler', category: 'Handyman', price: 850, status: 'Aktivt' },
-  { id: 303, title: 'Hundpromenad 2 ganger i veckan', category: 'Djur & Husdjur', price: 300, status: 'Aktivt' },
-  { id: 304, title: 'Storstadning 3 rum och kok', category: 'Stadning', price: 900, status: 'Flaggat' },
-  { id: 305, title: 'Hjalp med mindre flytt', category: 'Flytt & Transport', price: 1200, status: 'Pausat' },
+  { id: 301, title: 'Gräsklippning och kantskärning', category: 'Hem & Trädgård', price: 650, status: 'Aktivt' },
+  { id: 302, title: 'IKEA-montering av 3 möbler', category: 'Handyman', price: 850, status: 'Aktivt' },
+  { id: 303, title: 'Hundpromenad 2 gånger i veckan', category: 'Djur & Husdjur', price: 300, status: 'Aktivt' },
+  { id: 304, title: 'Storstädning 3 rum och kök', category: 'Städning', price: 900, status: 'Flaggat' },
+  { id: 305, title: 'Hjälp med mindre flytt', category: 'Flytt & Transport', price: 1200, status: 'Pausat' },
   { id: 306, title: 'Montering av hyllor', category: 'Handyman', price: 500, status: 'Aktivt' },
 ];
 
@@ -40,9 +40,9 @@ export default function JobTable({ jobs = MOCK_JOBS }) {
     <section className="section" style={{ marginBottom: 0 }}>
       <div className="section-hdr" style={{ marginBottom: 14 }}>
         <div>
-          <h3>Jobboversikt</h3>
+          <h3>Jobböversikt</h3>
           <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
-            Sokbar mock-tabell for jobbhantering
+            Sökbar mock-tabell för jobbhantering
           </p>
         </div>
       </div>
@@ -52,7 +52,7 @@ export default function JobTable({ jobs = MOCK_JOBS }) {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Sok pa titel, kategori eller status..."
+          placeholder="Sök på titel, kategori eller status..."
           style={{
             width: '100%',
             border: '1.5px solid var(--border)',

@@ -1,20 +1,20 @@
 import { useMemo, useState } from 'react';
 
 const MOCK_USERS = [
-  { id: 1, name: 'Anna Lindgren', hobbyTotal: 28900, status: 'Nara grans', jobsMonth: 12 },
-  { id: 2, name: 'Bjorn Karlsson', hobbyTotal: 14120, status: 'OK', jobsMonth: 7 },
-  { id: 3, name: 'Maria Svensson', hobbyTotal: 30000, status: 'Sparrad', jobsMonth: 21 },
+  { id: 1, name: 'Anna Lindgren', hobbyTotal: 28900, status: 'Nära gräns', jobsMonth: 12 },
+  { id: 2, name: 'Björn Karlsson', hobbyTotal: 14120, status: 'OK', jobsMonth: 7 },
+  { id: 3, name: 'Maria Svensson', hobbyTotal: 30000, status: 'Spärrad', jobsMonth: 21 },
   { id: 4, name: 'Erik Magnusson', hobbyTotal: 18450, status: 'OK', jobsMonth: 9 },
-  { id: 5, name: 'Sofia Berg', hobbyTotal: 24980, status: 'Nara grans', jobsMonth: 16 },
+  { id: 5, name: 'Sofia Berg', hobbyTotal: 24980, status: 'Nära gräns', jobsMonth: 16 },
   { id: 6, name: 'David Holm', hobbyTotal: 9020, status: 'OK', jobsMonth: 4 },
 ];
 
 function statusStyle(status) {
-  if (status === 'Sparrad') {
+  if (status === 'Spärrad') {
     return { background: 'var(--red-light)', color: 'var(--red)' };
   }
 
-  if (status === 'Nara grans') {
+  if (status === 'Nära gräns') {
     return { background: 'var(--yellow-light)', color: 'var(--yellow-text)' };
   }
 
@@ -39,9 +39,9 @@ export default function UserTable({ users = MOCK_USERS }) {
     <section className="section" style={{ marginBottom: 0 }}>
       <div className="section-hdr" style={{ marginBottom: 14 }}>
         <div>
-          <h3>Anvandaroversikt</h3>
+          <h3>Användaröversikt</h3>
           <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
-            Sokbar mock-tabell for hobbystatus
+            Sökbar mock-tabell för hobbystatus
           </p>
         </div>
       </div>
@@ -51,7 +51,7 @@ export default function UserTable({ users = MOCK_USERS }) {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Sok pa namn eller status..."
+          placeholder="Sök på namn eller status..."
           style={{
             width: '100%',
             border: '1.5px solid var(--border)',
@@ -71,7 +71,7 @@ export default function UserTable({ users = MOCK_USERS }) {
             <tr style={{ textAlign: 'left', fontSize: 12, color: 'var(--muted)' }}>
               <th style={{ padding: '8px 6px' }}>Namn</th>
               <th style={{ padding: '8px 6px' }}>Hobby totalt</th>
-              <th style={{ padding: '8px 6px' }}>Jobb/manad</th>
+              <th style={{ padding: '8px 6px' }}>Jobb/månad</th>
               <th style={{ padding: '8px 6px' }}>Status</th>
             </tr>
           </thead>

@@ -6,7 +6,7 @@ const TEAM = [
     name: 'Student 1',
     role: 'Projektledare & Backend Lead',
     photo: 'https://ui-avatars.com/api/?name=Student+1&background=2563eb&color=ffffff&size=256',
-    focus: 'Auth, deployment, stripe och arkitektur',
+    focus: 'Auth, deployment, Stripe och arkitektur',
   },
   {
     id: 's2',
@@ -27,7 +27,7 @@ const TEAM = [
     name: 'Student 4',
     role: 'Frontend Features',
     photo: 'https://ui-avatars.com/api/?name=Student+4&background=d97706&color=ffffff&size=256',
-    focus: 'Authsidor, jobbsidor, profil och anvandarflode',
+    focus: 'Auth-sidor, jobbsidor, profil och användarflöde',
   },
   {
     id: 's5',
@@ -41,15 +41,15 @@ const TEAM = [
 const VALUES = [
   {
     title: 'Lokal nytta',
-    text: 'Vi bygger en tjanst for verkliga vardagsbehov: sma uppdrag nara dar folk bor.',
+    text: 'Vi bygger en tjänst för verkliga vardagsbehov: små uppdrag nära där folk bor.',
   },
   {
-    title: 'Trygghet forst',
-    text: 'Plattformen ar designad runt hobbyregler och tydlig inkomstoversikt.',
+    title: 'Trygghet först',
+    text: 'Plattformen är designad runt hobbyregler och tydlig inkomstöversikt.',
   },
   {
     title: 'Enkelhet',
-    text: 'Det ska vara snabbt att lagga upp, hitta och slutfora jobb utan onodig friktion.',
+    text: 'Det ska vara snabbt att lägga upp, hitta och slutföra jobb utan onödig friktion.',
   },
 ];
 
@@ -71,28 +71,28 @@ export default function AboutPage() {
           </span>
 
           <h1 style={{ fontSize: 30, lineHeight: 1.2, fontWeight: 800, marginBottom: 12 }}>
-            Ett studentprojekt med fokus pa lokala hobbyjobb
+            Ett studentprojekt med fokus på lokala hobbyjobb
           </h1>
 
           <p style={{ color: 'var(--ink)', maxWidth: 860, lineHeight: 1.75, marginBottom: 18 }}>
-            HobbyJobb ar utvecklat inom kursen DA219B av Grupp 5 pa Hogskolan Kristianstad.
-            Visionen ar en modern marknadsplats dar privatpersoner kan hitta eller erbjuda
-            mindre tjanster pa ett tryggt och tydligt satt.
+            HobbyJobb är utvecklat inom kursen DA219B av Grupp 5 på Högskolan Kristianstad.
+            Visionen är en modern marknadsplats där privatpersoner kan hitta eller erbjuda
+            mindre tjänster på ett tryggt och tydligt sätt.
           </p>
 
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             <Link className="btn btn-primary" to="/jobs">
-              Se tillgangliga jobb
+              Se tillgängliga jobb
             </Link>
             <Link className="btn btn-outline" to="/hobbyinfo">
-              Las hobbyregler
+              Läs hobbyregler
             </Link>
           </div>
         </section>
 
         <section className="section" style={{ marginBottom: 20 }}>
           <div className="section-hdr">
-            <h3>Vara varderingar</h3>
+            <h3>Våra värderingar</h3>
           </div>
 
           <div className="about-values-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12 }}>
@@ -122,7 +122,7 @@ export default function AboutPage() {
               <article key={member.id} className="card" style={{ padding: 16 }}>
                 <img
                   src={member.photo}
-                  alt={`Profilbild for ${member.name}`}
+                  alt={`Profilbild för ${member.name}`}
                   loading="lazy"
                   style={{
                     width: '100%',

@@ -3,8 +3,8 @@ import JobTable from '../components/admin/JobTable.jsx';
 
 const STATS = [
   { id: 'jobs', label: 'Totalt jobb', value: '1 284', delta: '+8.3%', trend: 'up' },
-  { id: 'users', label: 'Anvandare', value: '892', delta: '+4.1%', trend: 'up' },
-  { id: 'revenue', label: 'Intakter (SEK)', value: '96 440', delta: '+11.7%', trend: 'up' },
+  { id: 'users', label: 'Användare', value: '892', delta: '+4.1%', trend: 'up' },
+  { id: 'revenue', label: 'Intäkter (SEK)', value: '96 440', delta: '+11.7%', trend: 'up' },
   { id: 'flagged', label: 'Flaggade konton', value: '14', delta: '-2', trend: 'down' },
 ];
 
@@ -35,7 +35,7 @@ export default function AdminDashboardPage() {
       <div className="container">
         <header style={{ marginBottom: 20 }}>
           <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 4 }}>Admin Dashboard</h1>
-          <p style={{ color: 'var(--muted)' }}>Mock-data tills admin API kopplas in.</p>
+          <p style={{ color: 'var(--muted)' }}>Mock-data tills admin-API kopplas in.</p>
         </header>
 
         <section className="admin-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', gap: 12, marginBottom: 16 }}>
@@ -52,14 +52,14 @@ export default function AdminDashboardPage() {
           <article className="card" style={{ padding: 14, borderLeft: '4px solid var(--yellow)' }}>
             <h2 style={{ fontSize: 15, marginBottom: 6 }}>Systemvarning</h2>
             <p style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.6 }}>
-              5 konton ligger over 80% av hobbyinkomstgransen och behovar uppfoljning.
+              5 konton ligger över 80% av hobbyinkomstgränsen och behöver uppföljning.
             </p>
           </article>
 
           <article className="card" style={{ padding: 14, borderLeft: '4px solid var(--blue)' }}>
             <h2 style={{ fontSize: 15, marginBottom: 6 }}>Moderering</h2>
             <p style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.6 }}>
-              3 jobb markerade for manuell granskning pa grund av otydliga beskrivningar.
+              3 jobb markerade för manuell granskning på grund av otydliga beskrivningar.
             </p>
           </article>
         </section>

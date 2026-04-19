@@ -1,14 +1,17 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth.js';
 import ChatWindow from '../components/chat/ChatWindow.jsx';
 
-const CURRENT_USER_ID = 'u-me';
+// Placeholder id used in seed data until backend messages API is connected.
+// When API is live, `currentUserId` (from useAuth) replaces this in runtime.
+const SEED_CURRENT_USER_ID = 'u-me';
 
 const INITIAL_CONVERSATIONS = [
   {
     id: 'c-101',
     jobId: '101',
-    jobTitle: 'Grassklippning och kantskarning',
+    jobTitle: 'Gräsklippning och kantskärning',
     participant: { id: 'u-anna', name: 'Anna L.' },
     unread: 0,
     updatedAt: '2026-04-18T14:20:00.000Z',
@@ -16,13 +19,13 @@ const INITIAL_CONVERSATIONS = [
       {
         id: 'm-1',
         senderId: 'u-anna',
-        text: 'Hej! Kan du komma pa lordag kl 10?',
+        text: 'Hej! Kan du komma på lördag kl 10?',
         sentAt: '2026-04-18T13:20:00.000Z',
       },
       {
         id: 'm-2',
-        senderId: CURRENT_USER_ID,
-        text: 'Ja, det funkar bra for mig.',
+        senderId: SEED_CURRENT_USER_ID,
+        text: 'Ja, det funkar bra för mig.',
         sentAt: '2026-04-18T13:24:00.000Z',
       },
     ],
@@ -30,21 +33,21 @@ const INITIAL_CONVERSATIONS = [
   {
     id: 'c-202',
     jobId: '202',
-    jobTitle: 'IKEA-montering av 3 mobler',
-    participant: { id: 'u-bjorn', name: 'Bjorn K.' },
+    jobTitle: 'IKEA-montering av 3 möbler',
+    participant: { id: 'u-bjorn', name: 'Björn K.' },
     unread: 2,
     updatedAt: '2026-04-18T16:10:00.000Z',
     messages: [
       {
         id: 'm-3',
         senderId: 'u-bjorn',
-        text: 'Toppen, da ses vi imorgon eftermiddag.',
+        text: 'Toppen, då ses vi imorgon eftermiddag.',
         sentAt: '2026-04-18T15:55:00.000Z',
       },
       {
         id: 'm-4',
         senderId: 'u-bjorn',
-        text: 'Ta garna med skruvdragare om du har.',
+        text: 'Ta gärna med skruvdragare om du har.',
         sentAt: '2026-04-18T16:10:00.000Z',
       },
     ],
@@ -52,21 +55,21 @@ const INITIAL_CONVERSATIONS = [
   {
     id: 'c-303',
     jobId: '303',
-    jobTitle: 'Hundpromenad 2 ganger i veckan',
+    jobTitle: 'Hundpromenad 2 gånger i veckan',
     participant: { id: 'u-maria', name: 'Maria S.' },
     unread: 1,
     updatedAt: '2026-04-17T19:45:00.000Z',
     messages: [
       {
         id: 'm-5',
-        senderId: CURRENT_USER_ID,
-        text: 'Perfekt, jag kan borja pa mandag.',
+        senderId: SEED_CURRENT_USER_ID,
+        text: 'Perfekt, jag kan börja på måndag.',
         sentAt: '2026-04-17T19:35:00.000Z',
       },
       {
         id: 'm-6',
         senderId: 'u-maria',
-        text: 'Toppen! Jag skickar adress i morgon.',
+        text: 'Toppen! Jag skickar adressen imorgon.',
         sentAt: '2026-04-17T19:45:00.000Z',
       },
     ],
@@ -89,6 +92,9 @@ function formatLastSeen(dateStr) {
 export default function ChatPage() {
   const { jobId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  // Use real user id when logged in, otherwise fall back to seed id for mock data
+  const currentUserId = user?.id ?? SEED_CURRENT_USER_ID;
   const [conversations, setConversations] = useState(INITIAL_CONVERSATIONS);
 
   const sortedConversations = useMemo(
@@ -126,7 +132,7 @@ export default function ChatPage() {
     const now = new Date().toISOString();
     const newMessage = {
       id: `m-${Date.now()}`,
-      senderId: CURRENT_USER_ID,
+      senderId: currentUserId,
       text,
       sentAt: now,
     };
@@ -149,7 +155,7 @@ export default function ChatPage() {
       <div className="container">
         <div style={{ marginBottom: 20 }}>
           <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 4 }}>Meddelanden</h1>
-          <p style={{ color: 'var(--muted)' }}>Chatt med mock-data. API-koppling laggs till senare.</p>
+          <p style={{ color: 'var(--muted)' }}>Chatt med mock-data. API-koppling läggs till senare.</p>
         </div>
 
         <section className="chat-layout" style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 16, alignItems: 'start' }}>
@@ -224,7 +230,7 @@ export default function ChatPage() {
 
           <ChatWindow
             conversation={selectedConversation}
-            currentUserId={CURRENT_USER_ID}
+            currentUserId={currentUserId}
             onSend={handleSend}
           />
         </section>

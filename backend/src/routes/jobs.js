@@ -1,6 +1,5 @@
 const express = require('express');
 const requireAuth = require('../middleware/requireAuth');
-const hobbyLimitCheck = require('../middleware/hobbyLimitCheck');
 const {
   getJobs,
   getJob,
@@ -13,10 +12,12 @@ const {
 const router = express.Router();
 
 // NOTE: /my must be before /:id
+// Hobby income limit applies to the PAYEE (utforare) on payment release,
+// not to the POSTER (betalare) on job creation. See payments.js `/release`.
 router.get('/my', requireAuth, getMyJobs);
 router.get('/', getJobs);
 router.get('/:id', getJob);
-router.post('/', requireAuth, hobbyLimitCheck, createJob);
+router.post('/', requireAuth, createJob);
 router.put('/:id', requireAuth, updateJob);
 router.delete('/:id', requireAuth, deleteJob);
 

@@ -25,7 +25,7 @@ export default function ChatInput({ onSend, disabled }) {
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="Skriv ett meddelande..."
+        placeholder="Skriv ett meddelande…"
         rows={2}
         disabled={disabled}
         style={{

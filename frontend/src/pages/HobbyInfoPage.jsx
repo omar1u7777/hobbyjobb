@@ -3,51 +3,51 @@ import { Link } from 'react-router-dom';
 
 const RULES = [
   {
-    title: 'Hobbyinkomst upp till 30 000 kr/ar',
+    title: 'Hobbyinkomst upp till 30 000 kr/år',
     description:
-      'Plattformen ar byggd for hobbyverksamhet. Du far en varning nar du narmar dig gransen och annonsering stoppas vid uppnadd grans.',
+      'Plattformen är byggd för hobbyverksamhet. Du får en varning när du närmar dig gränsen och annonsering stoppas vid uppnådd gräns.',
     badge: 'Skatt',
   },
   {
-    title: 'Momsregistrering vid hog omsattning',
+    title: 'Momsregistrering vid hög omsättning',
     description:
-      'Om verksamheten blir storre kan momsregistrering behovas. HobbyJobb visar tidiga varningar innan du nar kritiska nivaer.',
+      'Om verksamheten blir större kan momsregistrering behövas. HobbyJobb visar tidiga varningar innan du når kritiska nivåer.',
     badge: 'Moms',
   },
   {
-    title: 'Ingen yrkesmassig verksamhet',
+    title: 'Ingen yrkesmässig verksamhet',
     description:
-      'Tjansten ar inte till for foretagsdrift. Langsiktig och vinstdriven verksamhet ska bedrivas med korrekt foretagsform.',
+      'Tjänsten är inte till för företagsdrift. Långsiktig och vinstdriven verksamhet ska bedrivas med korrekt företagsform.',
     badge: 'Ansvar',
   },
   {
-    title: 'Du ansvarar for dina uppgifter',
+    title: 'Du ansvarar för dina uppgifter',
     description:
-      'Som anvandare ansvarar du for att deklarera korrekt och folja Skatteverkets aktuella regler for din situation.',
+      'Som användare ansvarar du för att deklarera korrekt och följa Skatteverkets aktuella regler för din situation.',
     badge: 'Deklaration',
   },
 ];
 
 const FAQ_ITEMS = [
   {
-    question: 'Maste jag starta foretag for att anvanda HobbyJobb?',
+    question: 'Måste jag starta företag för att använda HobbyJobb?',
     answer:
-      'Nej, plattformen ar avsedd for hobbyverksamhet. Om din verksamhet blir varaktig och tydligt vinstdriven bor du utreda foretagsform och F-skatt.',
+      'Nej, plattformen är avsedd för hobbyverksamhet. Om din verksamhet blir varaktig och tydligt vinstdriven bör du utreda företagsform och F-skatt.',
   },
   {
-    question: 'Vad hander om jag nar inkomstgransen?',
+    question: 'Vad händer om jag når inkomstgränsen?',
     answer:
-      'Systemet varnar i god tid. Nar gransen ar passerad kan du inte lagga upp nya jobb forran nasta period eller tills reglerna uppfylls igen.',
+      'Systemet varnar i god tid. När gränsen är passerad kan du inte lägga upp nya jobb förrän nästa period eller tills reglerna uppfylls igen.',
   },
   {
-    question: 'Skoter HobbyJobb min deklaration?',
+    question: 'Sköter HobbyJobb min deklaration?',
     answer:
-      'Nej. Vi visar oversikt och varningar, men du ansvarar alltid sjalv for deklaration, kvitton och korrekt skattehantering.',
+      'Nej. Vi visar översikt och varningar, men du ansvarar alltid själv för deklaration, kvitton och korrekt skattehantering.',
   },
   {
     question: 'Var hittar jag officiell information?',
     answer:
-      'Las alltid senaste informationen direkt hos Skatteverket. Regler kan andras over tid och ska tolkas utifran din individuella situation.',
+      'Läs alltid senaste informationen direkt hos Skatteverket. Regler kan ändras över tid och ska tolkas utifrån din individuella situation.',
   },
 ];
 
@@ -124,8 +124,8 @@ export default function HobbyInfoPage() {
           </h1>
 
           <p style={{ color: 'var(--ink)', maxWidth: 780, lineHeight: 1.75, marginBottom: 18 }}>
-            HobbyJobb hjalper dig att ta mindre uppdrag pa ett ansvarsfullt satt. Sidan sammanfattar
-            reglerna pa en enkel niva, men ersatter inte officiell juridisk information.
+            HobbyJobb hjälper dig att ta mindre uppdrag på ett ansvarsfullt sätt. Sidan sammanfattar
+            reglerna på en enkel nivå, men ersätter inte officiell juridisk information.
           </p>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
@@ -135,10 +135,10 @@ export default function HobbyInfoPage() {
               target="_blank"
               rel="noreferrer"
             >
-              Las hos Skatteverket
+              Läs hos Skatteverket
             </a>
             <Link to="/profil" className="btn btn-outline">
-              Se min inkomstoversikt
+              Se min inkomstöversikt
             </Link>
           </div>
         </section>
@@ -176,16 +176,16 @@ export default function HobbyInfoPage() {
           </div>
 
           <ul style={{ display: 'grid', gap: 10 }}>
-            <li style={listItemStyle}>Jag har last och forstatt hobbyreglerna.</li>
-            <li style={listItemStyle}>Jag har kontroll pa min totala inkomst for aret.</li>
-            <li style={listItemStyle}>Jag erbjuder tillfalliga uppdrag, inte foretagsverksamhet.</li>
-            <li style={listItemStyle}>Jag sparar underlag for korrekt deklaration.</li>
+            <li style={listItemStyle}>Jag har läst och förstått hobbyreglerna.</li>
+            <li style={listItemStyle}>Jag har kontroll på min totala inkomst för året.</li>
+            <li style={listItemStyle}>Jag erbjuder tillfälliga uppdrag, inte företagsverksamhet.</li>
+            <li style={listItemStyle}>Jag sparar underlag för korrekt deklaration.</li>
           </ul>
         </section>
 
         <section className="section">
           <div className="section-hdr">
-            <h3>Vanliga fragor</h3>
+            <h3>Vanliga frågor</h3>
           </div>
 
           <div style={{ display: 'grid', gap: 10 }}>
@@ -201,8 +201,8 @@ export default function HobbyInfoPage() {
         </section>
 
         <p style={{ marginTop: 16, color: 'var(--muted)', fontSize: 12 }}>
-          Senast uppdaterad: april {currentYear}. Informationen ar generell och inte individuell
-          skatteradgivning.
+          Senast uppdaterad: april {currentYear}. Informationen är generell och inte individuell
+          skatterådgivning.
         </p>
       </div>
 

@@ -1,34 +1,42 @@
-const { Op } = require('sequelize');
-const { Job } = require('../models');
-const { HOBBY_ANNUAL_LIMIT, HOBBY_WARNING_THRESHOLD, JOB_STATUS } = require('../../config/constants');
+const { User } = require('../models');
+const { HOBBY_ANNUAL_LIMIT, HOBBY_WARNING_THRESHOLD } = require('../../config/constants');
 
+/**
+ * Middleware: blocks payee (utforare) from exceeding annual hobby income limit.
+ * Checks the target user's tracked `hobby_total_year` (updated on payment release).
+ *
+ * Usage: req.payeeUserId must be set by the caller (e.g. payment/release handler)
+ * OR falls back to req.user.id if not provided.
+ */
 module.exports = async (req, res, next) => {
   try {
-    if (!req.user?.id) {
+    const targetUserId = req.payeeUserId || req.user?.id;
+
+    if (!targetUserId) {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
-    const startOfYear = new Date(new Date().getFullYear(), 0, 1);
-    const totalRaw = await Job.sum('price', {
-      where: {
-        poster_id: req.user.id,
-        status: JOB_STATUS.COMPLETED,
-        created_at: { [Op.gte]: startOfYear },
-      },
-    });
+    if (!User) {
+      return next();
+    }
 
-    const total = Number(totalRaw || 0);
+    const payee = await User.findByPk(targetUserId);
+    if (!payee) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const total = Number(payee.hobby_total_year || 0);
 
     if (total >= HOBBY_ANNUAL_LIMIT) {
       return res.status(403).json({
         success: false,
-        message: `Hobbygränsen på ${HOBBY_ANNUAL_LIMIT} kr/år är nådd.`,
+        message: `Hobbygränsen på ${HOBBY_ANNUAL_LIMIT} kr/år är nådd för denna användare.`,
       });
     }
 
     if (total >= HOBBY_WARNING_THRESHOLD) {
       req.hobbyWarning = {
-        message: `Varning: du närmar dig hobbygränsen (${total.toFixed(2)} / ${HOBBY_ANNUAL_LIMIT} kr).`,
+        message: `Varning: hobbygränsen nästan nådd (${total.toFixed(2)} / ${HOBBY_ANNUAL_LIMIT} kr).`,
         total,
         limit: HOBBY_ANNUAL_LIMIT,
       };

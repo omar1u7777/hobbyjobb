@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import ChatWindow from '../components/chat/ChatWindow.jsx';
+import { messageService } from '../services/messageService.js';
 
 // Placeholder id used in seed data until backend messages API is connected.
 // When API is live, `currentUserId` (from useAuth) replaces this in runtime.
@@ -89,13 +90,77 @@ function formatLastSeen(dateStr) {
   return date.toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' });
 }
 
+function hydrateMockConversations(activeUserId) {
+  return INITIAL_CONVERSATIONS.map((conversation) => ({
+    ...conversation,
+    unread: Number(conversation.unread ?? 0),
+    previewText: conversation.messages[conversation.messages.length - 1]?.text ?? '',
+    messages: conversation.messages.map((message) => ({
+      ...message,
+      senderId: message.senderId === SEED_CURRENT_USER_ID ? activeUserId : message.senderId,
+    })),
+  }));
+}
+
 export default function ChatPage() {
   const { jobId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   // Use real user id when logged in, otherwise fall back to seed id for mock data
   const currentUserId = user?.id ?? SEED_CURRENT_USER_ID;
-  const [conversations, setConversations] = useState(INITIAL_CONVERSATIONS);
+  const [conversations, setConversations] = useState(() => hydrateMockConversations(currentUserId));
+  const [apiEnabled, setApiEnabled] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSending, setIsSending] = useState(false);
+  const [chatError, setChatError] = useState('');
+  const [loadedJobIds, setLoadedJobIds] = useState(() => new Set());
+
+  useEffect(() => {
+    if (apiEnabled) return;
+    setConversations(hydrateMockConversations(currentUserId));
+  }, [currentUserId, apiEnabled]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function bootstrapConversations() {
+      if (!user?.id) {
+        setApiEnabled(false);
+        setConversations(hydrateMockConversations(currentUserId));
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+      setChatError('');
+
+      try {
+        const apiConversations = await messageService.getConversations();
+        if (cancelled) return;
+
+        if (apiConversations.length > 0) {
+          setApiEnabled(true);
+          setConversations(apiConversations);
+          setLoadedJobIds(new Set());
+          return;
+        }
+
+        setApiEnabled(false);
+        setConversations(hydrateMockConversations(currentUserId));
+      } catch (_) {
+        if (cancelled) return;
+        setApiEnabled(false);
+        setConversations(hydrateMockConversations(currentUserId));
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    }
+
+    bootstrapConversations();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id, currentUserId]);
 
   const sortedConversations = useMemo(
     () => [...conversations].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)),
@@ -111,6 +176,59 @@ export default function ChatPage() {
     return sortedConversations[0] || null;
   }, [conversations, sortedConversations, jobId]);
 
+  const loadConversationMessages = async (conversation, force = false) => {
+    if (!conversation || !apiEnabled) return;
+
+    const normalizedJobId = String(conversation.jobId);
+    if (!force && loadedJobIds.has(normalizedJobId)) return;
+
+    try {
+      const messages = await messageService.getMessages(normalizedJobId);
+
+      setConversations((prev) =>
+        prev.map((item) =>
+          item.jobId === normalizedJobId
+            ? {
+                ...item,
+                messages,
+                previewText: messages[messages.length - 1]?.text ?? item.previewText,
+                updatedAt: messages[messages.length - 1]?.sentAt ?? item.updatedAt,
+              }
+            : item
+        )
+      );
+
+      setLoadedJobIds((prev) => {
+        const next = new Set(prev);
+        next.add(normalizedJobId);
+        return next;
+      });
+    } catch (_) {
+      setChatError('Kunde inte hamta meddelanden just nu.');
+    }
+  };
+
+  useEffect(() => {
+    if (!selectedConversation || !apiEnabled) return;
+
+    void loadConversationMessages(selectedConversation);
+
+    if (selectedConversation.unread > 0) {
+      setConversations((prev) =>
+        prev.map((item) =>
+          item.id === selectedConversation.id
+            ? {
+                ...item,
+                unread: 0,
+              }
+            : item
+        )
+      );
+
+      messageService.markConversationAsRead(selectedConversation.jobId).catch(() => {});
+    }
+  }, [selectedConversation?.id, apiEnabled]);
+
   const handleSelectConversation = (conversation) => {
     navigate(`/chatt/${conversation.jobId}`);
 
@@ -124,12 +242,62 @@ export default function ChatPage() {
           : item
       )
     );
+
+    if (apiEnabled) {
+      messageService.markConversationAsRead(conversation.jobId).catch(() => {});
+      void loadConversationMessages(conversation);
+    }
   };
 
-  const handleSend = (text) => {
+  const handleSend = async (text) => {
     if (!selectedConversation) return;
 
     const now = new Date().toISOString();
+
+    if (apiEnabled && selectedConversation.participant?.id) {
+      try {
+        setIsSending(true);
+        setChatError('');
+
+        const sentMessage = await messageService.sendMessage({
+          jobId: selectedConversation.jobId,
+          receiverId: selectedConversation.participant.id,
+          content: text,
+        });
+
+        const apiMessage = {
+          id: sentMessage.id,
+          senderId: sentMessage.senderId ?? currentUserId,
+          text: sentMessage.text || text,
+          sentAt: sentMessage.sentAt || now,
+        };
+
+        setConversations((prev) =>
+          prev.map((conversation) =>
+            conversation.id === selectedConversation.id
+              ? {
+                  ...conversation,
+                  messages: [...conversation.messages, apiMessage],
+                  previewText: apiMessage.text,
+                  updatedAt: apiMessage.sentAt,
+                }
+              : conversation
+          )
+        );
+
+        setLoadedJobIds((prev) => {
+          const next = new Set(prev);
+          next.add(String(selectedConversation.jobId));
+          return next;
+        });
+        return;
+      } catch (error) {
+        setChatError(error.message || 'Kunde inte skicka meddelandet.');
+      } finally {
+        setIsSending(false);
+      }
+    }
+
     const newMessage = {
       id: `m-${Date.now()}`,
       senderId: currentUserId,
@@ -143,6 +311,7 @@ export default function ChatPage() {
           ? {
               ...conversation,
               messages: [...conversation.messages, newMessage],
+              previewText: newMessage.text,
               updatedAt: now,
             }
           : conversation
@@ -155,7 +324,14 @@ export default function ChatPage() {
       <div className="container">
         <div style={{ marginBottom: 20 }}>
           <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 4 }}>Meddelanden</h1>
-          <p style={{ color: 'var(--muted)' }}>Chatt med mock-data. API-koppling läggs till senare.</p>
+          <p style={{ color: 'var(--muted)' }}>
+            {apiEnabled
+              ? 'Chatt kopplad till API med fallback till mock-data vid behov.'
+              : 'Chatt med mock-data. API-fallback aktiv.'}
+          </p>
+          {chatError ? (
+            <p style={{ marginTop: 8, fontSize: 13, color: 'var(--red)' }}>{chatError}</p>
+          ) : null}
         </div>
 
         <section className="chat-layout" style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 16, alignItems: 'start' }}>
@@ -165,6 +341,10 @@ export default function ChatPage() {
             </header>
 
             <div style={{ display: 'flex', flexDirection: 'column' }}>
+              {isLoading && sortedConversations.length === 0 ? (
+                <p style={{ padding: '12px 14px', fontSize: 13, color: 'var(--muted)' }}>Laddar konversationer...</p>
+              ) : null}
+
               {sortedConversations.map((conversation) => {
                 const isSelected = selectedConversation?.id === conversation.id;
                 const lastMessage = conversation.messages[conversation.messages.length - 1];
@@ -200,7 +380,7 @@ export default function ChatPage() {
                           maxWidth: '210px',
                         }}
                       >
-                        {lastMessage?.text || 'Inga meddelanden'}
+                        {lastMessage?.text || conversation.previewText || 'Inga meddelanden'}
                       </p>
 
                       {conversation.unread > 0 ? (
@@ -232,6 +412,7 @@ export default function ChatPage() {
             conversation={selectedConversation}
             currentUserId={currentUserId}
             onSend={handleSend}
+            isSending={isSending}
           />
         </section>
       </div>

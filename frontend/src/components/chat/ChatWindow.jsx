@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import ChatInput from './ChatInput.jsx';
 import MessageBubble from './MessageBubble.jsx';
 
-export default function ChatWindow({ conversation, currentUserId, onSend }) {
+export default function ChatWindow({ conversation, currentUserId, onSend, isSending = false }) {
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -48,7 +48,7 @@ export default function ChatWindow({ conversation, currentUserId, onSend }) {
         <div ref={bottomRef} />
       </div>
 
-      <ChatInput onSend={onSend} />
+      <ChatInput onSend={onSend} disabled={isSending} />
     </section>
   );
 }

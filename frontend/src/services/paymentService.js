@@ -24,14 +24,23 @@ export const paymentService = {
   },
 
   /**
-   * Confirm a payment (called after successful payment)
-   * Note: In production, this is handled by webhooks
+   * Confirm a payment server-side after Stripe client-side success.
+   * Backend verifies with Stripe API and updates DB status from pending -> held.
+   * This is a fallback for when webhooks cannot reach the server (e.g. localhost dev).
    * @param {string} paymentIntentId - Stripe PaymentIntent ID
    */
   async confirmPayment(paymentIntentId) {
-    // This is a client-side confirmation only
-    // Server-side confirmation happens via webhooks
-    return { success: true, paymentIntentId };
+    const { data } = await api.post('/payments/confirm', { paymentIntentId });
+    return data.data;
+  },
+
+  /**
+   * Release escrow funds to payee (called by payer when job is marked complete).
+   * @param {number} jobId
+   */
+  async releaseEscrow(jobId) {
+    const { data } = await api.post(`/payments/release/${jobId}`);
+    return data.data;
   },
 };
 

@@ -40,7 +40,7 @@ function CheckoutForm({ job, clientSecret }) {
         return;
       }
 
-      const { error: confirmError } = await stripe.confirmPayment({
+      const { error: confirmError, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
           return_url: `${window.location.origin}/betalning-klar`,
@@ -50,15 +50,22 @@ function CheckoutForm({ job, clientSecret }) {
 
       if (confirmError) {
         setError(confirmError.message);
-      } else {
-        // Payment successful
-        navigate('/betalning-klar', { 
-          state: { 
-            success: true, 
+      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+        // Sync status with backend (webhook fallback for localhost dev)
+        try {
+          await paymentService.confirmPayment(paymentIntent.id);
+        } catch (syncErr) {
+          console.warn('Backend confirm failed (webhook may update later):', syncErr.message);
+        }
+        navigate('/betalning-klar', {
+          state: {
+            success: true,
             jobId: job.id,
-            amount: job.price 
-          } 
+            amount: job.price,
+          },
         });
+      } else {
+        setError('Betalningen kunde inte slutföras.');
       }
     } catch (err) {
       setError('Ett fel uppstod. Försök igen.');

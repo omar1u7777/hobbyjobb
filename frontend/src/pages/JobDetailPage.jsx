@@ -1,5 +1,6 @@
 // git commit: "feat(jobs): build JobDetailPage with job info, application form, and poster profile"
 import { applicationService } from '../services/applicationService.js';
+import { paymentService } from '../services/paymentService.js';
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { jobService } from '../services/jobService.js';
@@ -23,6 +24,26 @@ export default function JobDetailPage() {
   const [applyErr, setApplyErr]     = useState('');
   const [applyOk, setApplyOk]       = useState(false);
   const [applyLoading, setApplyLoading] = useState(false);
+
+  const [releaseLoading, setReleaseLoading] = useState(false);
+  const [releaseErr, setReleaseErr] = useState('');
+  const [releaseOk, setReleaseOk]   = useState(false);
+
+  const handleRelease = async () => {
+    if (!window.confirm('Markera jobbet som slutfört och frigör betalningen till utföraren?')) return;
+    setReleaseLoading(true);
+    setReleaseErr('');
+    try {
+      await paymentService.releaseEscrow(id);
+      setReleaseOk(true);
+      const updated = await jobService.getJob(id);
+      setJob(updated);
+    } catch (e) {
+      setReleaseErr(e.message);
+    } finally {
+      setReleaseLoading(false);
+    }
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -123,10 +144,37 @@ export default function JobDetailPage() {
               {isOwner ? (
                 <div>
                   <Alert type="info" style={{ marginBottom: 12 }}>Det här är ditt eget jobb.</Alert>
+                  {releaseErr && <Alert type="error" style={{ marginBottom: 12 }}>{releaseErr}</Alert>}
+                  {job.status === 'open' && (
+                    <Link
+                      to={`/checkout/${job.id}`}
+                      className="btn btn-primary btn-full btn-lg"
+                      style={{ marginBottom: 8 }}
+                    >
+                      💳 Betala & starta jobbet
+                    </Link>
+                  )}
+                  {job.status === 'in_progress' && !releaseOk && (
+                    <button
+                      className="btn btn-primary btn-full btn-lg"
+                      onClick={handleRelease}
+                      disabled={releaseLoading}
+                      style={{ marginBottom: 8 }}
+                    >
+                      {releaseLoading ? <Spinner size={18} color="#fff" /> : '✅ Markera klart & frigör betalning'}
+                    </button>
+                  )}
+                  {job.status === 'completed' && (
+                    <Alert type="success" style={{ marginBottom: 8 }}>
+                      🏁 Jobbet är slutfört och utföraren har fått betalt.
+                    </Alert>
+                  )}
                   <Link to={`/mina-jobb`} className="btn btn-outline btn-full">Hantera jobb</Link>
                 </div>
               ) : applyOk ? (
                 <Alert type="success">✅ Din ansökan är skickad! Beställaren hör av sig.</Alert>
+              ) : job.status !== 'open' ? (
+                <Alert type="info">Jobbet är inte längre öppet för ansökningar.</Alert>
               ) : (
                 <button className="btn btn-primary btn-full btn-lg" onClick={() => setApplyOpen(true)}>
                   Ansök nu

@@ -19,8 +19,8 @@ app.use(cors({
 // Stripe webhook raw body (must be registered BEFORE express.json())
 app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
 
-// JSON parser
-app.use(express.json());
+// JSON parser with 1mb limit (prevents DoS via huge payloads)
+app.use(express.json({ limit: '1mb' }));
 
 // Routes
 app.use('/api/auth', require('./src/routes/auth'));

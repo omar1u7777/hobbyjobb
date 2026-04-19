@@ -118,9 +118,8 @@ const updateApplicationStatus = async (req, res, next) => {
 
     await application.update({ status });
 
-    if (status === APPLICATION_STATUS.ACCEPTED && application.job.status === JOB_STATUS.OPEN) {
-      await application.job.update({ status: JOB_STATUS.IN_PROGRESS });
-    }
+    // NOTE: job stays 'open' after acceptance. It only moves to 'in_progress'
+    // when the poster successfully pays (escrow held). See payments.js.
 
     return res.json({
       success: true,

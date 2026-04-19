@@ -835,12 +835,12 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [x] Databasschema designat och dokumenterat (ER-diagram + alla tabeller)
 - [x] API-dokumentation skriven (alla endpoints, metoder, auth-krav)
 - [x] HTML-wireframes skapade (landing, login, listings, job-detail, post-job, profile)
-- [ ] **GitHub-repo skapat** med `main` + `develop` branch — **S1**
-- [ ] **Roller tilldelade** på GitHub (alla 5 studenter inbjudna som Collaborators) — **S1**
-- [ ] **Branch-skydd aktiverat** på `main` (kräver PR + review) — **S1**
-- [ ] `.gitignore` skapad (node_modules, .env, dist) — **S1**
-- [ ] `backend/.env.example` skapad (alla nycklar som tomma strängar) — **S1**
-- [ ] `frontend/.env.example` skapad — **S3**
+- [x] **GitHub-repo skapat** med `main` + `develop` branch — **S1**
+- [x] **Roller tilldelade** på GitHub (alla 5 studenter inbjudna som Collaborators) — **S1**
+- [x] **Branch-skydd aktiverat** på `main` (kräver PR + review) — **S1**
+- [x] `.gitignore` skapad (node_modules, .env, dist) — **S1**
+- [x] `backend/.env.example` skapad (alla nycklar som tomma strängar) — **S1**
+- [x] `frontend/.env.example` skapad — **S3** ✅
 
 ---
 
@@ -849,61 +849,63 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 > Frontend är 🔒 blockad på att S1 är klar med auth innan S4 kan koppla ihop.
 
 ### 1A — Express-server & Grundstruktur (S1)
-- [ ] `backend/` mapp skapad med `npm init` — **S1**
-- [ ] Alla npm-paket installerade (express, sequelize, pg, bcrypt, jsonwebtoken, cors, helmet, dotenv, express-rate-limit, stripe) — **S1**
-- [ ] `backend/server.js` — Express-app med cors, helmet, json-parser, routes — **S1**
-- [ ] `backend/config/database.js` — Sequelize anslutning till PostgreSQL — **S1**
-- [ ] `backend/config/constants.js` — HOBBY_ANNUAL_LIMIT=30000, STRIPE_FEE=0.08 etc. — **S1**
-- [ ] PostgreSQL-databas skapad lokalt (`createdb hobbyjobb_dev`) — **S1**
+- [x] `backend/` mapp skapad med `npm init` — **S1**
+- [x] Alla npm-paket installerade (express, sequelize, pg, bcrypt, jsonwebtoken, cors, helmet, dotenv, express-rate-limit, stripe) — **S1**
+- [x] `backend/server.js` — Express-app med cors, helmet, json-parser, routes — **S1**
+- [x] `backend/config/database.js` — Sequelize anslutning till PostgreSQL — **S1**
+- [x] `backend/config/constants.js` — HOBBY_ANNUAL_LIMIT=30000, STRIPE_FEE=0.08 etc. — **S1**
+- [x] PostgreSQL-databas skapad på Render — **S1**
 
 ### 1B — Sequelize-modeller & Migrations (S2)
 > 🔒 Kräver att 1A (database.js) är klar
-- [ ] `backend/src/models/index.js` — Sequelize setup, alla associationer — **S1**
-- [ ] `backend/src/models/User.js` + migration `001-create-users.js` — **S1**
-- [ ] `backend/src/models/Category.js` + migration `002-create-categories.js` — **S2**
-- [ ] `backend/src/models/Job.js` + migration `003-create-jobs.js` — **S2**
-- [ ] `backend/src/models/Application.js` + migration `004-create-applications.js` — **S2**
-- [ ] `backend/src/models/Message.js` + migration `005-create-messages.js` — **S2**
-- [ ] `backend/src/models/Review.js` + migration `006-create-reviews.js` — **S2**
-- [ ] `backend/src/models/Payment.js` + migration `007-create-payments.js` — **S1**
-- [ ] Alla migrationer körda framgångsrikt (`npx sequelize-cli db:migrate`) — **S2**
-- [ ] Seed-data: `001-categories.js` (10 kategorier) — **S2**
-- [ ] Seed-data: `002-demo-data.js` (5 testanvändare, 20 testjobb) — **S2**
+- [x] `backend/src/models/index.js` — Sequelize setup, alla associationer — **S1 + S2** ✅
+- [x] `backend/src/models/User.js` + migration `001-create-users.js` — **S1**
+- [x] `backend/src/models/Category.js` + migration `002-create-categories.js` — **S2** ✅
+- [x] `backend/src/models/Job.js` + migration `003-create-jobs.js` — **S2** ✅
+- [x] `backend/src/models/Application.js` + migration `004-create-applications.js` — **S2** ✅
+- [x] `backend/src/models/Message.js` + migration `005-create-messages.js` — **S2** ✅
+- [x] `backend/src/models/Review.js` + migration `006-create-reviews.js` — **S2** ✅
+- [x] `backend/src/models/Payment.js` + migration `007-create-payments.js` — **S1** ✅
+- [x] Alla migrationer körda framgångsrikt (`npx sequelize-cli db:migrate`) — **S1** ✅
+- [x] Seed-data: `001-categories.js` (10 kategorier) — **S2** ✅
+- [x] Seed-data: `002-demo-data.js` (5 testanvändare, 20 testjobb) — **S2** ✅
 
 ### 1C — Auth API (S1)
 > 🔒 Kräver att User-modellen (1B) är klar
-- [ ] `backend/src/middleware/errorHandler.js` — Global felhantering — **S1**
-- [ ] `backend/src/middleware/rateLimiter.js` — Max 100 req/15min — **S1**
-- [ ] `backend/src/middleware/requireAuth.js` — JWT-verifiering — **S1**
-- [ ] `backend/src/middleware/requireAdmin.js` — Admin-rollkontroll — **S1**
-- [ ] `backend/src/middleware/hobbyLimitCheck.js` — Kontrollerar att användaren inte nått 30 000 kr — **S2**
-- [ ] `POST /api/auth/register` — Skapa konto, hasha lösenord med bcrypt, returnera JWT — **S1**
-- [ ] `POST /api/auth/login` — Verifiera lösenord, returnera JWT — **S1**
-- [ ] `POST /api/auth/logout` — Invalida token (client-side clear) — **S1**
-- [ ] `GET /api/auth/me` — Returnera inloggad användare från JWT — **S1**
+- [x] `backend/src/middleware/errorHandler.js` — Global felhantering — **S1**
+- [x] `backend/src/middleware/rateLimiter.js` — Max 100 req/15min — **S1**
+- [x] `backend/src/middleware/requireAuth.js` — JWT-verifiering — **S1**
+- [x] `backend/src/middleware/requireAdmin.js` — Admin-rollkontroll — **S1**
+- [x] `backend/src/middleware/hobbyLimitCheck.js` — Kontrollerar att användaren inte nått 30 000 kr — **S2** ✅
+- [x] `POST /api/auth/register` — ✅ Testad & fungerar — **S1**
+- [x] `POST /api/auth/login` — ✅ Testad & fungerar — **S1**
+- [x] `POST /api/auth/logout` — ✅ Testad & fungerar — **S1**
+- [x] `GET /api/auth/me` — ✅ Testad & fungerar — **S1**
 
 ### 1D — Jobs & Kategorier API (S2)
 > 🔒 Kräver att Job-modellen och requireAuth (1C) är klara
-- [ ] `GET /api/categories` — Lista alla kategorier — **S2**
-- [ ] `GET /api/jobs` — Lista jobb med filter (kategori, lat/lng/radius, pris, sort, pagination) — **S2**
-- [ ] `POST /api/jobs` — Skapa jobb (kräver auth + hobbyLimitCheck) — **S2**
-- [ ] `GET /api/jobs/:id` — Hämta ett jobb — **S2**
-- [ ] `PUT /api/jobs/:id` — Uppdatera jobb (kräver auth + ägare) — **S2**
-- [ ] `DELETE /api/jobs/:id` — Ta bort jobb (kräver auth + ägare) — **S2**
-- [ ] `GET /api/jobs/my` — Mina jobb (kräver auth) — **S2**
-- [ ] Hobbyinkomstgräns i `hobbyCalculator.js` — summerar användarens intjänade kr innevarande år — **S2**
+- [x] `GET /api/categories` — Lista alla kategorier — **S2** ✅
+- [x] `GET /api/jobs` — Lista jobb med filter (kategori, lat/lng/radius, pris, sort, pagination) — **S2** ✅
+- [x] `POST /api/jobs` — Skapa jobb (kräver auth; hobbyLimitCheck flyttad till `/payments/release` där payee valideras) — **S2** ✅
+- [x] `GET /api/jobs/:id` — Hämta ett jobb — **S2** ✅
+- [x] `PUT /api/jobs/:id` — Uppdatera jobb (kräver auth + ägare) — **S2** ✅
+- [x] `DELETE /api/jobs/:id` — Ta bort jobb (kräver auth + ägare) — **S2** ✅
+- [x] `GET /api/jobs/my` — Mina jobb (kräver auth) — **S2** ✅
+- [x] Hobbyinkomstgräns i `hobbyCalculator.js` — summerar användarens intjänade kr innevarande år — **S2** ✅
 
 ### 1E — Ansökningar, Användare & Meddelanden API (S2)
 > 🔒 Kräver att 1C och 1D är klara
-- [ ] `POST /api/applications` — Ansök på jobb — **S2**
-- [ ] `GET /api/applications/received` — Mottagna ansökningar — **S2**
-- [ ] `GET /api/applications/sent` — Skickade ansökningar — **S2**
-- [ ] `PUT /api/applications/:id` — Acceptera / avvisa ansökan — **S2**
-- [ ] `GET /api/users/:id` — Publik profil — **S2**
-- [ ] `PUT /api/users/:id` — Uppdatera profil (kräver auth + ägare) — **S2**
-- [ ] `GET /api/users/me/income` — Inkomstöversikt (kräver auth) — **S2**
-- [ ] `GET /api/messages/:jobId` — Chatthistorik — **S5**
-- [ ] `POST /api/messages` — Skicka meddelande — **S5**
+- [x] `POST /api/applications` — Ansök på jobb — **S2** ✅
+- [x] `GET /api/applications/received` — Mottagna ansökningar — **S2** ✅
+- [x] `GET /api/applications/sent` — Skickade ansökningar — **S2** ✅
+- [x] `PUT /api/applications/:id` — Acceptera / avvisa ansökan — **S2** ✅
+- [x] `GET /api/users/:id` — Publik profil — **S2** ✅
+- [x] `PUT /api/users/:id` — Uppdatera profil (kräver auth + ägare) — **S2** ✅
+- [x] `GET /api/users/me/income` — Inkomstöversikt (kräver auth) — **S2** ✅
+- [x] `GET /api/users/:id/reviews` — Recensioner för användare — **S1** ✅
+- [x] `GET /api/messages/:jobId` — Chatthistorik — **S2** ✅
+- [x] `POST /api/messages` — Skicka meddelande — **S2** ✅
+- [x] `GET /api/messages/unread-count` — Antal olästa meddelanden — **S3** ✅ (via NotificationContext)
 
 ---
 
@@ -912,38 +914,38 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 > S4 är 🔒 blockad tills React Router och gemensamma komponenter är klara.
 
 ### 2A — React-projekt & Routing (S3)
-- [ ] `npm create vite@latest frontend -- --template react` — **S3**
-- [ ] React Router installerat (`npm install react-router-dom`) — **S3**
-- [ ] Alla npm-paket installerade (axios, chart.js, react-chartjs-2, leaflet, react-leaflet) — **S3**
-- [ ] `frontend/src/App.jsx` — React Router setup med alla routes — **S3**
-- [ ] `frontend/src/main.jsx` — Entry point med providers — **S3**
-- [ ] `frontend/src/styles/variables.css` — `--blue:#2563EB`, `--dark:#0F172A`, `--muted:#64748B`, `--bg:#F8FAFC`, `--r:10px` (från wireframes) — **S3**
-- [ ] `frontend/src/styles/global.css` — Reset, body-font, box-sizing — **S3**
-- [ ] `frontend/src/styles/components.css` — Gemensamma klasser (btn, card, badge etc.) — **S3**
+- [x] `npm create vite@latest frontend -- --template react` — **S3** 
+- [x] React Router installerat (`npm install react-router-dom`) — **S3** 
+- [x] Alla npm-paket installerade (axios, react-router-dom) — **S3** 
+- [x] `frontend/src/App.jsx` — React Router setup med alla routes — **S3** 
+- [x] `frontend/src/main.jsx` — Entry point med providers — **S3** 
+- [x] `frontend/src/styles/variables.css` — CSS design tokens — **S3** 
+- [x] `frontend/src/styles/global.css` — Reset, body-font, box-sizing — **S3** 
+- [x] `frontend/src/styles/components.css` — Gemensamma klasser (btn, card, badge etc.) — **S3** 
 
 ### 2B — Gemensamma Komponenter (S3)
 > 🔒 Kräver att 2A är klar
-- [ ] `Navbar.jsx` — Logo, navigeringslänkar, login/register-knappar, responsiv (hamburger vid 900px) — **S3**
-- [ ] `Footer.jsx` — 4-kolumns footer, mörk bakgrund — **S3**
-- [ ] `Button.jsx` — Primary / secondary / ghost variants — **S3**
-- [ ] `Input.jsx` — Text, number, select med label och felmeddelande — **S3**
-- [ ] `Modal.jsx` — Överläggskomponent med backdrop — **S3**
-- [ ] `Badge.jsx` — Kategori-badges med färg — **S3**
-- [ ] `Spinner.jsx` — Laddningsindikator — **S3**
-- [ ] `Alert.jsx` — Success / error / warning-meddelanden — **S3**
-- [ ] `HobbyLimitBanner.jsx` — Gul varningsbanner (visas när > 80% av 30 000 kr nåtts) — **S3**
+- [x] `Navbar.jsx` — Logo, navigeringslänkar, login/register-knappar, responsiv (hamburger vid 900px) — **S3** 
+- [x] `Footer.jsx` — 4-kolumns footer, mörk bakgrund — **S3** 
+- [x] `Button.jsx` — Primary / secondary / ghost variants — **S3** 
+- [x] `Input.jsx` — Text, number, select med label och felmeddelande — **S3** 
+- [x] `Modal.jsx` — Överläggskomponent med backdrop — **S3** 
+- [x] `Badge.jsx` — Kategori-badges med färg — **S3** 
+- [x] `Spinner.jsx` — Laddningsindikator — **S3** 
+- [x] `Alert.jsx` — Success / error / warning-meddelanden — **S3** 
+- [x] `HobbyLimitBanner.jsx` — Gul varningsbanner (visas när > 80% av 30 000 kr nåtts) — **S3** 
 
 ### 2C — Auth Context & Services (S3 + S4)
 > 🔒 Kräver att backend auth API (1C) är klart och 2A är klar
-- [ ] `frontend/src/context/AuthContext.jsx` — Global auth-state (user, token, login, logout) — **S3**
-- [ ] `frontend/src/services/api.js` — Axios-instans med baseURL + JWT Authorization header — **S3**
-- [ ] `frontend/src/services/authService.js` — register(), login(), logout(), getMe() — **S4**
-- [ ] `frontend/src/hooks/useAuth.js` — Hook för att använda AuthContext — **S3**
-- [ ] Skyddad route-komponent (`PrivateRoute`) — omdirigerar till /login om ej inloggad — **S3**
+- [x] `frontend/src/context/AuthContext.jsx` — Global auth-state (user, token, login, logout) — **S3** 
+- [x] `frontend/src/services/api.js` — Axios-instans med baseURL + JWT Authorization header — **S3** 
+- [x] `frontend/src/services/authService.js` — register(), login(), logout(), getMe() — **S3** 
+- [x] `frontend/src/hooks/useAuth.js` — Hook för att använda AuthContext — **S3** 
+- [x] Skyddad route-komponent (`PrivateRoute`) — omdirigerar till /login om ej inloggad — **S3** 
 
 ### 2D — Landningssida i React (S3)
 > 🔒 Kräver att gemensamma komponenter (2B) är klara
-- [ ] `LandingPage.jsx` — Hero, 10-kategorisgrid, hur-det-fungerar (3 steg), inkomstmätare, FAQ-accordion, CTA — **S3**
+- [x] `LandingPage.jsx` — Hero, 10-kategorisgrid, hur-det-fungerar (3 steg), inkomstmätare, FAQ-accordion, CTA — **S3** 
   - Baseras direkt på `landing.html` wireframe
 
 ---
@@ -953,88 +955,94 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 > 🔒 Kräver att FAS 2 (React Router + gemensamma komponenter + AuthContext) är klar.
 
 ### 3A — Auth-sidor
-- [ ] `LoginPage.jsx` — Login-form med felhantering, länk till Register — **S4**
-  - Baseras på `login.html` wireframe
-- [ ] `RegisterPage.jsx` — Registreringsform + hobbyvillkor-checkbox (obligatorisk) + info-modal — **S4**
+- [x] `LoginPage.jsx` — Login-form med felhantering, länk till Register — **S4** 
+- [x] `RegisterPage.jsx` — Registreringsform + hobbyvillkor-checkbox (obligatorisk) + info-modal — **S4** 
   - Baseras på `login.html` wireframe (register-tab)
 
 ### 3B — Jobbrelaterade sidor
 > 🔒 Kräver att Jobs API (1D) och jobService är klara
-- [ ] `frontend/src/services/jobService.js` — getJobs(), getJob(), createJob(), updateJob(), deleteJob() — **S4**
-- [ ] `frontend/src/hooks/useJobs.js` — Hook med state, loading, error för jobblista — **S4**
-- [ ] `JobCard.jsx` — Jobbkort med titel, kategori, pris, plats, bild — **S4**
-- [ ] `JobList.jsx` — Grid av JobCard-komponenter — **S4**
-- [ ] `JobFilter.jsx` — Sidebar med kategori, avstånd, prisintervall filter — **S4**
-- [ ] `JobListPage.jsx` — Sökbar jobblista med sidebar-filter och pagination — **S4**
+- [x] `frontend/src/services/jobService.js` — getJobs(), getJob(), createJob(), updateJob(), deleteJob() — **S4** 
+- [x] `frontend/src/services/applicationService.js` — apply(), getReceived(), getSent(), updateStatus() — **S4** 
+- [x] `frontend/src/hooks/useJobs.js` — Hook med state, loading, error för jobblista — **S4** 
+- [x] `JobCard.jsx` — Jobbkort med titel, kategori, pris, plats — **S4** 
+- [x] `JobList.jsx` — Grid av JobCard-komponenter — **S4** 
+- [x] `JobFilter.jsx` — Sidebar med kategori, avstånd, prisintervall filter — **S4** 
+- [x] `JobListPage.jsx` — Sökbar jobblista med sidebar-filter och pagination — **S4** 
   - Baseras på `listings.html` wireframe
-- [ ] `JobDetailPage.jsx` — Jobbdetalj med bokningskort, karta, recensioner — **S4**
+- [x] `JobDetailPage.jsx` — Jobbdetalj med bokningskort, ansökningsform — **S4** 
   - Baseras på `job-detail.html` wireframe
-- [ ] `PostJobPage.jsx` — 4-stegs formulär för att skapa jobb, live-förhandsgranskning — **S4**
+- [x] `PostJobPage.jsx` — 4-stegs formulär för att skapa jobb, live-förhandsgranskning — **S4** 
   - Baseras på `post-job.html` wireframe
-- [ ] `MyJobsPage.jsx` — Mina publicerade / pågående / slutförda jobb — **S4**
+- [x] `MyJobsPage.jsx` — Mina publicerade / pågående / slutförda jobb — **S4** 
 
 ### 3C — Profilsida
 > 🔒 Kräver att Users API (1E) och inkomstlogik är klara
-- [ ] `frontend/src/hooks/useHobbyLimit.js` — Hämtar och beräknar inkomstgräns för inloggad användare — **S4**
-- [ ] `frontend/src/utils/hobbyLimits.js` — calculateLimit(), isNearLimit(), isAtLimit() — **S4**
-- [ ] `IncomeTracker.jsx` — Progress-bar (kr intjänat / 30 000 kr), varningsnivåer — **S4**
-- [ ] `ProfilePage.jsx` — Mörk hero, flikar: Översikt / Jobbhistorik / Recensioner / Inställningar — **S4**
+- [x] `frontend/src/hooks/useHobbyLimit.js` — Hämtar och beräknar inkomstgräns för inloggad användare — **S4** 
+- [x] `frontend/src/utils/hobbyLimits.js` — calculateLimit(), isNearLimit(), isAtLimit() — **S4** 
+- [x] `IncomeTracker.jsx` — Progress-bar (kr intjänat / 30 000 kr), varningsnivåer — **S4** 
+- [x] `ProfilePage.jsx` — Mörk hero, flikar: Översikt / Jobbhistorik / Recensioner / Inställningar — **S4** 
   - Baseras på `profile.html` wireframe
 
 ---
-
 ## 💳 FAS 4 — Betalningssystem (Stripe Connect)
 > Kräver att Jobs API och Auth är klara (FAS 1C + 1D).  
 > **Ansvarig: S1 (backend + frontend)**
 
-- [ ] Stripe-konto skapat på dashboard.stripe.com — **S1**
-- [ ] Connect aktiverat i Stripe Dashboard — **S1**
-- [ ] `backend/config/stripe.js` — Stripe-klient med API-nyckel — **S1**
-- [ ] `POST /api/payments/checkout` — Skapar Stripe PaymentIntent med application_fee_amount (8%) — **S1**
-- [ ] `POST /api/payments/confirm/:jobId` — Frigör escrow till utföraren (92%) — **S1**
-- [ ] `POST /api/payments/webhook` — Hanterar Stripe-events (payment_intent.succeeded etc.) — **S1**
-- [ ] `GET /api/payments/history` — Betalningshistorik för inloggad användare — **S1**
-- [ ] `POST /api/payments/boost` — Direkt betalning för Boost-annonsering — **S1**
-- [ ] `frontend/src/services/paymentService.js` — createCheckout(), confirmPayment(), getHistory() — **S1**
-- [ ] `CheckoutPage.jsx` — Stripe-betalningsflöde med kortinmatning — **S1**
-- [ ] `PaymentSuccessPage.jsx` — Bekräftelsesida efter genomförd betalning — **S1**
+- [x] Stripe-konto skapat på dashboard.stripe.com — **S1** 
+- [ ] Connect aktiverat i Stripe Dashboard — **S1** *(MVP: plattform håller escrow utan Connect)*
+- [x] `backend/config/stripe.js` — Stripe-klient med API-nyckel + fee-beräkning — **S1** 
+- [x] `POST /api/payments/checkout` — Skapar Stripe PaymentIntent med platform-fee (8%) — **S1** 
+- [x] `POST /api/payments/confirm` — Client-side confirm fallback (verifierar mot Stripe API) — **S1** 
+- [x] `POST /api/payments/release/:jobId` — Frigör escrow till utföraren (92%) + uppdaterar hobby_total_year — **S1** 
+- [x] `POST /api/payments/webhook` — Hanterar Stripe-events (payment_intent.succeeded etc.) — **S1** 
+- [x] `GET /api/payments/history` — Betalningshistorik för inloggad användare — **S1** 
+- [x] `POST /api/payments/boost` + `/boost/confirm` — Direkt betalning för Boost-annonsering (29 kr/48h eller 59 kr/7 dagar) — **S1** ✅
+- [x] `BoostJobPage.jsx` — Paketval + Stripe Elements för boost-betalning — **S1** ✅
+- [x] `MyJobsPage` — 🚀 "Boosta"-knapp per jobb — **S1** ✅
+- [x] `frontend/src/services/paymentService.js` — createCheckout(), confirmPayment(), releaseEscrow(), getHistory() — **S1** 
+- [x] `CheckoutPage.jsx` — Stripe Elements betalningsflöde med sammanfattning — **S1** 
+- [x] `PaymentSuccessPage.jsx` — Bekräftelsesida efter genomförd betalning — **S1** 
+- [x] `JobDetailPage` — "Betala & starta jobbet" + "Markera klart & frigör betalning" knappar — **S1** 
 
 ---
 
 ## 📊 FAS 5 — Admin Dashboard & Statistik (S5)
 > 🔒 Kräver att auth middleware (1C) och Jobs API (1D) är klara.
 
-- [ ] `GET /api/admin/stats` — Totalt antal jobb, användare, intäkter — **S5** *(via S1's admin-route)*
+- [x] `GET /api/admin/stats` — Totalt antal jobb, användare, intäkter, flaggade konton m.m. — **S5** 
 - [ ] `GET /api/admin/users` — Alla användare med hobbystatistik — **S5**
 - [ ] `PUT /api/admin/users/:id` — Aktivera/deaktivera konton — **S5**
-- [ ] `GET /api/admin/flagged` — Konton > 80% av hobbyinkomstgränsen — **S5**
+- [x] `GET /api/admin/flagged-accounts` — Konton > hobby-warning-threshold med risknivåfilter — **S5** 
 - [ ] `GET /api/admin/jobs` — Alla jobb (inkl. borttagna) — **S5**
 - [ ] `DELETE /api/admin/jobs/:id` — Ta bort jobb som admin — **S5**
-- [ ] `POST/PUT/DELETE /api/admin/categories` — CRUD för kategorier — **S5**
-- [ ] `AdminDashboardPage.jsx` — Statistik-kort + tabeller + filtreringsfunktioner — **S5**
-- [ ] `UserTable.jsx` — Sökbar tabell med hobbystatusfiltrering — **S5**
-- [ ] `JobTable.jsx` — Jobbhanteringstabell med sortering — **S5**
-- [ ] `CategoryManager.jsx` — CRUD-gränssnitt för kategorier — **S5**
-- [ ] `FlaggedAccounts.jsx` — Lista flaggade konton med åtgärdsknapp — **S5**
-- [ ] `JobsOverTimeChart.jsx` — Line chart: antal jobb per vecka (Chart.js) — **S5**
-- [ ] `CategoryPieChart.jsx` — Pie chart: fördelning per kategori (Chart.js) — **S5**
-- [ ] `IncomeBarChart.jsx` — Bar chart: plattformens intäkter per månad (Chart.js) — **S5**
+- [x] `GET/POST/PUT/DELETE /api/admin/categories` — CRUD för kategorier (case-insensitiv duplicate-check, blockerar delete vid aktiva jobb) — **S5** 
+- [x] `frontend/src/services/adminService.js` — API-wrapper för stats, flagged-accounts, category CRUD — **S5** 
+- [x] `AdminDashboardPage.jsx` — Statistik-kort + alerts + tabeller (live-data från `/admin/stats` med mock-fallback) — **S5** 
+- [x] `UserTable.jsx` — Sökbar tabell med hobbystatusfiltrering (mock-data) — **S5** 
+- [x] `JobTable.jsx` — Jobbhanteringstabell med sök (mock-data) — **S5** 
+- [x] `CategoryManager.jsx` — CRUD-gränssnitt för kategorier (live-CRUD mot `/admin/categories` med mock-fallback) — **S5** 
+- [x] `FlaggedAccounts.jsx` — Lista flaggade konton med sök/filter (live-data från `/admin/flagged-accounts` med mock-fallback) — **S5** 
+- [x] `JobsOverTimeChart.jsx` — Line chart: antal jobb per månad (Chart.js, mock-data) — **S5** 
+- [x] `CategoryPieChart.jsx` — Pie chart: fördelning per kategori (Chart.js, mock-data) — **S5** 
+- [x] `IncomeBarChart.jsx` — Bar chart: plattformens intäkter per månad (Chart.js, mock-data) — **S5** 
 
 ---
 
 ## 🌐 FAS 6 — Informationssidor & Chatt (S5 + S3)
 > Kan påbörjas parallellt med FAS 4–5
 
-- [ ] `HobbyInfoPage.jsx` — Informationssida om hobbyverksamhet, Skatteverkets regler, FAQ — **S5**
-- [ ] `AboutPage.jsx` — Om oss: teaminfo (namn, roll, foto), projektbeskrivning — **S5**
-- [ ] `ChatWindow.jsx` — Chattfönster med meddelandehistorik — **S5**
-- [ ] `MessageBubble.jsx` — Chattbubbla (avsändare / mottagare) — **S5**
-- [ ] `ChatInput.jsx` — Textfält + skicka-knapp — **S5**
-- [ ] `ChatPage.jsx` — Komplett chattsida kopplad till messages API — **S5**
-- [ ] `frontend/src/context/NotificationContext.jsx` — Räknare för olästa meddelanden — **S3**
+- [x] `HobbyInfoPage.jsx` — Informationssida om hobbyverksamhet, Skatteverkets regler, FAQ — **S5** 
+- [x] `AboutPage.jsx` — Om oss: teaminfo (namn, roll, foto), projektbeskrivning — **S5** 
+- [x] `ChatPage.jsx` — Konversationslista + ChatWindow (live-data från `/messages/conversations` med mock-fallback) — **S5** ✅
+- [x] `GET /api/messages/conversations` + `PATCH /api/messages/:jobId/read` — Bonus: konversationsgruppering & read-status — **S5** ✅
+- [x] `frontend/src/services/messageService.js` — API-wrapper för konversationer, meddelanden, read-status — **S5** ✅
+- [x] `ChatWindow.jsx` — Chattfönster med meddelandehistorik + auto-scroll — **S5** 
+- [x] `MessageBubble.jsx` — Chattbubbla (avsändare / mottagare) — **S5** 
+- [x] `ChatInput.jsx` — Textfält + skicka-knapp — **S5** 
+- [x] `HomePage.jsx` — Autentiserad startsida med senaste jobb, inkomststatus, snabblänkar — **S3** 
+- [x] `frontend/src/context/NotificationContext.jsx` — Räknare för olästa meddelanden — **S3**
 
 ---
-
 ## 🚀 FAS 7 — Deployment & CI/CD (S1)
 > 🔒 Kräver att hela appen fungerar lokalt (FAS 1–6 klara).
 
@@ -1063,13 +1071,6 @@ FAS 0  →  FAS 1A  →  FAS 1B  →  FAS 1C  →  FAS 2A  →  FAS 2B
                                      ↓
                               FAS 3B + 3C
                                      ↓
-                         FAS 4 + FAS 5 + FAS 6  (parallellt)
-                                     ↓
-                                  FAS 7
-```
-
-> **Nuläge:** FAS 0 är till stor del klar (dokumentation + wireframes).  
-> **Nästa steg:** GitHub-repo + FAS 1A (Express-servern) måste sättas upp av S1 omedelbart.
 
 ---
 

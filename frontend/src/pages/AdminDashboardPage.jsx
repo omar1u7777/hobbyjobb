@@ -1,6 +1,7 @@
 import UserTable from '../components/admin/UserTable.jsx';
 import JobTable from '../components/admin/JobTable.jsx';
 import CategoryManager from '../components/admin/CategoryManager.jsx';
+import FlaggedAccounts from '../components/admin/FlaggedAccounts.jsx';
 import AdminStatsCharts from '../components/charts/AdminStatsCharts.jsx';
 
 const STATS = [
@@ -68,6 +69,8 @@ export default function AdminDashboardPage() {
 
         <AdminStatsCharts />
 
+        <FlaggedAccounts />
+
         <CategoryManager />
 
         <section className="admin-tables-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -94,6 +97,10 @@ export default function AdminDashboardPage() {
         @media (max-width: 700px) {
           .admin-stats-grid,
           .admin-alerts-row {
+            grid-template-columns: 1fr !important;
+          }
+
+          .flagged-filters {
             grid-template-columns: 1fr !important;
           }
         }

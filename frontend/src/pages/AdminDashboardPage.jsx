@@ -1,5 +1,6 @@
 import UserTable from '../components/admin/UserTable.jsx';
 import JobTable from '../components/admin/JobTable.jsx';
+import AdminStatsCharts from '../components/charts/AdminStatsCharts.jsx';
 
 const STATS = [
   { id: 'jobs', label: 'Totalt jobb', value: '1 284', delta: '+8.3%', trend: 'up' },
@@ -64,6 +65,8 @@ export default function AdminDashboardPage() {
           </article>
         </section>
 
+        <AdminStatsCharts />
+
         <section className="admin-tables-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <UserTable />
           <JobTable />
@@ -77,6 +80,10 @@ export default function AdminDashboardPage() {
           }
 
           .admin-tables-grid {
+            grid-template-columns: 1fr !important;
+          }
+
+          .admin-charts-grid {
             grid-template-columns: 1fr !important;
           }
         }

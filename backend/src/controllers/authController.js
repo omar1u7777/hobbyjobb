@@ -96,7 +96,7 @@ const register = async (req, res) => {
           is_verified: user.is_verified,
           hobby_total_year: user.hobby_total_year,
           hobby_job_count: user.hobby_job_count,
-          createdAt: user.createdAt
+          created_at: user.created_at,
         },
         token
       }
@@ -164,7 +164,7 @@ const login = async (req, res) => {
           hobby_total_year: user.hobby_total_year,
           hobby_job_count: user.hobby_job_count,
           hobby_limit_reached: user.hobby_limit_reached,
-          createdAt: user.createdAt
+          created_at: user.created_at,
         },
         token
       }
@@ -179,16 +179,61 @@ const login = async (req, res) => {
   }
 };
 
-// @desc    Logout user (client-side token removal)
+// @desc    Logout user
 // @route   POST /api/auth/logout
 // @access  Private
+// NOTE: JWT is stateless — the token cannot be invalidated server-side without a
+// blacklist or session store. This endpoint is therefore a no-op success stub;
+// the client must delete the token from its own storage. If/when server-side
+// invalidation becomes a requirement, introduce a token blacklist (e.g. Redis)
+// and check it in requireAuth.
 const logout = async (req, res) => {
-  // JWT is stateless, so logout is handled client-side
-  // This endpoint can be used for logging or future token blacklisting
   res.json({
     success: true,
-    message: 'Logout successful'
+    message: 'Logout successful',
   });
+};
+
+// @desc    Change current user's password
+// @route   PUT /api/auth/password
+// @access  Private
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'currentPassword and newPassword are required',
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'newPassword must be at least 6 characters',
+      });
+    }
+
+    const user = await User.findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: 'Current password is incorrect' });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashed = await bcrypt.hash(newPassword, salt);
+    await user.update({ password: hashed });
+
+    res.json({ success: true, message: 'Password updated successfully' });
+  } catch (error) {
+    console.error('ChangePassword error:', error);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 };
 
 // @desc    Get current logged in user
@@ -226,5 +271,6 @@ module.exports = {
   register,
   login,
   logout,
-  getMe
+  getMe,
+  changePassword,
 };

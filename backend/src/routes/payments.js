@@ -3,6 +3,7 @@
 const express = require('express');
 const { Op } = require('sequelize');
 const stripeConfig = require('../../config/stripe.js');
+const { HOBBY_ANNUAL_LIMIT, HOBBY_WARNING_THRESHOLD } = require('../../config/constants');
 const requireAuth = require('../middleware/requireAuth.js');
 const models = require('../models');
 
@@ -209,11 +210,14 @@ router.post('/webhook', async (req, res) => {
 });
 
 async function handlePaymentSuccess(paymentIntent) {
-  // Handle boost payments (no Payment row, update Job directly)
+  // Handle boost payments (platform keeps 100%; recorded as released Payment
+  // with payee_id = payer so admin stats + /payments/history include boost
+  // revenue).
   if (paymentIntent.metadata?.type === 'boost') {
     if (!Job) return;
     const jobId = Number(paymentIntent.metadata.jobId);
     const durationHours = Number(paymentIntent.metadata.durationHours);
+    const payerId = Number(paymentIntent.metadata.payerId);
     const job = await Job.findByPk(jobId);
     if (!job) {
       console.error('Job not found for boost:', jobId);
@@ -225,6 +229,27 @@ async function handlePaymentSuccess(paymentIntent) {
       : now;
     const newExpiry = new Date(baseTime.getTime() + durationHours * 60 * 60 * 1000);
     await job.update({ is_boosted: true, boost_expires_at: newExpiry });
+
+    if (Payment && payerId) {
+      const amountSek = paymentIntent.amount / 100;
+      const existingBoostPayment = await Payment.findOne({
+        where: { stripe_payment_id: paymentIntent.id },
+      });
+      if (!existingBoostPayment) {
+        await Payment.create({
+          job_id: jobId,
+          payer_id: payerId,
+          payee_id: payerId, // boost fee goes to platform, not another user
+          amount_total: amountSek,
+          amount_platform: amountSek, // 100% platform revenue
+          amount_payee: 0,
+          stripe_payment_id: paymentIntent.id,
+          status: 'released',
+          confirmed_at: new Date(),
+        });
+      }
+    }
+
     console.log('Boost activated for job:', jobId);
     return;
   }
@@ -269,9 +294,13 @@ async function handleRefund(charge) {
 
 /**
  * POST /api/payments/confirm
- * Client-side confirmation fallback (in case webhook is unreachable in dev)
+ * Client-side confirmation fallback (in case webhook is unreachable in dev).
  * Body: { paymentIntentId }
- * Verifies with Stripe and updates payment+job status
+ * Verifies with Stripe and updates payment + job status.
+ *
+ * Idempotent: guarded by `payment.status === 'pending'` so repeated calls
+ * (including a race between this endpoint and `payment_intent.succeeded`
+ * webhook) will only transition pending -> held once and never double-process.
  */
 router.post('/confirm', requireAuth, async (req, res, next) => {
   try {
@@ -362,11 +391,14 @@ router.post('/release/:jobId', requireAuth, async (req, res, next) => {
     if (payee) {
       const newTotal = Number(payee.hobby_total_year || 0) + Number(payment.amount_payee);
       const newJobCount = Number(payee.hobby_job_count || 0) + 1;
-      const HOBBY_LIMIT = Number(process.env.HOBBY_ANNUAL_LIMIT || 30000);
       await payee.update({
         hobby_total_year: newTotal,
         hobby_job_count: newJobCount,
-        hobby_limit_reached: newTotal >= HOBBY_LIMIT,
+        // Flag when the user reaches the warning threshold (currently 25 000 kr)
+        // so admin sees them in the flagged-accounts list. Sticky: once warned,
+        // the flag stays true until the year's income is reset.
+        hobby_warned: payee.hobby_warned || newTotal >= HOBBY_WARNING_THRESHOLD,
+        hobby_limit_reached: newTotal >= HOBBY_ANNUAL_LIMIT,
       });
     }
 
@@ -444,6 +476,7 @@ router.post('/boost', requireAuth, async (req, res, next) => {
         type: 'boost',
         jobId: String(jobId),
         userId: String(userId),
+        payerId: String(userId),
         boostPackage: pkgName,
         durationHours: String(pkg.durationHours),
       },
@@ -520,6 +553,29 @@ router.post('/boost/confirm', requireAuth, async (req, res, next) => {
       is_boosted: true,
       boost_expires_at: newExpiry,
     });
+
+    // Record Payment row for boost revenue (idempotent: skip if webhook
+    // already created it). Platform keeps 100%; we set payee_id = payer_id
+    // as a sentinel since boosts do not pay out to another user.
+    if (Payment) {
+      const existingBoostPayment = await Payment.findOne({
+        where: { stripe_payment_id: paymentIntentId },
+      });
+      if (!existingBoostPayment) {
+        const amountSek = intent.amount / 100;
+        await Payment.create({
+          job_id: jobId,
+          payer_id: req.user.id,
+          payee_id: req.user.id,
+          amount_total: amountSek,
+          amount_platform: amountSek,
+          amount_payee: 0,
+          stripe_payment_id: paymentIntentId,
+          status: 'released',
+          confirmed_at: new Date(),
+        });
+      }
+    }
 
     res.json({
       success: true,

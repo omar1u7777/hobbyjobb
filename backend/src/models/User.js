@@ -47,9 +47,13 @@ module.exports = (sequelize) => {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
+    // Email verification flag. No automated verification flow exists yet;
+    // accounts are considered verified on creation. If/when an email-verification
+    // flow is added, default should change back to false and a verification
+    // token pipeline introduced.
     is_verified: {
       type: DataTypes.BOOLEAN,
-      defaultValue: false,
+      defaultValue: true,
     },
     // Hobbyverksamhet tracking
     hobby_total_year: {

@@ -18,11 +18,22 @@ const createApplication = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'You cannot apply to your own job' });
     }
 
+    // Block only pending/accepted applications. Rejected or withdrawn
+    // applications are permitted to be re-submitted (fresh pending row).
     const existing = await Application.findOne({
-      where: { job_id, applicant_id: req.user.id },
+      where: {
+        job_id,
+        applicant_id: req.user.id,
+        status: [APPLICATION_STATUS.PENDING, APPLICATION_STATUS.ACCEPTED],
+      },
     });
     if (existing) {
-      return res.status(409).json({ success: false, message: 'You already applied to this job' });
+      return res.status(409).json({
+        success: false,
+        message: existing.status === APPLICATION_STATUS.ACCEPTED
+          ? 'Your application has already been accepted for this job'
+          : 'You already have a pending application for this job',
+      });
     }
 
     const application = await Application.create({

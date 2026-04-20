@@ -574,8 +574,9 @@ hobby_type:     STRING    // t.ex. "engångsjobb" / "återkommande"
 ```
 POST   /auth/register       Skapa nytt konto
 POST   /auth/login          Logga in → returnerar JWT
-POST   /auth/logout         Logga ut
+POST   /auth/logout         Logga ut (stateless — klienten raderar token)
 GET    /auth/me             Hämta inloggad användare
+PUT    /auth/password       Byt lösenord          [Auth required]
 ```
 
 ### Jobb
@@ -629,35 +630,45 @@ GET    /categories             Lista alla kategorier
 ### Meddelanden
 
 ```
-GET    /messages/:jobId        Hämta chatthistorik  [Auth required]
-POST   /messages               Skicka meddelande    [Auth required]
+GET    /messages/conversations    Lista alla konversationer    [Auth required]
+GET    /messages/unread-count     Antal olästa meddelanden     [Auth required]
+GET    /messages/:jobId           Chatthistorik för ett jobb   [Auth required]
+POST   /messages                  Skicka meddelande            [Auth required]
+PATCH  /messages/:jobId/read      Markera konversation som läst [Auth required]
+```
+
+### Recensioner
+
+```
+POST   /reviews                   Lämna recension efter släppt escrow  [Auth required]
+GET    /reviews/job/:jobId        Recensioner för ett specifikt jobb
+GET    /users/:id/reviews         Recensioner för en användare
 ```
 
 ### Betalningar (Stripe Connect)
 
 ```
-POST   /payments/checkout          Skapa Stripe-session för uppdrag  [Auth required]
-POST   /payments/confirm/:jobId    Bekräfta klart → frigör escrow     [Auth + beställare]
-GET    /payments/history           Betalningshistorik för användare   [Auth required]
-POST   /payments/boost             Köp Boost-annonsering              [Auth required]
-POST   /payments/webhook           Stripe webhook (intern)            [Stripe signatur]
+POST   /payments/checkout          Skapa Stripe PaymentIntent          [Auth + beställare]
+POST   /payments/confirm           Fallback: bekräfta betalning client-side [Auth + beställare]
+POST   /payments/release/:jobId    Frigör escrow → betala ut till utförare [Auth + beställare]
+GET    /payments/history           Betalningshistorik för användare    [Auth required]
+POST   /payments/boost             Köp Boost-annonsering               [Auth + ägare]
+POST   /payments/boost/confirm     Aktivera boost efter betalning      [Auth + ägare]
+POST   /payments/webhook           Stripe webhook (intern)             [Stripe signatur]
 ```
 
 > **Flöde:**  
-> `POST /payments/checkout` → Stripe skapar escrow → `POST /payments/confirm` → Stripe Connect delar 92/8%
+> `POST /payments/checkout` → Stripe håller escrow → webhook sätter status `held` → `POST /payments/release/:jobId` → 92% till utförare (uppdaterar `hobby_total_year`), 8% plattformsavgift
 
 ### Admin (kräver admin-roll)
 
 ```
-GET    /admin/stats            Plattformsstatistik
-GET    /admin/users            Lista alla användare
-PUT    /admin/users/:id        Redigera användare
-GET    /admin/flagged          Konton nära hobbygräns
-GET    /admin/jobs             Lista alla jobb
-DELETE /admin/jobs/:id         Ta bort jobb
-POST   /admin/categories       Skapa kategori
-PUT    /admin/categories/:id   Redigera kategori
-DELETE /admin/categories/:id   Ta bort kategori
+GET    /admin/stats               Plattformsstatistik
+GET    /admin/flagged-accounts    Konton nära/över hobbygränsen (25k/30k kr)
+GET    /admin/categories          Lista kategorier (inkl. jobs_count)
+POST   /admin/categories          Skapa ny kategori
+PUT    /admin/categories/:id      Uppdatera kategori
+DELETE /admin/categories/:id      Ta bort kategori (blockeras om den används)
 ```
 
 ---

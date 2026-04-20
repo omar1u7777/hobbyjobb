@@ -2,6 +2,7 @@ const express = require('express');
 const requireAdmin = require('../middleware/requireAdmin');
 const {
   getAdminStats,
+  getAdminCharts,
   getFlaggedAccounts,
   updateFlaggedAccountStatus,
   getAdminCategories,
@@ -15,6 +16,7 @@ const router = express.Router();
 router.use(...requireAdmin);
 
 router.get('/stats', getAdminStats);
+router.get('/charts', getAdminCharts);
 router.get('/flagged-accounts', getFlaggedAccounts);
 router.patch('/flagged-accounts/:id', updateFlaggedAccountStatus);
 

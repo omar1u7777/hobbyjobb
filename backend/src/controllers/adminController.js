@@ -82,6 +82,147 @@ const getAdminStats = async (req, res, next) => {
   }
 };
 
+const buildLastSixMonthBuckets = () => {
+  const months = [];
+  const now = new Date();
+
+  for (let index = 5; index >= 0; index -= 1) {
+    const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - index, 1));
+    const key = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
+    const label = date.toLocaleDateString('sv-SE', { month: 'short' });
+    months.push({ key, label });
+  }
+
+  return months;
+};
+
+const monthKeyFromValue = (value) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
+};
+
+const getAdminCharts = async (req, res, next) => {
+  try {
+    const monthBuckets = buildLastSixMonthBuckets();
+    const firstMonthKey = monthBuckets[0]?.key;
+
+    if (!firstMonthKey) {
+      return res.json({
+        success: true,
+        data: {
+          charts: {
+            jobsOverTime: { labels: [], values: [] },
+            incomeOverTime: { labels: [], platformRevenue: [], grossVolume: [] },
+            categoryDistribution: { labels: [], values: [] },
+          },
+        },
+      });
+    }
+
+    const [yearStart, monthStart] = firstMonthKey.split('-').map((item) => Number(item));
+    const sinceDate = new Date(Date.UTC(yearStart, monthStart - 1, 1, 0, 0, 0));
+
+    const [jobsByMonthRaw, revenueByMonthRaw, categoryDistributionRaw] = await Promise.all([
+      Job.findAll({
+        attributes: [
+          [fn('date_trunc', 'month', col('created_at')), 'month'],
+          [fn('COUNT', col('id')), 'count'],
+        ],
+        where: {
+          created_at: { [Op.gte]: sinceDate },
+        },
+        group: [literal('1')],
+        order: [[literal('1'), 'ASC']],
+        raw: true,
+      }),
+      Payment.findAll({
+        attributes: [
+          [fn('date_trunc', 'month', col('created_at')), 'month'],
+          [fn('COALESCE', fn('SUM', col('amount_platform')), 0), 'platform_revenue'],
+          [fn('COALESCE', fn('SUM', col('amount_total')), 0), 'gross_volume'],
+        ],
+        where: {
+          status: 'released',
+          created_at: { [Op.gte]: sinceDate },
+        },
+        group: [literal('1')],
+        order: [[literal('1'), 'ASC']],
+        raw: true,
+      }),
+      Job.findAll({
+        attributes: [
+          [col('category.name'), 'category_name'],
+          [fn('COUNT', col('Job.id')), 'count'],
+        ],
+        include: [
+          {
+            model: Category,
+            as: 'category',
+            attributes: [],
+            required: true,
+          },
+        ],
+        group: [col('category.id'), col('category.name')],
+        order: [[literal('count'), 'DESC']],
+        limit: 6,
+        raw: true,
+      }),
+    ]);
+
+    const jobsMap = new Map();
+    jobsByMonthRaw.forEach((item) => {
+      const key = monthKeyFromValue(item.month);
+      if (!key) return;
+      jobsMap.set(key, Number(item.count) || 0);
+    });
+
+    const revenueMap = new Map();
+    revenueByMonthRaw.forEach((item) => {
+      const key = monthKeyFromValue(item.month);
+      if (!key) return;
+      revenueMap.set(key, {
+        platformRevenue: parseMoney(item.platform_revenue),
+        grossVolume: parseMoney(item.gross_volume),
+      });
+    });
+
+    const labels = monthBuckets.map((bucket) => bucket.label);
+    const jobsValues = monthBuckets.map((bucket) => jobsMap.get(bucket.key) || 0);
+    const platformRevenueValues = monthBuckets.map((bucket) => revenueMap.get(bucket.key)?.platformRevenue || 0);
+    const grossVolumeValues = monthBuckets.map((bucket) => revenueMap.get(bucket.key)?.grossVolume || 0);
+
+    const categoryLabels = categoryDistributionRaw.map((item) => item.category_name || 'Okand');
+    const categoryValues = categoryDistributionRaw.map((item) => Number(item.count) || 0);
+
+    return res.json({
+      success: true,
+      data: {
+        charts: {
+          jobsOverTime: {
+            labels,
+            values: jobsValues,
+          },
+          incomeOverTime: {
+            labels,
+            platformRevenue: platformRevenueValues,
+            grossVolume: grossVolumeValues,
+          },
+          categoryDistribution: {
+            labels: categoryLabels,
+            values: categoryValues,
+          },
+        },
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 const getFlaggedAccounts = async (req, res, next) => {
   try {
     const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
@@ -437,6 +578,7 @@ const deleteAdminCategory = async (req, res, next) => {
 
 module.exports = {
   getAdminStats,
+  getAdminCharts,
   getFlaggedAccounts,
   updateFlaggedAccountStatus,
   getAdminCategories,

@@ -2,10 +2,38 @@ import { useEffect, useMemo, useState } from 'react';
 import { adminService } from '../../services/adminService.js';
 
 const INITIAL_CATEGORIES = [
-  { id: 1, name: 'Handyman', maxPrice: 1500, status: 'Aktiv', description: 'Montering, enklare reparationer och fix', jobsCount: 0 },
-  { id: 2, name: 'Städning', maxPrice: 1200, status: 'Aktiv', description: 'Hemstädning och storstädning', jobsCount: 0 },
-  { id: 3, name: 'Djurpassning', maxPrice: 900, status: 'Aktiv', description: 'Hundpromenad, kattpassning och tillsyn', jobsCount: 0 },
-  { id: 4, name: 'Flytt & Transport', maxPrice: 2200, status: 'Pausad', description: 'Mindre flyttar och lokal transport', jobsCount: 0 },
+  {
+    id: 1,
+    name: 'Handyman',
+    maxPrice: 1500,
+    status: 'Aktiv',
+    description: 'Montering, enklare reparationer och fix',
+    jobsCount: 0,
+  },
+  {
+    id: 2,
+    name: 'Städning',
+    maxPrice: 1200,
+    status: 'Aktiv',
+    description: 'Hemstädning och storstädning',
+    jobsCount: 0,
+  },
+  {
+    id: 3,
+    name: 'Djurpassning',
+    maxPrice: 900,
+    status: 'Aktiv',
+    description: 'Hundpromenad, kattpassning och tillsyn',
+    jobsCount: 0,
+  },
+  {
+    id: 4,
+    name: 'Flytt & Transport',
+    maxPrice: 2200,
+    status: 'Pausad',
+    description: 'Mindre flyttar och lokal transport',
+    jobsCount: 0,
+  },
 ];
 
 function mapApiCategory(api) {
@@ -59,12 +87,16 @@ export default function CategoryManager() {
       } catch (_) {
         // Keep mock data on failure
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
     }
 
     loadCategories();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const filteredCategories = useMemo(() => {
@@ -111,21 +143,25 @@ export default function CategoryManager() {
         if (editingId) {
           const updated = await adminService.updateCategory(editingId, apiPayload);
           const mapped = mapApiCategory(updated);
-          setCategories((current) => current.map((c) => (c.id === editingId ? { ...mapped, status: payload.status } : c)));
+          setCategories((current) =>
+            current.map((category) =>
+              category.id === editingId ? { ...mapped, status: payload.status } : category
+            )
+          );
         } else {
           const created = await adminService.createCategory(apiPayload);
           const mapped = mapApiCategory(created);
           setCategories((current) => [{ ...mapped, status: payload.status }, ...current]);
         }
+
         resetForm();
         return;
-      } catch (err) {
-        setError(err.response?.data?.message || err.message || 'Kunde inte spara kategori.');
+      } catch (apiError) {
+        setError(apiError.response?.data?.message || apiError.message || 'Kunde inte spara kategori.');
         return;
       }
     }
 
-    // Mock-only fallback
     if (editingId) {
       setCategories((current) => current.map((category) => (category.id === editingId ? { ...category, ...payload } : category)));
       resetForm();
@@ -142,8 +178,8 @@ export default function CategoryManager() {
     if (apiLive) {
       try {
         await adminService.deleteCategory(categoryId);
-      } catch (err) {
-        setError(err.response?.data?.message || err.message || 'Kunde inte ta bort kategorin.');
+      } catch (apiError) {
+        setError(apiError.response?.data?.message || apiError.message || 'Kunde inte ta bort kategorin.');
         return;
       }
     }
@@ -170,7 +206,11 @@ export default function CategoryManager() {
         <div>
           <h3>Kategorihantering</h3>
           <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
-            {loading ? 'Laddar kategorier…' : apiLive ? 'Live-CRUD mot /api/admin/categories.' : 'Mock-CRUD — admin-API ej tillgängligt.'}
+            {loading
+              ? 'Laddar kategorier...'
+              : apiLive
+                ? 'Live-CRUD mot /api/admin/categories.'
+                : 'Mock-CRUD - admin-API ej tillgängligt.'}
           </p>
           {error ? (
             <p style={{ marginTop: 6, fontSize: 12, color: 'var(--red)' }}>{error}</p>
@@ -235,7 +275,7 @@ export default function CategoryManager() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Sök kategori…"
+          placeholder="Sök kategori..."
           style={{ width: '100%', border: '1.5px solid var(--border)', borderRadius: 8, padding: '9px 12px', fontSize: 13, fontFamily: 'var(--font)' }}
         />
       </div>

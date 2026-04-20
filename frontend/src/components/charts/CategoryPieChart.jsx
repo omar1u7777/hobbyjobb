@@ -3,19 +3,9 @@ import { Doughnut } from 'react-chartjs-2';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const categoryPieData = {
-  labels: ['Handyman', 'Städning', 'Djur', 'Trädgård', 'Flytt'],
-  datasets: [
-    {
-      label: 'Jobb per kategori',
-      data: [32, 19, 14, 22, 11],
-      backgroundColor: ['#2563EB', '#0EA5E9', '#16A34A', '#D97706', '#DC2626'],
-      borderColor: '#FFFFFF',
-      borderWidth: 2,
-      hoverOffset: 6,
-    },
-  ],
-};
+const FALLBACK_LABELS = ['Handyman', 'Städning', 'Djur', 'Trädgård', 'Flytt'];
+const FALLBACK_VALUES = [32, 19, 14, 22, 11];
+const PALETTE = ['#2563EB', '#0EA5E9', '#16A34A', '#D97706', '#DC2626', '#7C3AED', '#1D4ED8'];
 
 const categoryPieOptions = {
   responsive: true,
@@ -31,12 +21,35 @@ const categoryPieOptions = {
   },
 };
 
-export default function CategoryPieChart() {
+export default function CategoryPieChart({ labels = [], values = [], apiLive = false, loading = false }) {
+  const chartLabels = labels.length > 0 ? labels : FALLBACK_LABELS;
+  const chartValues = values.length > 0 ? values : FALLBACK_VALUES;
+
+  const categoryPieData = {
+    labels: chartLabels,
+    datasets: [
+      {
+        label: 'Jobb per kategori',
+        data: chartValues,
+        backgroundColor: chartLabels.map((_, index) => PALETTE[index % PALETTE.length]),
+        borderColor: '#FFFFFF',
+        borderWidth: 2,
+        hoverOffset: 6,
+      },
+    ],
+  };
+
   return (
     <article className="card" style={{ padding: 16 }}>
       <div style={{ marginBottom: 10 }}>
         <h2 style={{ fontSize: 16, marginBottom: 4 }}>Kategori-fördelning</h2>
-        <p style={{ fontSize: 12, color: 'var(--muted)' }}>Aktiva jobb i plattformen</p>
+        <p style={{ fontSize: 12, color: 'var(--muted)' }}>
+          {loading
+            ? 'Laddar kategoridata...'
+            : apiLive
+              ? 'Live-data från /api/admin/charts'
+              : 'Aktiva jobb i plattformen (mock)'}
+        </p>
       </div>
       <div style={{ height: 240 }}>
         <Doughnut options={categoryPieOptions} data={categoryPieData} />

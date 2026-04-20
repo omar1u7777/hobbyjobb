@@ -11,8 +11,14 @@ const app = express();
 // req.secure / secure cookies to work correctly behind HTTPS termination.
 app.set('trust proxy', 1);
 
-// Security middleware
-app.use(helmet());
+// Security middleware.
+// crossOriginResourcePolicy MUST be 'cross-origin' because the API is consumed
+// from a different origin (Vercel). Helmet's default 'same-origin' causes the
+// browser to reject successful responses even when CORS headers are correct,
+// which surfaces as a generic "Network Error" in the frontend.
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
 app.use(rateLimiter);
 
 // CORS configuration

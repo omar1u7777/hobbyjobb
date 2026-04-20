@@ -10,6 +10,7 @@ const { stripe, calculatePlatformFee, toOre } = stripeConfig;
 const Job = models.Job;
 const User = models.User;
 const Payment = models.Payment;
+const Application = models.Application;
 
 const router = express.Router();
 
@@ -61,12 +62,29 @@ router.post('/checkout', requireAuth, async (req, res, next) => {
       });
     }
 
-    if (job.poster_id === userId) {
-      return res.status(400).json({
+    // Escrow rule (per README): only the job poster (Beställaren) can initiate
+    // payment. The accepted applicant (Utföraren) will receive the funds when
+    // escrow is released.
+    if (job.poster_id !== userId) {
+      return res.status(403).json({
         success: false,
-        message: 'Cannot pay for your own job',
+        message: 'Only the job poster can pay for this job',
       });
     }
+
+    // The job must have an accepted applicant before payment can be made.
+    const acceptedApplication = await Application.findOne({
+      where: { job_id: jobId, status: 'accepted' },
+    });
+
+    if (!acceptedApplication) {
+      return res.status(400).json({
+        success: false,
+        message: 'Job has no accepted applicant yet — accept an application before paying',
+      });
+    }
+
+    const payeeId = acceptedApplication.applicant_id;
 
     // Prevent duplicates: reuse existing pending payment for this job+user
     const existing = await Payment.findOne({
@@ -106,7 +124,7 @@ router.post('/checkout', requireAuth, async (req, res, next) => {
       metadata: {
         jobId: String(jobId),
         payerId: String(userId),
-        payeeId: String(job.poster_id),
+        payeeId: String(payeeId),
         platformFeePercent: String(stripeConfig.PLATFORM_FEE_PERCENT),
       },
       automatic_payment_methods: { enabled: true },
@@ -116,7 +134,7 @@ router.post('/checkout', requireAuth, async (req, res, next) => {
     await Payment.create({
       job_id: jobId,
       payer_id: userId,
-      payee_id: job.poster_id,
+      payee_id: payeeId,
       amount_total: Number(amount),
       amount_platform: platformFeeOre / 100,
       amount_payee: payeeOre / 100,

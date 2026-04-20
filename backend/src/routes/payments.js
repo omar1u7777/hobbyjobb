@@ -152,8 +152,14 @@ router.post('/webhook', async (req, res) => {
   try {
     if (endpointSecret && sig && stripe) {
       event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+    } else if (process.env.NODE_ENV === 'production') {
+      // SECURITY: In production, ALWAYS require signature verification.
+      // Without it, anyone could POST fake payment_intent.succeeded events
+      // and trigger job releases / boost activation without paying.
+      console.error('Webhook rejected: missing STRIPE_WEBHOOK_SECRET or signature in production');
+      return res.status(400).json({ error: 'Webhook signature required in production' });
     } else {
-      // Dev mode: parse raw body
+      // Dev mode only: parse raw body unverified (for local testing without stripe-cli)
       event = typeof req.body === 'string' || Buffer.isBuffer(req.body)
         ? JSON.parse(req.body.toString())
         : req.body;

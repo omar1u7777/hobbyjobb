@@ -159,6 +159,101 @@ const getFlaggedAccounts = async (req, res, next) => {
   }
 };
 
+const updateFlaggedAccountStatus = async (req, res, next) => {
+  try {
+    const userId = Number.parseInt(req.params.id, 10);
+    if (Number.isNaN(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid user id',
+      });
+    }
+
+    const user = await User.findByPk(userId, {
+      attributes: [
+        'id',
+        'name',
+        'email',
+        'hobby_total_year',
+        'hobby_job_count',
+        'hobby_warned',
+        'hobby_limit_reached',
+        'updated_at',
+      ],
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    const action =
+      typeof req.body.action === 'string'
+        ? req.body.action.trim().toLowerCase()
+        : null;
+
+    const updates = {};
+
+    if (action) {
+      if (action === 'clear' || action === 'resolve') {
+        updates.hobby_warned = false;
+        updates.hobby_limit_reached = false;
+      } else if (action === 'warn') {
+        updates.hobby_warned = true;
+      } else if (action === 'lock') {
+        updates.hobby_warned = true;
+        updates.hobby_limit_reached = true;
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid action. Use clear, warn or lock',
+        });
+      }
+    }
+
+    if (typeof req.body.hobby_warned === 'boolean') {
+      updates.hobby_warned = req.body.hobby_warned;
+    }
+
+    if (typeof req.body.hobby_limit_reached === 'boolean') {
+      updates.hobby_limit_reached = req.body.hobby_limit_reached;
+    }
+
+    if (!Object.keys(updates).length) {
+      return res.status(400).json({
+        success: false,
+        message: 'Provide action or boolean fields to update',
+      });
+    }
+
+    await user.update(updates);
+
+    const income = parseMoney(user.hobby_total_year);
+
+    return res.json({
+      success: true,
+      data: {
+        account: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          hobbyTotalYear: income,
+          hobbyJobCount: user.hobby_job_count,
+          hobbyWarned: user.hobby_warned,
+          hobbyLimitReached: user.hobby_limit_reached,
+          risk: resolveRiskLevel(user),
+          limitPercent: Math.round((income / HOBBY_LIMIT) * 100),
+          updatedAt: user.updated_at,
+        },
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 const getAdminCategories = async (req, res, next) => {
   try {
     const categories = await Category.findAll({
@@ -343,6 +438,7 @@ const deleteAdminCategory = async (req, res, next) => {
 module.exports = {
   getAdminStats,
   getFlaggedAccounts,
+  updateFlaggedAccountStatus,
   getAdminCategories,
   createAdminCategory,
   updateAdminCategory,

@@ -3,6 +3,7 @@ const requireAdmin = require('../middleware/requireAdmin');
 const {
   getAdminStats,
   getFlaggedAccounts,
+  updateFlaggedAccountStatus,
   getAdminCategories,
   createAdminCategory,
   updateAdminCategory,
@@ -15,6 +16,7 @@ router.use(...requireAdmin);
 
 router.get('/stats', getAdminStats);
 router.get('/flagged-accounts', getFlaggedAccounts);
+router.patch('/flagged-accounts/:id', updateFlaggedAccountStatus);
 
 router.get('/categories', getAdminCategories);
 router.post('/categories', createAdminCategory);

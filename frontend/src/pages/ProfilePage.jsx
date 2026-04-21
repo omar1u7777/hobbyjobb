@@ -5,8 +5,10 @@ import { useParams } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth.js';
 import { useHobbyLimit } from '../hooks/useHobbyLimit.js';
 import { userService } from '../services/userService.js';
-import { formatDate } from '../utils/formatters.js';
+import { authService } from '../services/authService.js';
 import IncomeTracker from '../components/profile/IncomeTracker.jsx';
+import ReviewList from '../components/profile/ReviewList.jsx';
+import UserStats from '../components/profile/UserStats.jsx';
 import Alert from '../components/common/Alert.jsx';
 import Spinner from '../components/common/Spinner.jsx';
 
@@ -30,6 +32,12 @@ export default function ProfilePage() {
 
   // Settings form (only used when isOwn)
   const [settings, setSettings] = useState({ name: '', bio: '', location: '', avatar: '' });
+
+  // Password change form
+  const [pwForm, setPwForm] = useState({ current: '', new: '', confirm: '' });
+  const [pwLoading, setPwLoading] = useState(false);
+  const [pwMsg, setPwMsg] = useState('');
+  const [pwErr, setPwErr] = useState('');
 
   useEffect(() => {
     if (!userId) return;
@@ -63,6 +71,30 @@ export default function ProfilePage() {
       setSaveErr(err.message);
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setPwMsg('');
+    setPwErr('');
+    if (pwForm.new !== pwForm.confirm) {
+      setPwErr('Lösenorden matchar inte');
+      return;
+    }
+    if (pwForm.new.length < 6) {
+      setPwErr('Lösenordet måste vara minst 6 tecken');
+      return;
+    }
+    setPwLoading(true);
+    try {
+      await authService.changePassword(pwForm.current, pwForm.new);
+      setPwMsg('Lösenordet har ändrats!');
+      setPwForm({ current: '', new: '', confirm: '' });
+    } catch (err) {
+      setPwErr(err.message || 'Kunde inte ändra lösenord');
+    } finally {
+      setPwLoading(false);
     }
   };
 
@@ -140,20 +172,7 @@ export default function ProfilePage() {
             <div>
               {tab === 'Översikt' && (
                 <>
-                  {/* Stats row */}
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginBottom: 24 }} className="stats-grid">
-                    {[
-                      { n: profile.jobs_completed ?? 0, l: 'Slutförda jobb' },
-                      { n: avgRating ?? '—',            l: 'Snittbetyg' },
-                      { n: profile.jobs_active ?? 0,    l: 'Aktiva jobb' },
-                      { n: reviews.length,              l: 'Recensioner' },
-                    ].map(s => (
-                      <div key={s.l} style={{ textAlign: 'center', background: 'var(--bg)', borderRadius: 8, padding: 16, border: '1px solid var(--border)' }}>
-                        <div style={{ fontSize: 24, fontWeight: 800 }}>{s.n}</div>
-                        <div style={{ fontSize: 11, color: 'var(--muted)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '.04em', marginTop: 2 }}>{s.l}</div>
-                      </div>
-                    ))}
-                  </div>
+                  <UserStats profile={profile} reviews={reviews} avgRating={avgRating} />
 
                   {profile.bio && (
                     <div className="section">
@@ -172,53 +191,75 @@ export default function ProfilePage() {
                 </div>
               )}
 
-              {tab === 'Recensioner' && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {reviews.length === 0
-                    ? <p style={{ color: 'var(--muted)', textAlign: 'center', padding: 40 }}>Inga recensioner ännu.</p>
-                    : reviews.map(r => (
-                        <div key={r.id} style={{ background: 'var(--bg)', borderRadius: 8, border: '1px solid var(--border)', padding: 16 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                            <span style={{ fontSize: 13, fontWeight: 700 }}>{r.reviewer?.name ?? r.reviewer_name ?? 'Användare'}</span>
-                            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                              <span style={{ color: '#F59E0B', fontSize: 14 }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
-                              <span style={{ fontSize: 12, color: 'var(--muted)' }}>{formatDate(r.created_at)}</span>
-                            </div>
-                          </div>
-                        <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.6 }}>{r.comment}</p>
-                      </div>
-                    ))
-                  }
-                </div>
-              )}
+              {tab === 'Recensioner' && <ReviewList reviews={reviews} />}
 
               {tab === 'Inställningar' && isOwn && (
-                <div className="section">
-                  <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Profilinställningar</h3>
-                  {saveMsg && <Alert type="success" style={{ marginBottom: 16 }}>{saveMsg}</Alert>}
-                  {saveErr && <Alert type="error" style={{ marginBottom: 16 }}>{saveErr}</Alert>}
-                  <form onSubmit={handleSave}>
-                    <div className="form-group">
-                      <label>Namn</label>
-                      <input type="text" value={settings.name} onChange={e => setSettings(s => ({ ...s, name: e.target.value }))} />
-                    </div>
-                    <div className="form-group">
-                      <label>Plats</label>
-                      <input type="text" placeholder="t.ex. Stockholm" value={settings.location} onChange={e => setSettings(s => ({ ...s, location: e.target.value }))} />
-                    </div>
-                    <div className="form-group">
-                      <label>Avatar URL</label>
-                      <input type="url" placeholder="https://..." value={settings.avatar} onChange={e => setSettings(s => ({ ...s, avatar: e.target.value }))} />
-                    </div>
-                    <div className="form-group">
-                      <label>Bio</label>
-                      <textarea rows={4} placeholder="Berätta lite om dig själv..." value={settings.bio} onChange={e => setSettings(s => ({ ...s, bio: e.target.value }))} />
-                    </div>
-                    <button type="submit" className="btn btn-primary" disabled={saving}>
-                      {saving ? <Spinner size={16} color="#fff" /> : 'Spara ändringar'}
-                    </button>
-                  </form>
-                </div>
+                <>
+                  <div className="section" style={{ marginBottom: 24 }}>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Profilinställningar</h3>
+                    {saveMsg && <Alert type="success" style={{ marginBottom: 16 }}>{saveMsg}</Alert>}
+                    {saveErr && <Alert type="error" style={{ marginBottom: 16 }}>{saveErr}</Alert>}
+                    <form onSubmit={handleSave}>
+                      <div className="form-group">
+                        <label>Namn</label>
+                        <input type="text" value={settings.name} onChange={e => setSettings(s => ({ ...s, name: e.target.value }))} />
+                      </div>
+                      <div className="form-group">
+                        <label>Plats</label>
+                        <input type="text" placeholder="t.ex. Stockholm" value={settings.location} onChange={e => setSettings(s => ({ ...s, location: e.target.value }))} />
+                      </div>
+                      <div className="form-group">
+                        <label>Avatar URL</label>
+                        <input type="url" placeholder="https://..." value={settings.avatar} onChange={e => setSettings(s => ({ ...s, avatar: e.target.value }))} />
+                      </div>
+                      <div className="form-group">
+                        <label>Bio</label>
+                        <textarea rows={4} placeholder="Berätta lite om dig själv..." value={settings.bio} onChange={e => setSettings(s => ({ ...s, bio: e.target.value }))} />
+                      </div>
+                      <button type="submit" className="btn btn-primary" disabled={saving}>
+                        {saving ? <Spinner size={16} color="#fff" /> : 'Spara ändringar'}
+                      </button>
+                    </form>
+                  </div>
+
+                  <div className="section">
+                    <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 20 }}>Ändra lösenord</h3>
+                    {pwMsg && <Alert type="success" style={{ marginBottom: 16 }}>{pwMsg}</Alert>}
+                    {pwErr && <Alert type="error" style={{ marginBottom: 16 }}>{pwErr}</Alert>}
+                    <form onSubmit={handleChangePassword}>
+                      <div className="form-group">
+                        <label>Nuvarande lösenord</label>
+                        <input
+                          type="password"
+                          value={pwForm.current}
+                          onChange={e => setPwForm(p => ({ ...p, current: e.target.value }))}
+                          placeholder="Ditt nuvarande lösenord"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Nytt lösenord</label>
+                        <input
+                          type="password"
+                          value={pwForm.new}
+                          onChange={e => setPwForm(p => ({ ...p, new: e.target.value }))}
+                          placeholder="Minst 6 tecken"
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Bekräfta nytt lösenord</label>
+                        <input
+                          type="password"
+                          value={pwForm.confirm}
+                          onChange={e => setPwForm(p => ({ ...p, confirm: e.target.value }))}
+                          placeholder="Upprepa det nya lösenordet"
+                        />
+                      </div>
+                      <button type="submit" className="btn btn-primary" disabled={pwLoading}>
+                        {pwLoading ? <Spinner size={16} color="#fff" /> : 'Byt lösenord'}
+                      </button>
+                    </form>
+                  </div>
+                </>
               )}
             </div>
 

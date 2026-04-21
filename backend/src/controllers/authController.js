@@ -92,10 +92,14 @@ const register = async (req, res) => {
           name: user.name,
           email: user.email,
           location: user.location,
+          bio: user.bio,
+          avatar: user.avatar,
           is_admin: user.is_admin,
           is_verified: user.is_verified,
           hobby_total_year: user.hobby_total_year,
           hobby_job_count: user.hobby_job_count,
+          hobby_warned: user.hobby_warned,
+          hobby_limit_reached: user.hobby_limit_reached,
           created_at: user.created_at,
         },
         token
@@ -163,6 +167,7 @@ const login = async (req, res) => {
           is_verified: user.is_verified,
           hobby_total_year: user.hobby_total_year,
           hobby_job_count: user.hobby_job_count,
+          hobby_warned: user.hobby_warned,
           hobby_limit_reached: user.hobby_limit_reached,
           created_at: user.created_at,
         },
@@ -255,7 +260,23 @@ const getMe = async (req, res) => {
 
     res.json({
       success: true,
-      data: { user }
+      data: {
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          location: user.location,
+          bio: user.bio,
+          avatar: user.avatar,
+          is_admin: user.is_admin,
+          is_verified: user.is_verified,
+          hobby_total_year: user.hobby_total_year,
+          hobby_job_count: user.hobby_job_count,
+          hobby_warned: user.hobby_warned,
+          hobby_limit_reached: user.hobby_limit_reached,
+          created_at: user.created_at,
+        }
+      }
     });
 
   } catch (error) {

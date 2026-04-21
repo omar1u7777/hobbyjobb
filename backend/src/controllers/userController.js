@@ -108,8 +108,16 @@ const getMyIncome = async (req, res, next) => {
 
 const getUserReviews = async (req, res, next) => {
   try {
+    const userId = req.params.id;
+
+    // Verify user exists first
+    const user = await User.findByPk(userId, { attributes: ['id'] });
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
     const reviews = await Review.findAll({
-      where: { reviewee_id: req.params.id },
+      where: { reviewee_id: userId },
       include: [
         { model: User, as: 'reviewer', attributes: ['id', 'name', 'avatar'] },
       ],

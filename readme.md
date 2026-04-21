@@ -371,6 +371,7 @@ hobbyjobb/
 │       │   │   ├── JobFilter.jsx
 │       │   │   ├── JobForm.jsx
 │       │   │   ├── CategoryBadge.jsx
+│       │   │   ├── ReviewForm.jsx        ← Stjärnbetyg + kommentar
 │       │   │   └── HobbyIncomeWarning.jsx
 │       │   │
 │       │   ├── profile/
@@ -477,7 +478,9 @@ hobbyjobb/
     │   ├── 004-create-applications.js
     │   ├── 005-create-messages.js
     │   ├── 006-create-reviews.js
-    │   └── 007-create-payments.js
+    │   ├── 007-create-payments.js
+    │   ├── 008-reviews-unique-and-backfill-verified.js
+    │   └── 009-add-price-type-to-jobs.js
     │
     └── seeders/
         ├── 001-categories.js
@@ -584,7 +587,7 @@ PUT    /auth/password       Byt lösenord          [Auth required]
 ```
 GET    /jobs                Lista jobb (filter: kategori, avstånd, pris, hobby)
 POST   /jobs                Skapa nytt jobb          [Auth required]
-GET    /jobs/:id            Hämta ett specifikt jobb
+GET    /jobs/:id            Hämta ett specifikt jobb (inkluderar accepted_applicant vid in_progress/completed)
 PUT    /jobs/:id            Uppdatera jobb           [Auth + ägare]
 DELETE /jobs/:id            Ta bort jobb             [Auth + ägare]
 GET    /jobs/my             Mina publicerade jobb    [Auth required]
@@ -877,6 +880,8 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [x] `backend/src/models/Message.js` + migration `005-create-messages.js` — **S2** ✅
 - [x] `backend/src/models/Review.js` + migration `006-create-reviews.js` — **S2** ✅
 - [x] `backend/src/models/Payment.js` + migration `007-create-payments.js` — **S1** ✅
+- [x] Migration `008-reviews-unique-and-backfill-verified.js` — unik-constraint (reviewer_id + job_id) + backfill av `is_verified` — **S1**
+- [x] Migration `009-add-price-type-to-jobs.js` — ENUM `fixed/hourly/negotiable` på `jobs.price_type` — **S1**
 - [x] Alla migrationer körda framgångsrikt (`npx sequelize-cli db:migrate`) — **S1** ✅
 - [x] Seed-data: `001-categories.js` (10 kategorier) — **S2** ✅
 - [x] Seed-data: `002-demo-data.js` (5 testanvändare, 20 testjobb) — **S2** ✅
@@ -897,7 +902,7 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 > 🔒 Kräver att Job-modellen och requireAuth (1C) är klara
 - [x] `GET /api/categories` — Lista alla kategorier — **S2** ✅
 - [x] `GET /api/jobs` — Lista jobb med filter (kategori, lat/lng/radius, pris, sort, pagination) — **S2** ✅
-- [x] `POST /api/jobs` — Skapa jobb (kräver auth; hobbyLimitCheck flyttad till `/payments/release` där payee valideras) — **S2** ✅
+- [x] `POST /api/jobs` — Skapa jobb (kräver auth; månadsgräns 20 jobb/postare; hobbyLimitCheck flyttad till `/payments/release` där payee valideras) — **S2** ✅
 - [x] `GET /api/jobs/:id` — Hämta ett jobb — **S2** ✅
 - [x] `PUT /api/jobs/:id` — Uppdatera jobb (kräver auth + ägare) — **S2** ✅
 - [x] `DELETE /api/jobs/:id` — Ta bort jobb (kräver auth + ägare) — **S2** ✅
@@ -980,8 +985,9 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [x] `JobFilter.jsx` — Sidebar med kategori, avstånd, prisintervall filter — **S4** 
 - [x] `JobListPage.jsx` — Sökbar jobblista med sidebar-filter och pagination — **S4** 
   - Baseras på `listings.html` wireframe
-- [x] `JobDetailPage.jsx` — Jobbdetalj med bokningskort, ansökningsform — **S4** 
+- [x] `JobDetailPage.jsx` — Jobbdetalj med bokningskort, ansökningsform, `ReviewForm`-modal (stjärnbetyg + kommentar) — **S4** 
   - Baseras på `job-detail.html` wireframe
+- [x] `ReviewForm.jsx` + integration på `JobDetailPage` — Deltagare i slutfört jobb kan lämna recension till motparten — **S1** 
 - [x] `PostJobPage.jsx` — 4-stegs formulär för att skapa jobb, live-förhandsgranskning — **S4** 
   - Baseras på `post-job.html` wireframe
 - [x] `MyJobsPage.jsx` — Mina publicerade / pågående / slutförda jobb — **S4** 
@@ -1112,4 +1118,4 @@ HobbyJobb är en mötesplattform — användarna ansvarar själva för att håll
 
 ---
 
-*Senast uppdaterad: April 2026 · Version 0.1.0 (MVP + Stripe Connect)*
+*Senast uppdaterad: April 2026 · Version 0.2.0 (MVP + Stripe Connect + Review UI + price_type migration)*

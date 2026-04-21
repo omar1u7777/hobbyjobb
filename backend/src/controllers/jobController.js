@@ -1,6 +1,6 @@
 const { Op, fn, col, literal, where: sequelizeWhere } = require('sequelize');
 const { Job, Category, User, Application } = require('../models');
-const { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, JOB_STATUS } = require('../../config/constants');
+const { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, JOB_STATUS, HOBBY_MONTHLY_JOB_LIMIT } = require('../../config/constants');
 const { geocode } = require('../utils/geocode');
 
 const buildPagination = (page, limit, total) => ({
@@ -127,10 +127,30 @@ const getJob = async (req, res, next) => {
 
     const applicationsCount = await Application.count({ where: { job_id: job.id } });
 
+    // Expose the accepted applicant for in_progress / completed jobs so the
+    // frontend can resolve the review counterpart without a second request.
+    let acceptedApplicant = null;
+    if (job.status === 'in_progress' || job.status === 'completed') {
+      const accepted = await Application.findOne({
+        where: { job_id: job.id, status: 'accepted' },
+        include: [{ model: User, as: 'applicant', attributes: ['id', 'name', 'avatar'] }],
+      });
+      if (accepted && accepted.applicant) {
+        acceptedApplicant = {
+          id: accepted.applicant.id,
+          name: accepted.applicant.name,
+          avatar: accepted.applicant.avatar,
+        };
+      }
+    }
+
+    const jobJson = job.toJSON();
+    jobJson.accepted_applicant = acceptedApplicant;
+
     return res.json({
       success: true,
       data: {
-        job,
+        job: jobJson,
         applicationsCount,
       },
     });
@@ -141,7 +161,9 @@ const getJob = async (req, res, next) => {
 
 const createJob = async (req, res, next) => {
   try {
-    const { title, description, price, category_id, location, lat, lng, expires_at, date, hobby_type } = req.body;
+    const { title, description, price, price_type, category_id, location, lat, lng, expires_at, date, hobby_type } = req.body;
+    const allowedPriceTypes = ['fixed', 'hourly', 'negotiable'];
+    const resolvedPriceType = allowedPriceTypes.includes(price_type) ? price_type : 'fixed';
     const resolvedExpiresAt = expires_at || date || null;
 
     if (!title || !description || !price || !category_id) {
@@ -154,6 +176,27 @@ const createJob = async (req, res, next) => {
     const category = await Category.findByPk(category_id);
     if (!category) {
       return res.status(400).json({ success: false, message: 'Invalid category_id' });
+    }
+
+    // Hobbyverksamhet: cap monthly postings to keep usage within "oregelbunden"
+    // character per Skatteverket guidance (README §Hobbyverksamhet).
+    const startOfMonth = new Date();
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
+    const monthlyCount = await Job.count({
+      where: {
+        poster_id: req.user.id,
+        created_at: { [Op.gte]: startOfMonth },
+      },
+    });
+    if (monthlyCount >= HOBBY_MONTHLY_JOB_LIMIT) {
+      return res.status(429).json({
+        success: false,
+        message: `Du har nått månadsgränsen på ${HOBBY_MONTHLY_JOB_LIMIT} jobb. Hobbyverksamhet ska vara oregelbunden — vänta till nästa månad eller läs mer om reglerna.`,
+        code: 'MONTHLY_JOB_LIMIT_REACHED',
+        limit: HOBBY_MONTHLY_JOB_LIMIT,
+        current: monthlyCount,
+      });
     }
 
     // Auto-geocode location if lat/lng not provided
@@ -173,6 +216,7 @@ const createJob = async (req, res, next) => {
       title,
       description,
       price,
+      price_type: resolvedPriceType,
       category_id,
       location: resolvedLocation,
       lat: resolvedLat,
@@ -206,10 +250,17 @@ const updateJob = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Only the job owner can update this job' });
     }
 
-    const allowedFields = ['title', 'description', 'price', 'category_id', 'location', 'lat', 'lng', 'status', 'expires_at'];
+    const allowedFields = ['title', 'description', 'price', 'price_type', 'category_id', 'location', 'lat', 'lng', 'status', 'expires_at'];
     const updates = {};
     for (const field of allowedFields) {
       if (req.body[field] !== undefined) updates[field] = req.body[field];
+    }
+
+    if (updates.price_type !== undefined) {
+      const allowedPriceTypes = ['fixed', 'hourly', 'negotiable'];
+      if (!allowedPriceTypes.includes(updates.price_type)) {
+        return res.status(400).json({ success: false, message: 'Invalid price_type' });
+      }
     }
 
     // Auto-geocode if location changed but lat/lng not provided

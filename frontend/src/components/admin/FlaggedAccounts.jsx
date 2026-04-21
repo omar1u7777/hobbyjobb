@@ -81,8 +81,14 @@ export default function FlaggedAccounts() {
       }
     }
 
-    loadAccounts();
-    return () => { cancelled = true; };
+    // Debounce so we do not fire one request per keystroke while the admin
+    // is typing. The backend does an N+1 Payment.sum per flagged user which
+    // would otherwise amplify search-input traffic.
+    const timer = setTimeout(loadAccounts, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, riskFilter]);
 

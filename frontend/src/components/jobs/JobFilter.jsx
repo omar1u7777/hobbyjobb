@@ -40,6 +40,8 @@ export default function JobFilter({ params, onChange }) {
       padding: 24,
       position: 'sticky',
       top: 88,
+      zIndex: 1,
+      overflow: 'hidden',
     }}>
       <h3 style={{ fontSize: 14, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--muted)', marginBottom: 14 }}>
         Filter

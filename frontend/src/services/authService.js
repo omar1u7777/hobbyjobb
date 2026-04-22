@@ -17,6 +17,11 @@ export const authService = {
 
   async getMe() {
     const { data } = await api.get('/auth/me');
-    return data.data.user;  // ← CHANGED
+    return data.data.user;  
+  },
+
+  async changePassword(currentPassword, newPassword) {
+    const { data } = await api.put('/auth/password', { currentPassword, newPassword });
+    return data;
   },
 };

@@ -10,14 +10,30 @@ const parseMoney = (value) => {
   return Number.isNaN(parsed) ? 0 : parsed;
 };
 
-const resolveRiskLevel = (user) => {
-  const total = parseMoney(user.hobby_total_year);
+/**
+ * Sum current-year released-escrow income for a single payee.
+ * Uses the Payment table as source of truth so previous years' earnings
+ * are never counted against the current year's hobby limit.
+ */
+const getCurrentYearIncome = async (userId) => {
+  if (!Payment) return 0;
+  const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+  const total = await Payment.sum('amount_payee', {
+    where: {
+      payee_id: userId,
+      status: 'released',
+      updated_at: { [Op.gte]: startOfYear },
+    },
+  });
+  return parseMoney(total);
+};
 
-  if (user.hobby_limit_reached || total >= HOBBY_LIMIT) {
+const resolveRiskLevel = (currentYearTotal, user) => {
+  if (user.hobby_limit_reached || currentYearTotal >= HOBBY_LIMIT) {
     return 'high';
   }
 
-  if (user.hobby_warned || total >= HOBBY_WARN_THRESHOLD) {
+  if (user.hobby_warned || currentYearTotal >= HOBBY_WARN_THRESHOLD) {
     return 'medium';
   }
 
@@ -122,31 +138,36 @@ const getFlaggedAccounts = async (req, res, next) => {
       limit: 100,
     });
 
-    const accounts = users
-      .map((user) => {
-        const income = parseMoney(user.hobby_total_year);
-        const risk = resolveRiskLevel(user);
+    // Compute current-year income per user from the Payment table so that
+    // income earned in previous years does NOT contribute to this year's
+    // hobby limit / risk level. N+1 but capped at 100 users.
+    const accounts = (
+      await Promise.all(
+        users.map(async (user) => {
+          const income = await getCurrentYearIncome(user.id);
+          const risk = resolveRiskLevel(income, user);
 
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          hobbyTotalYear: income,
-          hobbyJobCount: user.hobby_job_count,
-          hobbyWarned: user.hobby_warned,
-          hobbyLimitReached: user.hobby_limit_reached,
-          risk,
-          limitPercent: Math.round((income / HOBBY_LIMIT) * 100),
-          createdAt: user.created_at,
-        };
-      })
-      .filter((account) => {
-        if (!riskFilter || riskFilter === 'all') {
-          return true;
-        }
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            hobbyTotalYear: income,
+            hobbyJobCount: user.hobby_job_count,
+            hobbyWarned: user.hobby_warned,
+            hobbyLimitReached: user.hobby_limit_reached,
+            risk,
+            limitPercent: Math.round((income / HOBBY_LIMIT) * 100),
+            createdAt: user.created_at,
+          };
+        }),
+      )
+    ).filter((account) => {
+      if (!riskFilter || riskFilter === 'all') {
+        return true;
+      }
 
-        return account.risk === riskFilter;
-      });
+      return account.risk === riskFilter;
+    });
 
     return res.json({
       success: true,

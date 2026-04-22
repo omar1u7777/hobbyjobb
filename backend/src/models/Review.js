@@ -3,7 +3,13 @@ module.exports = (sequelize) => {
   return sequelize.define('Review', {
     id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     rating: { type: DataTypes.INTEGER, allowNull: false, validate: { min: 1, max: 5 } },
-    comment: { type: DataTypes.TEXT, allowNull: true },
+    comment: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      validate: {
+        len: [0, 2000], // Max 2000 characters to prevent abuse
+      },
+    },
     job_id: { type: DataTypes.INTEGER, allowNull: false, references: { model: 'jobs', key: 'id' } },
     reviewer_id: { type: DataTypes.INTEGER, allowNull: false, references: { model: 'users', key: 'id' } },
     reviewee_id: { type: DataTypes.INTEGER, allowNull: false, references: { model: 'users', key: 'id' } },

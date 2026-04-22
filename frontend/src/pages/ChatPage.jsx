@@ -138,15 +138,12 @@ export default function ChatPage() {
         const apiConversations = await messageService.getConversations();
         if (cancelled) return;
 
-        if (apiConversations.length > 0) {
-          setApiEnabled(true);
-          setConversations(apiConversations);
-          setLoadedJobIds(new Set());
-          return;
-        }
-
-        setApiEnabled(false);
-        setConversations(hydrateMockConversations(currentUserId));
+        // A successful API response is authoritative, even when it is empty:
+        // the user legitimately has no conversations yet and should see an
+        // empty state instead of fictional seed data.
+        setApiEnabled(true);
+        setConversations(apiConversations);
+        setLoadedJobIds(new Set());
       } catch (_) {
         if (cancelled) return;
         setApiEnabled(false);
@@ -343,6 +340,12 @@ export default function ChatPage() {
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {isLoading && sortedConversations.length === 0 ? (
                 <p style={{ padding: '12px 14px', fontSize: 13, color: 'var(--muted)' }}>Laddar konversationer...</p>
+              ) : null}
+
+              {!isLoading && apiEnabled && sortedConversations.length === 0 ? (
+                <p style={{ padding: '16px 14px', fontSize: 13, color: 'var(--muted)' }}>
+                  Inga konversationer ännu. När du ansöker på ett jobb eller någon ansöker på ditt jobb kan ni chatta här.
+                </p>
               ) : null}
 
               {sortedConversations.map((conversation) => {

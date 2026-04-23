@@ -10,11 +10,6 @@ export const adminService = {
     return stats || null;
   },
 
-  async getCharts() {
-    const { charts } = unwrap(await api.get('/admin/charts'));
-    return charts || null;
-  },
-
   async getFlaggedAccounts({ search = '', risk = 'all' } = {}) {
     const params = {};
     if (search) params.search = search;
@@ -27,6 +22,11 @@ export const adminService = {
   async updateFlaggedAccountStatus(id, payload) {
     const { account } = unwrap(await api.patch(`/admin/flagged-accounts/${id}`, payload));
     return account || null;
+  },
+
+  async getCharts() {
+    const charts = unwrap(await api.get('/admin/charts'));
+    return charts || null;
   },
 
   async getCategories() {

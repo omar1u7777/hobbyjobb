@@ -6,38 +6,45 @@ import IncomeBarChart from './IncomeBarChart.jsx';
 
 const FALLBACK_CHARTS = {
   jobsOverTime: {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul'],
-    values: [42, 51, 57, 63, 71, 76, 84],
-  },
-  categoryDistribution: {
-    labels: ['Handyman', 'Städning', 'Djur', 'Trädgård', 'Flytt'],
-    values: [32, 19, 14, 22, 11],
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun'],
+    values: [42, 51, 57, 63, 71, 76],
   },
   incomeOverTime: {
-    labels: ['Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul'],
-    platformRevenue: [980, 1160, 1290, 1410, 1525, 1670],
-    grossVolume: [9800, 11600, 12900, 14100, 15250, 16700],
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun'],
+    platformValues: [9800, 11600, 12900, 14100, 15250, 16700],
+    grossValues: [46000, 55200, 61100, 68800, 73400, 80200],
+  },
+  categoryDistribution: {
+    labels: ['Handyman', 'Stadning', 'Djur', 'Tradgard', 'Flytt'],
+    values: [32, 19, 14, 22, 11],
   },
 };
 
-function sanitizeArray(input) {
-  return Array.isArray(input) ? input : [];
-}
+const sanitizeArray = (value) => (Array.isArray(value) ? value : []);
+
+const sanitizeNumberArray = (value) => sanitizeArray(value).map((n) => Number(n) || 0);
+
+const sanitizeLabelArray = (value) => sanitizeArray(value).map((label) => String(label || ''));
 
 function normalizeCharts(payload) {
+  const source = payload && typeof payload === 'object' ? payload : {};
+  const jobs = source.jobsOverTime || {};
+  const income = source.incomeOverTime || {};
+  const category = source.categoryDistribution || {};
+
   return {
     jobsOverTime: {
-      labels: sanitizeArray(payload?.jobsOverTime?.labels),
-      values: sanitizeArray(payload?.jobsOverTime?.values),
-    },
-    categoryDistribution: {
-      labels: sanitizeArray(payload?.categoryDistribution?.labels),
-      values: sanitizeArray(payload?.categoryDistribution?.values),
+      labels: sanitizeLabelArray(jobs.labels),
+      values: sanitizeNumberArray(jobs.values),
     },
     incomeOverTime: {
-      labels: sanitizeArray(payload?.incomeOverTime?.labels),
-      platformRevenue: sanitizeArray(payload?.incomeOverTime?.platformRevenue),
-      grossVolume: sanitizeArray(payload?.incomeOverTime?.grossVolume),
+      labels: sanitizeLabelArray(income.labels),
+      platformValues: sanitizeNumberArray(income.platformValues),
+      grossValues: sanitizeNumberArray(income.grossValues),
+    },
+    categoryDistribution: {
+      labels: sanitizeLabelArray(category.labels),
+      values: sanitizeNumberArray(category.values),
     },
   };
 }
@@ -52,22 +59,29 @@ export default function AdminStatsCharts() {
 
     async function loadCharts() {
       try {
-        const apiCharts = await adminService.getCharts();
-        if (cancelled || !apiCharts) return;
+        const payload = await adminService.getCharts();
+        if (cancelled) return;
 
-        const normalized = normalizeCharts(apiCharts);
-        const hasCoreData = normalized.jobsOverTime.labels.length > 0;
-
-        if (hasCoreData) {
-          setCharts(normalized);
-          setApiLive(true);
-        }
+        const normalized = normalizeCharts(payload);
+        setCharts({
+          jobsOverTime:
+            normalized.jobsOverTime.labels.length > 0 && normalized.jobsOverTime.values.length > 0
+              ? normalized.jobsOverTime
+              : FALLBACK_CHARTS.jobsOverTime,
+          incomeOverTime:
+            normalized.incomeOverTime.labels.length > 0 && normalized.incomeOverTime.platformValues.length > 0
+              ? normalized.incomeOverTime
+              : FALLBACK_CHARTS.incomeOverTime,
+          categoryDistribution:
+            normalized.categoryDistribution.labels.length > 0 && normalized.categoryDistribution.values.length > 0
+              ? normalized.categoryDistribution
+              : FALLBACK_CHARTS.categoryDistribution,
+        });
+        setApiLive(true);
       } catch (_) {
-        // Keep fallback charts on failure
+        // Keep fallback charts
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+        if (!cancelled) setLoading(false);
       }
     }
 
@@ -87,25 +101,15 @@ export default function AdminStatsCharts() {
           gap: 12,
         }}
       >
-        <JobsOverTimeChart
-          labels={charts.jobsOverTime.labels}
-          values={charts.jobsOverTime.values}
-          apiLive={apiLive}
-          loading={loading}
-        />
-        <CategoryPieChart
-          labels={charts.categoryDistribution.labels}
-          values={charts.categoryDistribution.values}
-          apiLive={apiLive}
-          loading={loading}
-        />
+        <JobsOverTimeChart labels={charts.jobsOverTime.labels} values={charts.jobsOverTime.values} apiLive={apiLive} loading={loading} />
+        <CategoryPieChart labels={charts.categoryDistribution.labels} values={charts.categoryDistribution.values} apiLive={apiLive} loading={loading} />
       </div>
 
       <div className="admin-charts-bottom" style={{ display: 'grid', gridTemplateColumns: '1fr' }}>
         <IncomeBarChart
           labels={charts.incomeOverTime.labels}
-          platformRevenue={charts.incomeOverTime.platformRevenue}
-          grossVolume={charts.incomeOverTime.grossVolume}
+          platformValues={charts.incomeOverTime.platformValues}
+          grossValues={charts.incomeOverTime.grossValues}
           apiLive={apiLive}
           loading={loading}
         />

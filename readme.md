@@ -371,6 +371,7 @@ hobbyjobb/
 │       │   │   ├── JobFilter.jsx
 │       │   │   ├── JobForm.jsx
 │       │   │   ├── CategoryBadge.jsx
+│       │   │   ├── ReviewForm.jsx        ← Stjärnbetyg + kommentar
 │       │   │   └── HobbyIncomeWarning.jsx
 │       │   │
 │       │   ├── profile/
@@ -477,7 +478,9 @@ hobbyjobb/
     │   ├── 004-create-applications.js
     │   ├── 005-create-messages.js
     │   ├── 006-create-reviews.js
-    │   └── 007-create-payments.js
+    │   ├── 007-create-payments.js
+    │   ├── 008-reviews-unique-and-backfill-verified.js
+    │   └── 009-add-price-type-to-jobs.js
     │
     └── seeders/
         ├── 001-categories.js
@@ -574,8 +577,9 @@ hobby_type:     STRING    // t.ex. "engångsjobb" / "återkommande"
 ```
 POST   /auth/register       Skapa nytt konto
 POST   /auth/login          Logga in → returnerar JWT
-POST   /auth/logout         Logga ut
+POST   /auth/logout         Logga ut (stateless — klienten raderar token)
 GET    /auth/me             Hämta inloggad användare
+PUT    /auth/password       Byt lösenord          [Auth required]
 ```
 
 ### Jobb
@@ -583,7 +587,7 @@ GET    /auth/me             Hämta inloggad användare
 ```
 GET    /jobs                Lista jobb (filter: kategori, avstånd, pris, hobby)
 POST   /jobs                Skapa nytt jobb          [Auth required]
-GET    /jobs/:id            Hämta ett specifikt jobb
+GET    /jobs/:id            Hämta ett specifikt jobb (inkluderar accepted_applicant vid in_progress/completed)
 PUT    /jobs/:id            Uppdatera jobb           [Auth + ägare]
 DELETE /jobs/:id            Ta bort jobb             [Auth + ägare]
 GET    /jobs/my             Mina publicerade jobb    [Auth required]
@@ -629,35 +633,47 @@ GET    /categories             Lista alla kategorier
 ### Meddelanden
 
 ```
-GET    /messages/:jobId        Hämta chatthistorik  [Auth required]
-POST   /messages               Skicka meddelande    [Auth required]
+GET    /messages/conversations    Lista alla konversationer    [Auth required]
+GET    /messages/unread-count     Antal olästa meddelanden     [Auth required]
+GET    /messages/:jobId           Chatthistorik för ett jobb   [Auth required]
+POST   /messages                  Skicka meddelande            [Auth required]
+PATCH  /messages/:jobId/read      Markera konversation som läst [Auth required]
+```
+
+### Recensioner
+
+```
+POST   /reviews                   Lämna recension efter släppt escrow  [Auth required]
+GET    /reviews/job/:jobId        Recensioner för ett specifikt jobb
+GET    /users/:id/reviews         Recensioner för en användare
 ```
 
 ### Betalningar (Stripe Connect)
 
 ```
-POST   /payments/checkout          Skapa Stripe-session för uppdrag  [Auth required]
-POST   /payments/confirm/:jobId    Bekräfta klart → frigör escrow     [Auth + beställare]
-GET    /payments/history           Betalningshistorik för användare   [Auth required]
-POST   /payments/boost             Köp Boost-annonsering              [Auth required]
-POST   /payments/webhook           Stripe webhook (intern)            [Stripe signatur]
+POST   /payments/checkout          Skapa Stripe PaymentIntent          [Auth + beställare]
+POST   /payments/confirm           Fallback: bekräfta betalning client-side [Auth + beställare]
+POST   /payments/release/:jobId    Frigör escrow → betala ut till utförare [Auth + beställare]
+GET    /payments/history           Betalningshistorik för användare    [Auth required]
+POST   /payments/boost             Köp Boost-annonsering               [Auth + ägare]
+POST   /payments/boost/confirm     Aktivera boost efter betalning      [Auth + ägare]
+POST   /payments/webhook           Stripe webhook (intern)             [Stripe signatur]
 ```
 
 > **Flöde:**  
-> `POST /payments/checkout` → Stripe skapar escrow → `POST /payments/confirm` → Stripe Connect delar 92/8%
+> `POST /payments/checkout` → Stripe håller escrow → webhook sätter status `held` → `POST /payments/release/:jobId` → 92% till utförare (uppdaterar `hobby_total_year`), 8% plattformsavgift
 
 ### Admin (kräver admin-roll)
 
 ```
-GET    /admin/stats            Plattformsstatistik
-GET    /admin/users            Lista alla användare
-PUT    /admin/users/:id        Redigera användare
-GET    /admin/flagged          Konton nära hobbygräns
-GET    /admin/jobs             Lista alla jobb
-DELETE /admin/jobs/:id         Ta bort jobb
-POST   /admin/categories       Skapa kategori
-PUT    /admin/categories/:id   Redigera kategori
-DELETE /admin/categories/:id   Ta bort kategori
+GET    /admin/stats               Plattformsstatistik
+GET    /admin/flagged-accounts    Konton nära/över hobbygränsen (25k/30k kr)
+PATCH  /admin/flagged-accounts/:id Moderera flaggade konton (clear/resolve/warn/lock)
+GET    /admin/charts              Diagramdata: jobb/tid, intäkter/tid, kategorifördelning
+GET    /admin/categories          Lista kategorier (inkl. jobs_count)
+POST   /admin/categories          Skapa ny kategori
+PUT    /admin/categories/:id      Uppdatera kategori
+DELETE /admin/categories/:id      Ta bort kategori (blockeras om den används)
 ```
 
 ---
@@ -866,6 +882,8 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [x] `backend/src/models/Message.js` + migration `005-create-messages.js` — **S2** ✅
 - [x] `backend/src/models/Review.js` + migration `006-create-reviews.js` — **S2** ✅
 - [x] `backend/src/models/Payment.js` + migration `007-create-payments.js` — **S1** ✅
+- [x] Migration `008-reviews-unique-and-backfill-verified.js` — unik-constraint (reviewer_id + job_id) + backfill av `is_verified` — **S1**
+- [x] Migration `009-add-price-type-to-jobs.js` — ENUM `fixed/hourly/negotiable` på `jobs.price_type` — **S1**
 - [x] Alla migrationer körda framgångsrikt (`npx sequelize-cli db:migrate`) — **S1** ✅
 - [x] Seed-data: `001-categories.js` (10 kategorier) — **S2** ✅
 - [x] Seed-data: `002-demo-data.js` (5 testanvändare, 20 testjobb) — **S2** ✅
@@ -886,7 +904,7 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 > 🔒 Kräver att Job-modellen och requireAuth (1C) är klara
 - [x] `GET /api/categories` — Lista alla kategorier — **S2** ✅
 - [x] `GET /api/jobs` — Lista jobb med filter (kategori, lat/lng/radius, pris, sort, pagination) — **S2** ✅
-- [x] `POST /api/jobs` — Skapa jobb (kräver auth; hobbyLimitCheck flyttad till `/payments/release` där payee valideras) — **S2** ✅
+- [x] `POST /api/jobs` — Skapa jobb (kräver auth; månadsgräns 20 jobb/postare; hobbyLimitCheck flyttad till `/payments/release` där payee valideras) — **S2** ✅
 - [x] `GET /api/jobs/:id` — Hämta ett jobb — **S2** ✅
 - [x] `PUT /api/jobs/:id` — Uppdatera jobb (kräver auth + ägare) — **S2** ✅
 - [x] `DELETE /api/jobs/:id` — Ta bort jobb (kräver auth + ägare) — **S2** ✅
@@ -969,8 +987,9 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [x] `JobFilter.jsx` — Sidebar med kategori, avstånd, prisintervall filter — **S4** 
 - [x] `JobListPage.jsx` — Sökbar jobblista med sidebar-filter och pagination — **S4** 
   - Baseras på `listings.html` wireframe
-- [x] `JobDetailPage.jsx` — Jobbdetalj med bokningskort, ansökningsform — **S4** 
+- [x] `JobDetailPage.jsx` — Jobbdetalj med bokningskort, ansökningsform, `ReviewForm`-modal (stjärnbetyg + kommentar) — **S4** 
   - Baseras på `job-detail.html` wireframe
+- [x] `ReviewForm.jsx` + integration på `JobDetailPage` — Deltagare i slutfört jobb kan lämna recension till motparten — **S1** 
 - [x] `PostJobPage.jsx` — 4-stegs formulär för att skapa jobb, live-förhandsgranskning — **S4** 
   - Baseras på `post-job.html` wireframe
 - [x] `MyJobsPage.jsx` — Mina publicerade / pågående / slutförda jobb — **S4** 
@@ -1016,15 +1035,15 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [ ] `GET /api/admin/jobs` — Alla jobb (inkl. borttagna) — **S5**
 - [ ] `DELETE /api/admin/jobs/:id` — Ta bort jobb som admin — **S5**
 - [x] `GET/POST/PUT/DELETE /api/admin/categories` — CRUD för kategorier (case-insensitiv duplicate-check, blockerar delete vid aktiva jobb) — **S5** 
-- [x] `frontend/src/services/adminService.js` — API-wrapper för stats, flagged-accounts, category CRUD — **S5** 
+- [x] `frontend/src/services/adminService.js` — API-wrapper för stats, flagged-accounts, charts, moderation och category CRUD — **S5** 
 - [x] `AdminDashboardPage.jsx` — Statistik-kort + alerts + tabeller (live-data från `/admin/stats` med mock-fallback) — **S5** 
 - [x] `UserTable.jsx` — Sökbar tabell med hobbystatusfiltrering (mock-data) — **S5** 
 - [x] `JobTable.jsx` — Jobbhanteringstabell med sök (mock-data) — **S5** 
 - [x] `CategoryManager.jsx` — CRUD-gränssnitt för kategorier (live-CRUD mot `/admin/categories` med mock-fallback) — **S5** 
 - [x] `FlaggedAccounts.jsx` — Lista flaggade konton med sök/filter (live-data från `/admin/flagged-accounts` med mock-fallback) — **S5** 
-- [x] `JobsOverTimeChart.jsx` — Line chart: antal jobb per månad (Chart.js, mock-data) — **S5** 
-- [x] `CategoryPieChart.jsx` — Pie chart: fördelning per kategori (Chart.js, mock-data) — **S5** 
-- [x] `IncomeBarChart.jsx` — Bar chart: plattformens intäkter per månad (Chart.js, mock-data) — **S5** 
+- [x] `JobsOverTimeChart.jsx` — Line chart: antal jobb per månad (Chart.js, live-data med mock-fallback) — **S5** 
+- [x] `CategoryPieChart.jsx` — Pie chart: fördelning per kategori (Chart.js, live-data med mock-fallback) — **S5** 
+- [x] `IncomeBarChart.jsx` — Bar chart: plattformens intäkter per månad (Chart.js, live-data med mock-fallback) — **S5** 
 
 ---
 
@@ -1101,4 +1120,4 @@ HobbyJobb är en mötesplattform — användarna ansvarar själva för att håll
 
 ---
 
-*Senast uppdaterad: April 2026 · Version 0.1.0 (MVP + Stripe Connect)*
+*Senast uppdaterad: April 2026 · Version 0.2.0 (MVP + Stripe Connect + Review UI + price_type migration)*

@@ -10,21 +10,31 @@ import { Bar } from 'react-chartjs-2';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Legend);
 
-const FALLBACK_LABELS = ['Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul'];
-const FALLBACK_PLATFORM = [980, 1160, 1290, 1410, 1525, 1670];
-const FALLBACK_GROSS = [9800, 11600, 12900, 14100, 15250, 16700];
+const incomeBarData = {
+  labels: ['Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul'],
+  datasets: [
+    {
+      label: 'Intäkt (SEK)',
+      data: [9800, 11600, 12900, 14100, 15250, 16700],
+      backgroundColor: ['#BFDBFE', '#93C5FD', '#60A5FA', '#3B82F6', '#2563EB', '#1D4ED8'],
+      borderRadius: 6,
+      borderSkipped: false,
+    },
+  ],
+};
+
+const FALLBACK_INCOME = {
+  labels: incomeBarData.labels,
+  platformValues: incomeBarData.datasets[0].data,
+  grossValues: [46000, 55200, 61100, 68800, 73400, 80200],
+};
 
 const incomeBarOptions = {
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
     legend: {
-      display: true,
-      position: 'bottom',
-      labels: {
-        usePointStyle: true,
-        boxWidth: 8,
-      },
+      display: false,
     },
   },
   scales: {
@@ -39,7 +49,7 @@ const incomeBarOptions = {
         color: '#F1F5F9',
       },
       ticks: {
-        callback: (value) => `${Number(value).toLocaleString('sv-SE')} kr`,
+        callback: (value) => `${value.toLocaleString('sv-SE')} kr`,
       },
     },
   },
@@ -47,33 +57,56 @@ const incomeBarOptions = {
 
 export default function IncomeBarChart({
   labels = [],
-  platformRevenue = [],
-  grossVolume = [],
+  platformValues = [],
+  grossValues = [],
   apiLive = false,
   loading = false,
 }) {
-  const chartLabels = labels.length > 0 ? labels : FALLBACK_LABELS;
-  const platformValues = platformRevenue.length > 0 ? platformRevenue : FALLBACK_PLATFORM;
-  const grossValues = grossVolume.length > 0 ? grossVolume : FALLBACK_GROSS;
+  const finalLabels = labels.length > 0 ? labels : FALLBACK_INCOME.labels;
+  const finalPlatformValues = platformValues.length > 0 ? platformValues : FALLBACK_INCOME.platformValues;
+  const finalGrossValues = grossValues.length > 0 ? grossValues : FALLBACK_INCOME.grossValues;
 
-  const incomeBarData = {
-    labels: chartLabels,
+  const data = {
+    labels: finalLabels,
     datasets: [
       {
-        label: 'Plattformsintäkt (SEK)',
-        data: platformValues,
-        backgroundColor: '#2563EB',
+        label: 'Plattformsintakt (SEK)',
+        data: finalPlatformValues,
+        backgroundColor: ['#BFDBFE', '#93C5FD', '#60A5FA', '#3B82F6', '#2563EB', '#1D4ED8'],
         borderRadius: 6,
         borderSkipped: false,
       },
       {
         label: 'Bruttovolym (SEK)',
-        data: grossValues,
-        backgroundColor: '#93C5FD',
+        data: finalGrossValues,
+        backgroundColor: ['#FDE68A', '#FCD34D', '#FBBF24', '#F59E0B', '#D97706', '#B45309'],
         borderRadius: 6,
         borderSkipped: false,
       },
     ],
+  };
+
+  const options = {
+    ...incomeBarOptions,
+    plugins: {
+      ...incomeBarOptions.plugins,
+      legend: {
+        display: true,
+        labels: {
+          usePointStyle: true,
+          boxWidth: 8,
+        },
+      },
+    },
+    scales: {
+      ...incomeBarOptions.scales,
+      y: {
+        ...incomeBarOptions.scales.y,
+        ticks: {
+          callback: (value) => `${Number(value).toLocaleString('sv-SE')} kr`,
+        },
+      },
+    },
   };
 
   return (
@@ -81,15 +114,11 @@ export default function IncomeBarChart({
       <div style={{ marginBottom: 10 }}>
         <h2 style={{ fontSize: 16, marginBottom: 4 }}>Intäkt per månad</h2>
         <p style={{ fontSize: 12, color: 'var(--muted)' }}>
-          {loading
-            ? 'Laddar intäktsdata...'
-            : apiLive
-              ? 'Live-data från /api/admin/charts'
-              : 'Plattformens intäkt under senaste halvåret (mock)'}
+          {loading ? 'Laddar...' : apiLive ? 'Live-data: plattform + brutto' : 'Mock-data: plattform + brutto'}
         </p>
       </div>
       <div style={{ height: 220 }}>
-        <Bar options={incomeBarOptions} data={incomeBarData} />
+        <Bar options={options} data={data} />
       </div>
     </article>
   );

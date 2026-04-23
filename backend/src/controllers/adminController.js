@@ -10,18 +10,59 @@ const parseMoney = (value) => {
   return Number.isNaN(parsed) ? 0 : parsed;
 };
 
-const resolveRiskLevel = (user) => {
-  const total = parseMoney(user.hobby_total_year);
+/**
+ * Sum current-year released-escrow income for a single payee.
+ * Uses the Payment table as source of truth so previous years' earnings
+ * are never counted against the current year's hobby limit.
+ */
+const getCurrentYearIncome = async (userId) => {
+  if (!Payment) return 0;
+  const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+  const total = await Payment.sum('amount_payee', {
+    where: {
+      payee_id: userId,
+      status: 'released',
+      updated_at: { [Op.gte]: startOfYear },
+    },
+  });
+  return parseMoney(total);
+};
 
-  if (user.hobby_limit_reached || total >= HOBBY_LIMIT) {
+const resolveRiskLevel = (currentYearTotal, user) => {
+  if (user.hobby_limit_reached || currentYearTotal >= HOBBY_LIMIT) {
     return 'high';
   }
 
-  if (user.hobby_warned || total >= HOBBY_WARN_THRESHOLD) {
+  if (user.hobby_warned || currentYearTotal >= HOBBY_WARN_THRESHOLD) {
     return 'medium';
   }
 
   return 'low';
+};
+
+const monthLabel = (date) => date.toLocaleString('sv-SE', { month: 'short', timeZone: 'UTC' });
+
+const monthKeyFromDate = (date) => {
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+  return `${y}-${m}`;
+};
+
+const buildLastSixMonthBuckets = () => {
+  const buckets = [];
+  const now = new Date();
+
+  for (let i = 5; i >= 0; i -= 1) {
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
+    buckets.push({
+      key: monthKeyFromDate(d),
+      label: monthLabel(d),
+      start: d,
+      end: new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)),
+    });
+  }
+
+  return buckets;
 };
 
 const getAdminStats = async (req, res, next) => {
@@ -82,147 +123,6 @@ const getAdminStats = async (req, res, next) => {
   }
 };
 
-const buildLastSixMonthBuckets = () => {
-  const months = [];
-  const now = new Date();
-
-  for (let index = 5; index >= 0; index -= 1) {
-    const date = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - index, 1));
-    const key = `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
-    const label = date.toLocaleDateString('sv-SE', { month: 'short' });
-    months.push({ key, label });
-  }
-
-  return months;
-};
-
-const monthKeyFromValue = (value) => {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-
-  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, '0')}`;
-};
-
-const getAdminCharts = async (req, res, next) => {
-  try {
-    const monthBuckets = buildLastSixMonthBuckets();
-    const firstMonthKey = monthBuckets[0]?.key;
-
-    if (!firstMonthKey) {
-      return res.json({
-        success: true,
-        data: {
-          charts: {
-            jobsOverTime: { labels: [], values: [] },
-            incomeOverTime: { labels: [], platformRevenue: [], grossVolume: [] },
-            categoryDistribution: { labels: [], values: [] },
-          },
-        },
-      });
-    }
-
-    const [yearStart, monthStart] = firstMonthKey.split('-').map((item) => Number(item));
-    const sinceDate = new Date(Date.UTC(yearStart, monthStart - 1, 1, 0, 0, 0));
-
-    const [jobsByMonthRaw, revenueByMonthRaw, categoryDistributionRaw] = await Promise.all([
-      Job.findAll({
-        attributes: [
-          [fn('date_trunc', 'month', col('created_at')), 'month'],
-          [fn('COUNT', col('id')), 'count'],
-        ],
-        where: {
-          created_at: { [Op.gte]: sinceDate },
-        },
-        group: [literal('1')],
-        order: [[literal('1'), 'ASC']],
-        raw: true,
-      }),
-      Payment.findAll({
-        attributes: [
-          [fn('date_trunc', 'month', col('created_at')), 'month'],
-          [fn('COALESCE', fn('SUM', col('amount_platform')), 0), 'platform_revenue'],
-          [fn('COALESCE', fn('SUM', col('amount_total')), 0), 'gross_volume'],
-        ],
-        where: {
-          status: 'released',
-          created_at: { [Op.gte]: sinceDate },
-        },
-        group: [literal('1')],
-        order: [[literal('1'), 'ASC']],
-        raw: true,
-      }),
-      Job.findAll({
-        attributes: [
-          [col('category.name'), 'category_name'],
-          [fn('COUNT', col('Job.id')), 'count'],
-        ],
-        include: [
-          {
-            model: Category,
-            as: 'category',
-            attributes: [],
-            required: true,
-          },
-        ],
-        group: [col('category.id'), col('category.name')],
-        order: [[literal('count'), 'DESC']],
-        limit: 6,
-        raw: true,
-      }),
-    ]);
-
-    const jobsMap = new Map();
-    jobsByMonthRaw.forEach((item) => {
-      const key = monthKeyFromValue(item.month);
-      if (!key) return;
-      jobsMap.set(key, Number(item.count) || 0);
-    });
-
-    const revenueMap = new Map();
-    revenueByMonthRaw.forEach((item) => {
-      const key = monthKeyFromValue(item.month);
-      if (!key) return;
-      revenueMap.set(key, {
-        platformRevenue: parseMoney(item.platform_revenue),
-        grossVolume: parseMoney(item.gross_volume),
-      });
-    });
-
-    const labels = monthBuckets.map((bucket) => bucket.label);
-    const jobsValues = monthBuckets.map((bucket) => jobsMap.get(bucket.key) || 0);
-    const platformRevenueValues = monthBuckets.map((bucket) => revenueMap.get(bucket.key)?.platformRevenue || 0);
-    const grossVolumeValues = monthBuckets.map((bucket) => revenueMap.get(bucket.key)?.grossVolume || 0);
-
-    const categoryLabels = categoryDistributionRaw.map((item) => item.category_name || 'Okand');
-    const categoryValues = categoryDistributionRaw.map((item) => Number(item.count) || 0);
-
-    return res.json({
-      success: true,
-      data: {
-        charts: {
-          jobsOverTime: {
-            labels,
-            values: jobsValues,
-          },
-          incomeOverTime: {
-            labels,
-            platformRevenue: platformRevenueValues,
-            grossVolume: grossVolumeValues,
-          },
-          categoryDistribution: {
-            labels: categoryLabels,
-            values: categoryValues,
-          },
-        },
-      },
-    });
-  } catch (error) {
-    return next(error);
-  }
-};
-
 const getFlaggedAccounts = async (req, res, next) => {
   try {
     const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
@@ -263,10 +163,28 @@ const getFlaggedAccounts = async (req, res, next) => {
       limit: 100,
     });
 
+    // Compute current-year income for all flagged users in ONE query to avoid N+1.
+    const userIds = users.map((u) => u.id);
+    const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+    const incomesRows = await Payment.findAll({
+      attributes: ['payee_id', [fn('SUM', col('amount_payee')), 'total']],
+      where: {
+        payee_id: { [Op.in]: userIds },
+        status: 'released',
+        updated_at: { [Op.gte]: startOfYear },
+      },
+      group: ['payee_id'],
+      raw: true,
+    });
+    const incomeMap = {};
+    for (const row of incomesRows) {
+      incomeMap[row.payee_id] = parseMoney(row.total);
+    }
+
     const accounts = users
       .map((user) => {
-        const income = parseMoney(user.hobby_total_year);
-        const risk = resolveRiskLevel(user);
+        const income = incomeMap[user.id] || 0;
+        const risk = resolveRiskLevel(income, user);
 
         return {
           id: user.id,
@@ -285,7 +203,6 @@ const getFlaggedAccounts = async (req, res, next) => {
         if (!riskFilter || riskFilter === 'all') {
           return true;
         }
-
         return account.risk === riskFilter;
       });
 
@@ -310,19 +227,26 @@ const updateFlaggedAccountStatus = async (req, res, next) => {
       });
     }
 
-    const user = await User.findByPk(userId, {
-      attributes: [
-        'id',
-        'name',
-        'email',
-        'hobby_total_year',
-        'hobby_job_count',
-        'hobby_warned',
-        'hobby_limit_reached',
-        'updated_at',
-      ],
-    });
+    const action = typeof req.body.action === 'string' ? req.body.action.trim().toLowerCase() : null;
+    const validActions = ['clear', 'resolve', 'warn', 'lock'];
+    if (action && !validActions.includes(action)) {
+      return res.status(400).json({
+        success: false,
+        message: 'action must be one of: clear, resolve, warn, lock',
+      });
+    }
 
+    const hasWarnOverride = typeof req.body.hobby_warned === 'boolean';
+    const hasLockOverride = typeof req.body.hobby_limit_reached === 'boolean';
+
+    if (!action && !hasWarnOverride && !hasLockOverride) {
+      return res.status(400).json({
+        success: false,
+        message: 'Provide action or boolean updates for hobby_warned/hobby_limit_reached',
+      });
+    }
+
+    const user = await User.findByPk(userId);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -330,49 +254,34 @@ const updateFlaggedAccountStatus = async (req, res, next) => {
       });
     }
 
-    const action =
-      typeof req.body.action === 'string'
-        ? req.body.action.trim().toLowerCase()
-        : null;
-
     const updates = {};
 
-    if (action) {
-      if (action === 'clear' || action === 'resolve') {
-        updates.hobby_warned = false;
-        updates.hobby_limit_reached = false;
-      } else if (action === 'warn') {
-        updates.hobby_warned = true;
-      } else if (action === 'lock') {
-        updates.hobby_warned = true;
-        updates.hobby_limit_reached = true;
-      } else {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid action. Use clear, warn or lock',
-        });
-      }
+    if (action === 'clear' || action === 'resolve') {
+      updates.hobby_warned = false;
+      updates.hobby_limit_reached = false;
     }
 
-    if (typeof req.body.hobby_warned === 'boolean') {
+    if (action === 'warn') {
+      updates.hobby_warned = true;
+      updates.hobby_limit_reached = false;
+    }
+
+    if (action === 'lock') {
+      updates.hobby_warned = true;
+      updates.hobby_limit_reached = true;
+    }
+
+    if (hasWarnOverride) {
       updates.hobby_warned = req.body.hobby_warned;
     }
 
-    if (typeof req.body.hobby_limit_reached === 'boolean') {
+    if (hasLockOverride) {
       updates.hobby_limit_reached = req.body.hobby_limit_reached;
-    }
-
-    if (!Object.keys(updates).length) {
-      return res.status(400).json({
-        success: false,
-        message: 'Provide action or boolean fields to update',
-      });
     }
 
     await user.update(updates);
 
-    const income = parseMoney(user.hobby_total_year);
-
+    const income = await getCurrentYearIncome(user.id);
     return res.json({
       success: true,
       data: {
@@ -381,13 +290,100 @@ const updateFlaggedAccountStatus = async (req, res, next) => {
           name: user.name,
           email: user.email,
           hobbyTotalYear: income,
-          hobbyJobCount: user.hobby_job_count,
           hobbyWarned: user.hobby_warned,
           hobbyLimitReached: user.hobby_limit_reached,
-          risk: resolveRiskLevel(user),
+          risk: resolveRiskLevel(income, user),
           limitPercent: Math.round((income / HOBBY_LIMIT) * 100),
           updatedAt: user.updated_at,
         },
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const getAdminCharts = async (req, res, next) => {
+  try {
+    const buckets = buildLastSixMonthBuckets();
+    const bucketStart = buckets[0].start;
+
+    const [jobsRows, incomeRows, categoryRows] = await Promise.all([
+      Job.findAll({
+        attributes: [
+          [fn('date_trunc', 'month', col('created_at')), 'month'],
+          [fn('COUNT', col('id')), 'count'],
+        ],
+        where: { created_at: { [Op.gte]: bucketStart } },
+        group: [literal('1')],
+        order: [[literal('1'), 'ASC']],
+        raw: true,
+      }),
+      Payment.findAll({
+        attributes: [
+          [fn('date_trunc', 'month', col('updated_at')), 'month'],
+          [fn('SUM', col('amount_platform')), 'platform_revenue'],
+          [fn('SUM', col('amount_total')), 'gross_volume'],
+        ],
+        where: {
+          status: 'released',
+          updated_at: { [Op.gte]: bucketStart },
+        },
+        group: [literal('1')],
+        order: [[literal('1'), 'ASC']],
+        raw: true,
+      }),
+      Job.findAll({
+        attributes: [
+          [col('Category.name'), 'label'],
+          [fn('COUNT', col('Job.id')), 'value'],
+        ],
+        include: [{ model: Category, attributes: [], required: true }],
+        group: [col('Category.name')],
+        order: [[fn('COUNT', col('Job.id')), 'DESC']],
+        limit: 6,
+        raw: true,
+        subQuery: false,
+      }),
+    ]);
+
+    const jobsMap = {};
+    for (const row of jobsRows) {
+      const month = new Date(row.month);
+      jobsMap[monthKeyFromDate(month)] = Number.parseInt(row.count, 10) || 0;
+    }
+
+    const incomeMap = {};
+    for (const row of incomeRows) {
+      const month = new Date(row.month);
+      incomeMap[monthKeyFromDate(month)] = {
+        platform: parseMoney(row.platform_revenue),
+        gross: parseMoney(row.gross_volume),
+      };
+    }
+
+    const jobsOverTime = {
+      labels: buckets.map((b) => b.label),
+      values: buckets.map((b) => jobsMap[b.key] || 0),
+    };
+
+    const incomeOverTime = {
+      labels: buckets.map((b) => b.label),
+      platformValues: buckets.map((b) => incomeMap[b.key]?.platform || 0),
+      grossValues: buckets.map((b) => incomeMap[b.key]?.gross || 0),
+    };
+
+    const categoryDistribution = {
+      labels: categoryRows.map((r) => r.label),
+      values: categoryRows.map((r) => Number.parseInt(r.value, 10) || 0),
+    };
+
+    return res.json({
+      success: true,
+      data: {
+        jobsOverTime,
+        incomeOverTime,
+        categoryDistribution,
       },
     });
   } catch (error) {
@@ -578,9 +574,9 @@ const deleteAdminCategory = async (req, res, next) => {
 
 module.exports = {
   getAdminStats,
-  getAdminCharts,
   getFlaggedAccounts,
   updateFlaggedAccountStatus,
+  getAdminCharts,
   getAdminCategories,
   createAdminCategory,
   updateAdminCategory,

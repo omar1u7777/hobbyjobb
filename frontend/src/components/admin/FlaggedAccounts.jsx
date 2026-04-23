@@ -58,6 +58,7 @@ export default function FlaggedAccounts() {
   const [riskFilter, setRiskFilter] = useState('Alla');
   const [apiLive, setApiLive] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -81,8 +82,14 @@ export default function FlaggedAccounts() {
       }
     }
 
-    loadAccounts();
-    return () => { cancelled = true; };
+    // Debounce so we do not fire one request per keystroke while the admin
+    // is typing. The backend does an N+1 Payment.sum per flagged user which
+    // would otherwise amplify search-input traffic.
+    const timer = setTimeout(loadAccounts, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, riskFilter]);
 
@@ -99,15 +106,47 @@ export default function FlaggedAccounts() {
   }, [accounts, query, riskFilter]);
 
   function markResolved(accountId) {
-    setAccounts((current) =>
-      current.map((account) => (account.id === accountId ? { ...account, status: 'Klar' } : account))
-    );
+    setError('');
+
+    const applyLocal = () => {
+      setAccounts((current) =>
+        current.map((account) => (account.id === accountId ? { ...account, status: 'Klar' } : account))
+      );
+    };
+
+    if (!apiLive) {
+      applyLocal();
+      return;
+    }
+
+    adminService
+      .updateFlaggedAccountStatus(accountId, { action: 'resolve' })
+      .then(() => applyLocal())
+      .catch((apiError) => {
+        setError(apiError.message || 'Kunde inte uppdatera kontot.');
+      });
   }
 
   function lockAccount(accountId) {
-    setAccounts((current) =>
-      current.map((account) => (account.id === accountId ? { ...account, status: 'Låst' } : account))
-    );
+    setError('');
+
+    const applyLocal = () => {
+      setAccounts((current) =>
+        current.map((account) => (account.id === accountId ? { ...account, status: 'Låst' } : account))
+      );
+    };
+
+    if (!apiLive) {
+      applyLocal();
+      return;
+    }
+
+    adminService
+      .updateFlaggedAccountStatus(accountId, { action: 'lock' })
+      .then(() => applyLocal())
+      .catch((apiError) => {
+        setError(apiError.message || 'Kunde inte lasa kontot.');
+      });
   }
 
   return (
@@ -118,6 +157,7 @@ export default function FlaggedAccounts() {
           <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
             {loading ? 'Laddar från admin-API…' : apiLive ? 'Live-data från admin-API.' : 'Mock-data — admin-API ej tillgängligt.'}
           </p>
+          {error ? <p style={{ marginTop: 6, fontSize: 12, color: 'var(--red)' }}>{error}</p> : null}
         </div>
       </div>
 

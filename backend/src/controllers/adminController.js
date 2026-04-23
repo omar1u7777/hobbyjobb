@@ -138,36 +138,48 @@ const getFlaggedAccounts = async (req, res, next) => {
       limit: 100,
     });
 
-    // Compute current-year income per user from the Payment table so that
-    // income earned in previous years does NOT contribute to this year's
-    // hobby limit / risk level. N+1 but capped at 100 users.
-    const accounts = (
-      await Promise.all(
-        users.map(async (user) => {
-          const income = await getCurrentYearIncome(user.id);
-          const risk = resolveRiskLevel(income, user);
-
-          return {
-            id: user.id,
-            name: user.name,
-            email: user.email,
-            hobbyTotalYear: income,
-            hobbyJobCount: user.hobby_job_count,
-            hobbyWarned: user.hobby_warned,
-            hobbyLimitReached: user.hobby_limit_reached,
-            risk,
-            limitPercent: Math.round((income / HOBBY_LIMIT) * 100),
-            createdAt: user.created_at,
-          };
-        }),
-      )
-    ).filter((account) => {
-      if (!riskFilter || riskFilter === 'all') {
-        return true;
-      }
-
-      return account.risk === riskFilter;
+    // Compute current-year income for all flagged users in ONE query to avoid N+1.
+    const userIds = users.map((u) => u.id);
+    const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+    const incomesRows = await Payment.findAll({
+      attributes: ['payee_id', [fn('SUM', col('amount_payee')), 'total']],
+      where: {
+        payee_id: { [Op.in]: userIds },
+        status: 'released',
+        updated_at: { [Op.gte]: startOfYear },
+      },
+      group: ['payee_id'],
+      raw: true,
     });
+    const incomeMap = {};
+    for (const row of incomesRows) {
+      incomeMap[row.payee_id] = parseMoney(row.total);
+    }
+
+    const accounts = users
+      .map((user) => {
+        const income = incomeMap[user.id] || 0;
+        const risk = resolveRiskLevel(income, user);
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          hobbyTotalYear: income,
+          hobbyJobCount: user.hobby_job_count,
+          hobbyWarned: user.hobby_warned,
+          hobbyLimitReached: user.hobby_limit_reached,
+          risk,
+          limitPercent: Math.round((income / HOBBY_LIMIT) * 100),
+          createdAt: user.created_at,
+        };
+      })
+      .filter((account) => {
+        if (!riskFilter || riskFilter === 'all') {
+          return true;
+        }
+        return account.risk === riskFilter;
+      });
 
     return res.json({
       success: true,

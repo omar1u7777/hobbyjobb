@@ -1,5 +1,5 @@
 const { Op, fn, col, literal, where: sequelizeWhere } = require('sequelize');
-const { Job, Category, User, Application } = require('../models');
+const { Job, Category, User, Application, Message, Review, Payment } = require('../models');
 const { DEFAULT_PAGE_SIZE, MAX_PAGE_SIZE, JOB_STATUS, HOBBY_MONTHLY_JOB_LIMIT } = require('../../config/constants');
 const { geocode } = require('../utils/geocode');
 
@@ -43,6 +43,10 @@ const getJobs = async (req, res, next) => {
     if (req.query.category) where.category_id = req.query.category;
     if (req.query.minPrice) where.price = { ...(where.price || {}), [Op.gte]: Number(req.query.minPrice) };
     if (req.query.maxPrice) where.price = { ...(where.price || {}), [Op.lte]: Number(req.query.maxPrice) };
+
+    // Only show open, non-expired jobs in public listings
+    where.status = 'open';
+    where.expires_at = { [Op.or]: [{ [Op.gt]: new Date() }, { [Op.is]: null }] };
 
     const include = [
       { model: Category, as: 'category' },
@@ -300,6 +304,10 @@ const deleteJob = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Only the job owner can delete this job' });
     }
 
+    await Application.destroy({ where: { job_id: job.id } });
+    await Message.destroy({ where: { job_id: job.id } });
+    await Review.destroy({ where: { job_id: job.id } });
+    await Payment.destroy({ where: { job_id: job.id } });
     await job.destroy();
 
     return res.json({

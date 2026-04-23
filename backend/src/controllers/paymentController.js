@@ -1,7 +1,7 @@
 const { Op } = require('sequelize');
 const stripeConfig = require('../../config/stripe.js');
 const { HOBBY_ANNUAL_LIMIT, HOBBY_WARNING_THRESHOLD } = require('../../config/constants');
-const { Job, User, Payment, Application } = require('../models');
+const { Job, User, Payment, Application, sequelize } = require('../models');
 
 const { stripe } = stripeConfig;
 
@@ -321,21 +321,27 @@ const releaseEscrow = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Only the payer can release funds' });
     }
 
-    await payment.update({ status: 'released' });
-    await Job.update({ status: 'completed' }, { where: { id: jobId } });
+    const transaction = await sequelize.transaction();
+    try {
+      await payment.update({ status: 'released' }, { transaction });
+      await Job.update({ status: 'completed' }, { where: { id: jobId }, transaction });
 
-    const payee = await User.findByPk(payment.payee_id);
-    if (payee) {
-      const newTotal = Number(payee.hobby_total_year || 0) + Number(payment.amount_payee);
-      const newJobCount = Number(payee.hobby_job_count || 0) + 1;
-      await payee.update({
-        hobby_total_year: newTotal,
-        hobby_job_count: newJobCount,
-        // Sticky flag — stays true until yearly reset so admins can track
-        // users that have ever crossed the 25k warning threshold.
-        hobby_warned: payee.hobby_warned || newTotal >= HOBBY_WARNING_THRESHOLD,
-        hobby_limit_reached: newTotal >= HOBBY_ANNUAL_LIMIT,
-      });
+      const payee = await User.findByPk(payment.payee_id, { transaction });
+      if (payee) {
+        const newTotal = Number(payee.hobby_total_year || 0) + Number(payment.amount_payee);
+        const newJobCount = Number(payee.hobby_job_count || 0) + 1;
+        await payee.update({
+          hobby_total_year: newTotal,
+          hobby_job_count: newJobCount,
+          hobby_warned: payee.hobby_warned || newTotal >= HOBBY_WARNING_THRESHOLD,
+          hobby_limit_reached: newTotal >= HOBBY_ANNUAL_LIMIT,
+        }, { transaction });
+      }
+
+      await transaction.commit();
+    } catch (err) {
+      await transaction.rollback();
+      throw err;
     }
 
     // Stripe Connect Transfer would go here in production:

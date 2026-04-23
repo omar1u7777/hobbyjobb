@@ -44,9 +44,12 @@ const getJobs = async (req, res, next) => {
     if (req.query.minPrice) where.price = { ...(where.price || {}), [Op.gte]: Number(req.query.minPrice) };
     if (req.query.maxPrice) where.price = { ...(where.price || {}), [Op.lte]: Number(req.query.maxPrice) };
 
-    // Only show open, non-expired jobs in public listings
+    // Only show open, non-expired jobs in public listings.
+    // Use start-of-day so jobs scheduled for today remain visible all day.
     where.status = 'open';
-    where.expires_at = { [Op.or]: [{ [Op.gt]: new Date() }, { [Op.is]: null }] };
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    where.expires_at = { [Op.or]: [{ [Op.gte]: todayStart }, { [Op.is]: null }] };
 
     const include = [
       { model: Category, as: 'category' },

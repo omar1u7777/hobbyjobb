@@ -282,6 +282,9 @@ const getFlaggedAccounts = async (req, res, next) => {
   try {
     const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
     const riskFilter = typeof req.query.risk === 'string' ? req.query.risk.toLowerCase() : '';
+    const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 25, 1), 100);
+    const offset = (page - 1) * limit;
 
     const where = {
       [Op.or]: [
@@ -302,7 +305,7 @@ const getFlaggedAccounts = async (req, res, next) => {
       ];
     }
 
-    const users = await User.findAll({
+    const { rows, count } = await User.findAndCountAll({
       attributes: [
         'id',
         'name',
@@ -315,28 +318,31 @@ const getFlaggedAccounts = async (req, res, next) => {
       ],
       where,
       order: [['hobby_total_year', 'DESC']],
-      limit: 100,
+      limit,
+      offset,
     });
 
     // Compute current-year income for all flagged users in ONE query to avoid N+1.
-    const userIds = users.map((u) => u.id);
+    const userIds = rows.map((u) => u.id);
     const startOfYear = new Date(new Date().getFullYear(), 0, 1);
-    const incomesRows = await Payment.findAll({
-      attributes: ['payee_id', [fn('SUM', col('amount_payee')), 'total']],
-      where: {
-        payee_id: { [Op.in]: userIds },
-        status: 'released',
-        updated_at: { [Op.gte]: startOfYear },
-      },
-      group: ['payee_id'],
-      raw: true,
-    });
+    const incomesRows = userIds.length
+      ? await Payment.findAll({
+        attributes: ['payee_id', [fn('SUM', col('amount_payee')), 'total']],
+        where: {
+          payee_id: { [Op.in]: userIds },
+          status: 'released',
+          updated_at: { [Op.gte]: startOfYear },
+        },
+        group: ['payee_id'],
+        raw: true,
+      })
+      : [];
     const incomeMap = {};
     for (const row of incomesRows) {
       incomeMap[row.payee_id] = parseMoney(row.total);
     }
 
-    const accounts = users
+    const accounts = rows
       .map((user) => {
         const income = incomeMap[user.id] || 0;
         const risk = resolveRiskLevel(income, user);
@@ -365,6 +371,11 @@ const getFlaggedAccounts = async (req, res, next) => {
       success: true,
       data: {
         accounts,
+        pagination: {
+          page,
+          limit,
+          total: count,
+        },
       },
     });
   } catch (error) {

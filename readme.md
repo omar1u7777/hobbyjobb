@@ -667,7 +667,13 @@ POST   /payments/webhook           Stripe webhook (intern)             [Stripe s
 
 ```
 GET    /admin/stats               Plattformsstatistik
+GET    /admin/users               Alla användare med hobbystatistik
+PUT    /admin/users/:id           Aktivera/deaktivera konto
 GET    /admin/flagged-accounts    Konton nära/över hobbygränsen (25k/30k kr)
+PATCH  /admin/flagged-accounts/:id Moderera flaggade konton (clear/resolve/warn/lock)
+GET    /admin/jobs                Alla jobb (inkl. borttagna)
+DELETE /admin/jobs/:id            Ta bort jobb som admin
+GET    /admin/charts              Diagramdata: jobb/tid, intäkter/tid, kategorifördelning
 GET    /admin/categories          Lista kategorier (inkl. jobs_count)
 POST   /admin/categories          Skapa ny kategori
 PUT    /admin/categories/:id      Uppdatera kategori
@@ -1027,21 +1033,21 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 > 🔒 Kräver att auth middleware (1C) och Jobs API (1D) är klara.
 
 - [x] `GET /api/admin/stats` — Totalt antal jobb, användare, intäkter, flaggade konton m.m. — **S5** 
-- [ ] `GET /api/admin/users` — Alla användare med hobbystatistik — **S5**
-- [ ] `PUT /api/admin/users/:id` — Aktivera/deaktivera konton — **S5**
+- [x] `GET /api/admin/users` — Alla användare med hobbystatistik — **S5**
+- [x] `PUT /api/admin/users/:id` — Aktivera/deaktivera konton — **S5**
 - [x] `GET /api/admin/flagged-accounts` — Konton > hobby-warning-threshold med risknivåfilter — **S5** 
-- [ ] `GET /api/admin/jobs` — Alla jobb (inkl. borttagna) — **S5**
-- [ ] `DELETE /api/admin/jobs/:id` — Ta bort jobb som admin — **S5**
+- [x] `GET /api/admin/jobs` — Alla jobb (inkl. borttagna) — **S5**
+- [x] `DELETE /api/admin/jobs/:id` — Ta bort jobb som admin — **S5**
 - [x] `GET/POST/PUT/DELETE /api/admin/categories` — CRUD för kategorier (case-insensitiv duplicate-check, blockerar delete vid aktiva jobb) — **S5** 
-- [x] `frontend/src/services/adminService.js` — API-wrapper för stats, flagged-accounts, category CRUD — **S5** 
+- [x] `frontend/src/services/adminService.js` — API-wrapper för stats, flagged-accounts, charts, moderation och category CRUD — **S5** 
 - [x] `AdminDashboardPage.jsx` — Statistik-kort + alerts + tabeller (live-data från `/admin/stats` med mock-fallback) — **S5** 
 - [x] `UserTable.jsx` — Sökbar tabell med hobbystatusfiltrering (mock-data) — **S5** 
 - [x] `JobTable.jsx` — Jobbhanteringstabell med sök (mock-data) — **S5** 
 - [x] `CategoryManager.jsx` — CRUD-gränssnitt för kategorier (live-CRUD mot `/admin/categories` med mock-fallback) — **S5** 
 - [x] `FlaggedAccounts.jsx` — Lista flaggade konton med sök/filter (live-data från `/admin/flagged-accounts` med mock-fallback) — **S5** 
-- [x] `JobsOverTimeChart.jsx` — Line chart: antal jobb per månad (Chart.js, mock-data) — **S5** 
-- [x] `CategoryPieChart.jsx` — Pie chart: fördelning per kategori (Chart.js, mock-data) — **S5** 
-- [x] `IncomeBarChart.jsx` — Bar chart: plattformens intäkter per månad (Chart.js, mock-data) — **S5** 
+- [x] `JobsOverTimeChart.jsx` — Line chart: antal jobb per månad (Chart.js, live-data med mock-fallback) — **S5** 
+- [x] `CategoryPieChart.jsx` — Pie chart: fördelning per kategori (Chart.js, live-data med mock-fallback) — **S5** 
+- [x] `IncomeBarChart.jsx` — Bar chart: plattformens intäkter per månad (Chart.js, live-data med mock-fallback) — **S5** 
 
 ---
 

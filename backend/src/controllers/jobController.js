@@ -44,9 +44,12 @@ const getJobs = async (req, res, next) => {
     if (req.query.minPrice) where.price = { ...(where.price || {}), [Op.gte]: Number(req.query.minPrice) };
     if (req.query.maxPrice) where.price = { ...(where.price || {}), [Op.lte]: Number(req.query.maxPrice) };
 
-    // Only show open, non-expired jobs in public listings
+    // Only show open, non-expired jobs in public listings.
+    // Use start-of-day so jobs scheduled for today remain visible all day.
     where.status = 'open';
-    where.expires_at = { [Op.or]: [{ [Op.gt]: new Date() }, { [Op.is]: null }] };
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    where.expires_at = { [Op.or]: [{ [Op.gte]: todayStart }, { [Op.is]: null }] };
 
     const include = [
       { model: Category, as: 'category' },
@@ -168,7 +171,16 @@ const createJob = async (req, res, next) => {
     const { title, description, price, price_type, category_id, location, lat, lng, expires_at, date, hobby_type } = req.body;
     const allowedPriceTypes = ['fixed', 'hourly', 'negotiable'];
     const resolvedPriceType = allowedPriceTypes.includes(price_type) ? price_type : 'fixed';
-    const resolvedExpiresAt = expires_at || date || null;
+    // If only a date string is provided, set time to end-of-day so the job
+    // remains searchable for the full day instead of expiring at midnight.
+    let resolvedExpiresAt = null;
+    if (expires_at) {
+      resolvedExpiresAt = new Date(expires_at);
+      resolvedExpiresAt.setHours(23, 59, 59, 999);
+    } else if (date) {
+      resolvedExpiresAt = new Date(date);
+      resolvedExpiresAt.setHours(23, 59, 59, 999);
+    }
 
     if (!title || !description || !price || !category_id) {
       return res.status(400).json({

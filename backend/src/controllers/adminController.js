@@ -123,6 +123,161 @@ const getAdminStats = async (req, res, next) => {
   }
 };
 
+const getAdminUsers = async (req, res, next) => {
+  try {
+    const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
+    const status = typeof req.query.status === 'string' ? req.query.status.trim().toLowerCase() : '';
+    const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 25, 1), 100);
+    const offset = (page - 1) * limit;
+
+    const where = {};
+
+    if (search) {
+      where[Op.or] = [
+        { name: { [Op.iLike]: `%${search}%` } },
+        { email: { [Op.iLike]: `%${search}%` } },
+      ];
+    }
+
+    if (status === 'active') {
+      where.is_verified = true;
+    }
+    if (status === 'inactive') {
+      where.is_verified = false;
+    }
+
+    const { rows, count } = await User.findAndCountAll({
+      attributes: [
+        'id',
+        'name',
+        'email',
+        'is_admin',
+        'is_verified',
+        'hobby_total_year',
+        'hobby_job_count',
+        'hobby_warned',
+        'hobby_limit_reached',
+        'created_at',
+      ],
+      where,
+      order: [['created_at', 'DESC']],
+      limit,
+      offset,
+    });
+
+    const userIds = rows.map((u) => u.id);
+    const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+    const incomesRows = userIds.length
+      ? await Payment.findAll({
+        attributes: ['payee_id', [fn('SUM', col('amount_payee')), 'total']],
+        where: {
+          payee_id: { [Op.in]: userIds },
+          status: 'released',
+          updated_at: { [Op.gte]: startOfYear },
+        },
+        group: ['payee_id'],
+        raw: true,
+      })
+      : [];
+
+    const incomeMap = {};
+    for (const row of incomesRows) {
+      incomeMap[row.payee_id] = parseMoney(row.total);
+    }
+
+    const users = rows.map((user) => {
+      const income = incomeMap[user.id] ?? 0;
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        isAdmin: user.is_admin,
+        isVerified: user.is_verified,
+        hobbyTotalYear: income,
+        hobbyJobCount: user.hobby_job_count,
+        hobbyWarned: user.hobby_warned,
+        hobbyLimitReached: user.hobby_limit_reached,
+        risk: resolveRiskLevel(income, user),
+        limitPercent: Math.round((income / HOBBY_LIMIT) * 100),
+        createdAt: user.created_at,
+      };
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        users,
+        pagination: {
+          page,
+          limit,
+          total: count,
+        },
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const updateAdminUserStatus = async (req, res, next) => {
+  try {
+    const userId = Number.parseInt(req.params.id, 10);
+    if (Number.isNaN(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid user id',
+      });
+    }
+
+    const action = typeof req.body.action === 'string' ? req.body.action.trim().toLowerCase() : '';
+    const hasIsVerified = typeof req.body.is_verified === 'boolean';
+
+    if (!hasIsVerified && !['activate', 'deactivate'].includes(action)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Provide action (activate/deactivate) or is_verified boolean',
+      });
+    }
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    const targetIsVerified = hasIsVerified
+      ? req.body.is_verified
+      : action === 'activate';
+
+    if (req.user && req.user.id === user.id && targetIsVerified === false) {
+      return res.status(400).json({
+        success: false,
+        message: 'Admin cannot deactivate own account',
+      });
+    }
+
+    await user.update({ is_verified: targetIsVerified });
+
+    return res.json({
+      success: true,
+      data: {
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          isVerified: user.is_verified,
+          updatedAt: user.updated_at,
+        },
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 const getFlaggedAccounts = async (req, res, next) => {
   try {
     const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
@@ -391,6 +546,113 @@ const getAdminCharts = async (req, res, next) => {
   }
 };
 
+const getAdminJobs = async (req, res, next) => {
+  try {
+    const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
+    const status = typeof req.query.status === 'string' ? req.query.status.trim().toLowerCase() : '';
+    const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 25, 1), 100);
+    const offset = (page - 1) * limit;
+
+    const where = {};
+    if (search) {
+      where[Op.or] = [
+        { title: { [Op.iLike]: `%${search}%` } },
+        { description: { [Op.iLike]: `%${search}%` } },
+      ];
+    }
+
+    if (status) {
+      where.status = status;
+    }
+
+    const { rows, count } = await Job.findAndCountAll({
+      where,
+      include: [
+        { model: Category, as: 'category', attributes: ['id', 'name'] },
+        { model: User, as: 'poster', attributes: ['id', 'name', 'email'] },
+      ],
+      attributes: {
+        include: [
+          [literal('(SELECT COUNT(*) FROM applications a WHERE a.job_id = "Job"."id")'), 'applications_count'],
+        ],
+      },
+      order: [['created_at', 'DESC']],
+      limit,
+      offset,
+      distinct: true,
+    });
+
+    const jobs = rows.map((job) => ({
+      id: job.id,
+      title: job.title,
+      description: job.description,
+      price: parseMoney(job.price),
+      status: job.status,
+      isBoosted: Boolean(job.is_boosted),
+      poster: job.poster
+        ? {
+          id: job.poster.id,
+          name: job.poster.name,
+          email: job.poster.email,
+        }
+        : null,
+      category: job.category
+        ? {
+          id: job.category.id,
+          name: job.category.name,
+        }
+        : null,
+      applicationsCount: Number.parseInt(job.get('applications_count'), 10) || 0,
+      createdAt: job.created_at,
+    }));
+
+    return res.json({
+      success: true,
+      data: {
+        jobs,
+        pagination: {
+          page,
+          limit,
+          total: count,
+        },
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const deleteAdminJob = async (req, res, next) => {
+  try {
+    const jobId = Number.parseInt(req.params.id, 10);
+    if (Number.isNaN(jobId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid job id',
+      });
+    }
+
+    const job = await Job.findByPk(jobId);
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: 'Job not found',
+      });
+    }
+
+    await job.destroy();
+
+    return res.json({
+      success: true,
+      message: 'Job deleted by admin',
+      data: { id: jobId },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 const getAdminCategories = async (req, res, next) => {
   try {
     const categories = await Category.findAll({
@@ -574,8 +836,12 @@ const deleteAdminCategory = async (req, res, next) => {
 
 module.exports = {
   getAdminStats,
+  getAdminUsers,
+  updateAdminUserStatus,
   getFlaggedAccounts,
   updateFlaggedAccountStatus,
+  getAdminJobs,
+  deleteAdminJob,
   getAdminCharts,
   getAdminCategories,
   createAdminCategory,

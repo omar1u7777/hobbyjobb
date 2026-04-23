@@ -15,6 +15,8 @@ export function formatDate(dateStr) {
   if (diff === 0) return 'Idag';
   if (diff === 1) return 'Igår';
   if (diff > 1 && diff < 7)  return `${diff} dagar sedan`;
+  if (diff === -1) return 'Imorgon';
+  if (diff < -1 && diff > -7) return `Om ${Math.abs(diff)} dagar`;
   return d.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' });
 }
 

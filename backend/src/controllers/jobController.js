@@ -168,7 +168,16 @@ const createJob = async (req, res, next) => {
     const { title, description, price, price_type, category_id, location, lat, lng, expires_at, date, hobby_type } = req.body;
     const allowedPriceTypes = ['fixed', 'hourly', 'negotiable'];
     const resolvedPriceType = allowedPriceTypes.includes(price_type) ? price_type : 'fixed';
-    const resolvedExpiresAt = expires_at || date || null;
+    // If only a date string is provided, set time to end-of-day so the job
+    // remains searchable for the full day instead of expiring at midnight.
+    let resolvedExpiresAt = null;
+    if (expires_at) {
+      resolvedExpiresAt = new Date(expires_at);
+      resolvedExpiresAt.setHours(23, 59, 59, 999);
+    } else if (date) {
+      resolvedExpiresAt = new Date(date);
+      resolvedExpiresAt.setHours(23, 59, 59, 999);
+    }
 
     if (!title || !description || !price || !category_id) {
       return res.status(400).json({

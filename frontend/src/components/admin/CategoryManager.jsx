@@ -119,8 +119,8 @@ export default function CategoryManager() {
         }
         resetForm();
         return;
-      } catch (err) {
-        setError(err.message || 'Kunde inte spara kategori.');
+      } catch (apiError) {
+        setError(apiError.message || 'Kunde inte spara kategori.');
         return;
       }
     }
@@ -142,8 +142,8 @@ export default function CategoryManager() {
     if (apiLive) {
       try {
         await adminService.deleteCategory(categoryId);
-      } catch (err) {
-        setError(err.message || 'Kunde inte ta bort kategorin.');
+      } catch (apiError) {
+        setError(apiError.message || 'Kunde inte ta bort kategorin.');
         return;
       }
     }

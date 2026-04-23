@@ -40,6 +40,31 @@ const resolveRiskLevel = (currentYearTotal, user) => {
   return 'low';
 };
 
+const monthLabel = (date) => date.toLocaleString('sv-SE', { month: 'short', timeZone: 'UTC' });
+
+const monthKeyFromDate = (date) => {
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+  return `${y}-${m}`;
+};
+
+const buildLastSixMonthBuckets = () => {
+  const buckets = [];
+  const now = new Date();
+
+  for (let i = 5; i >= 0; i -= 1) {
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 1));
+    buckets.push({
+      key: monthKeyFromDate(d),
+      label: monthLabel(d),
+      start: d,
+      end: new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)),
+    });
+  }
+
+  return buckets;
+};
+
 const getAdminStats = async (req, res, next) => {
   try {
     const [
@@ -98,10 +123,168 @@ const getAdminStats = async (req, res, next) => {
   }
 };
 
+const getAdminUsers = async (req, res, next) => {
+  try {
+    const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
+    const status = typeof req.query.status === 'string' ? req.query.status.trim().toLowerCase() : '';
+    const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 25, 1), 100);
+    const offset = (page - 1) * limit;
+
+    const where = {};
+
+    if (search) {
+      where[Op.or] = [
+        { name: { [Op.iLike]: `%${search}%` } },
+        { email: { [Op.iLike]: `%${search}%` } },
+      ];
+    }
+
+    if (status === 'active') {
+      where.is_verified = true;
+    }
+    if (status === 'inactive') {
+      where.is_verified = false;
+    }
+
+    const { rows, count } = await User.findAndCountAll({
+      attributes: [
+        'id',
+        'name',
+        'email',
+        'is_admin',
+        'is_verified',
+        'hobby_total_year',
+        'hobby_job_count',
+        'hobby_warned',
+        'hobby_limit_reached',
+        'created_at',
+      ],
+      where,
+      order: [['created_at', 'DESC']],
+      limit,
+      offset,
+    });
+
+    const userIds = rows.map((u) => u.id);
+    const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+    const incomesRows = userIds.length
+      ? await Payment.findAll({
+        attributes: ['payee_id', [fn('SUM', col('amount_payee')), 'total']],
+        where: {
+          payee_id: { [Op.in]: userIds },
+          status: 'released',
+          updated_at: { [Op.gte]: startOfYear },
+        },
+        group: ['payee_id'],
+        raw: true,
+      })
+      : [];
+
+    const incomeMap = {};
+    for (const row of incomesRows) {
+      incomeMap[row.payee_id] = parseMoney(row.total);
+    }
+
+    const users = rows.map((user) => {
+      const income = incomeMap[user.id] ?? 0;
+      return {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        isAdmin: user.is_admin,
+        isVerified: user.is_verified,
+        hobbyTotalYear: income,
+        hobbyJobCount: user.hobby_job_count,
+        hobbyWarned: user.hobby_warned,
+        hobbyLimitReached: user.hobby_limit_reached,
+        risk: resolveRiskLevel(income, user),
+        limitPercent: Math.round((income / HOBBY_LIMIT) * 100),
+        createdAt: user.created_at,
+      };
+    });
+
+    return res.json({
+      success: true,
+      data: {
+        users,
+        pagination: {
+          page,
+          limit,
+          total: count,
+        },
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const updateAdminUserStatus = async (req, res, next) => {
+  try {
+    const userId = Number.parseInt(req.params.id, 10);
+    if (Number.isNaN(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid user id',
+      });
+    }
+
+    const action = typeof req.body.action === 'string' ? req.body.action.trim().toLowerCase() : '';
+    const hasIsVerified = typeof req.body.is_verified === 'boolean';
+
+    if (!hasIsVerified && !['activate', 'deactivate'].includes(action)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Provide action (activate/deactivate) or is_verified boolean',
+      });
+    }
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    const targetIsVerified = hasIsVerified
+      ? req.body.is_verified
+      : action === 'activate';
+
+    if (req.user && req.user.id === user.id && targetIsVerified === false) {
+      return res.status(400).json({
+        success: false,
+        message: 'Admin cannot deactivate own account',
+      });
+    }
+
+    await user.update({ is_verified: targetIsVerified });
+
+    return res.json({
+      success: true,
+      data: {
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          isVerified: user.is_verified,
+          updatedAt: user.updated_at,
+        },
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 const getFlaggedAccounts = async (req, res, next) => {
   try {
     const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
     const riskFilter = typeof req.query.risk === 'string' ? req.query.risk.toLowerCase() : '';
+    const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 25, 1), 100);
+    const offset = (page - 1) * limit;
 
     const where = {
       [Op.or]: [
@@ -122,7 +305,7 @@ const getFlaggedAccounts = async (req, res, next) => {
       ];
     }
 
-    const users = await User.findAll({
+    const { rows, count } = await User.findAndCountAll({
       attributes: [
         'id',
         'name',
@@ -135,28 +318,31 @@ const getFlaggedAccounts = async (req, res, next) => {
       ],
       where,
       order: [['hobby_total_year', 'DESC']],
-      limit: 100,
+      limit,
+      offset,
     });
 
     // Compute current-year income for all flagged users in ONE query to avoid N+1.
-    const userIds = users.map((u) => u.id);
+    const userIds = rows.map((u) => u.id);
     const startOfYear = new Date(new Date().getFullYear(), 0, 1);
-    const incomesRows = await Payment.findAll({
-      attributes: ['payee_id', [fn('SUM', col('amount_payee')), 'total']],
-      where: {
-        payee_id: { [Op.in]: userIds },
-        status: 'released',
-        updated_at: { [Op.gte]: startOfYear },
-      },
-      group: ['payee_id'],
-      raw: true,
-    });
+    const incomesRows = userIds.length
+      ? await Payment.findAll({
+        attributes: ['payee_id', [fn('SUM', col('amount_payee')), 'total']],
+        where: {
+          payee_id: { [Op.in]: userIds },
+          status: 'released',
+          updated_at: { [Op.gte]: startOfYear },
+        },
+        group: ['payee_id'],
+        raw: true,
+      })
+      : [];
     const incomeMap = {};
     for (const row of incomesRows) {
       incomeMap[row.payee_id] = parseMoney(row.total);
     }
 
-    const accounts = users
+    const accounts = rows
       .map((user) => {
         const income = incomeMap[user.id] || 0;
         const risk = resolveRiskLevel(income, user);
@@ -185,7 +371,293 @@ const getFlaggedAccounts = async (req, res, next) => {
       success: true,
       data: {
         accounts,
+        pagination: {
+          page,
+          limit,
+          total: count,
+        },
       },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const updateFlaggedAccountStatus = async (req, res, next) => {
+  try {
+    const userId = Number.parseInt(req.params.id, 10);
+    if (Number.isNaN(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid user id',
+      });
+    }
+
+    const action = typeof req.body.action === 'string' ? req.body.action.trim().toLowerCase() : null;
+    const validActions = ['clear', 'resolve', 'warn', 'lock'];
+    if (action && !validActions.includes(action)) {
+      return res.status(400).json({
+        success: false,
+        message: 'action must be one of: clear, resolve, warn, lock',
+      });
+    }
+
+    const hasWarnOverride = typeof req.body.hobby_warned === 'boolean';
+    const hasLockOverride = typeof req.body.hobby_limit_reached === 'boolean';
+
+    if (!action && !hasWarnOverride && !hasLockOverride) {
+      return res.status(400).json({
+        success: false,
+        message: 'Provide action or boolean updates for hobby_warned/hobby_limit_reached',
+      });
+    }
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    const updates = {};
+
+    if (action === 'clear' || action === 'resolve') {
+      updates.hobby_warned = false;
+      updates.hobby_limit_reached = false;
+    }
+
+    if (action === 'warn') {
+      updates.hobby_warned = true;
+      updates.hobby_limit_reached = false;
+    }
+
+    if (action === 'lock') {
+      updates.hobby_warned = true;
+      updates.hobby_limit_reached = true;
+    }
+
+    if (hasWarnOverride) {
+      updates.hobby_warned = req.body.hobby_warned;
+    }
+
+    if (hasLockOverride) {
+      updates.hobby_limit_reached = req.body.hobby_limit_reached;
+    }
+
+    await user.update(updates);
+
+    const income = await getCurrentYearIncome(user.id);
+    return res.json({
+      success: true,
+      data: {
+        account: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          hobbyTotalYear: income,
+          hobbyWarned: user.hobby_warned,
+          hobbyLimitReached: user.hobby_limit_reached,
+          risk: resolveRiskLevel(income, user),
+          limitPercent: Math.round((income / HOBBY_LIMIT) * 100),
+          updatedAt: user.updated_at,
+        },
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const getAdminCharts = async (req, res, next) => {
+  try {
+    const buckets = buildLastSixMonthBuckets();
+    const bucketStart = buckets[0].start;
+
+    const [jobsRows, incomeRows, categoryRows] = await Promise.all([
+      Job.findAll({
+        attributes: [
+          [fn('date_trunc', 'month', col('created_at')), 'month'],
+          [fn('COUNT', col('id')), 'count'],
+        ],
+        where: { created_at: { [Op.gte]: bucketStart } },
+        group: [literal('1')],
+        order: [[literal('1'), 'ASC']],
+        raw: true,
+      }),
+      Payment.findAll({
+        attributes: [
+          [fn('date_trunc', 'month', col('updated_at')), 'month'],
+          [fn('SUM', col('amount_platform')), 'platform_revenue'],
+          [fn('SUM', col('amount_total')), 'gross_volume'],
+        ],
+        where: {
+          status: 'released',
+          updated_at: { [Op.gte]: bucketStart },
+        },
+        group: [literal('1')],
+        order: [[literal('1'), 'ASC']],
+        raw: true,
+      }),
+      Job.findAll({
+        attributes: [
+          [col('Category.name'), 'label'],
+          [fn('COUNT', col('Job.id')), 'value'],
+        ],
+        include: [{ model: Category, attributes: [], required: true }],
+        group: [col('Category.name')],
+        order: [[fn('COUNT', col('Job.id')), 'DESC']],
+        limit: 6,
+        raw: true,
+        subQuery: false,
+      }),
+    ]);
+
+    const jobsMap = {};
+    for (const row of jobsRows) {
+      const month = new Date(row.month);
+      jobsMap[monthKeyFromDate(month)] = Number.parseInt(row.count, 10) || 0;
+    }
+
+    const incomeMap = {};
+    for (const row of incomeRows) {
+      const month = new Date(row.month);
+      incomeMap[monthKeyFromDate(month)] = {
+        platform: parseMoney(row.platform_revenue),
+        gross: parseMoney(row.gross_volume),
+      };
+    }
+
+    const jobsOverTime = {
+      labels: buckets.map((b) => b.label),
+      values: buckets.map((b) => jobsMap[b.key] || 0),
+    };
+
+    const incomeOverTime = {
+      labels: buckets.map((b) => b.label),
+      platformValues: buckets.map((b) => incomeMap[b.key]?.platform || 0),
+      grossValues: buckets.map((b) => incomeMap[b.key]?.gross || 0),
+    };
+
+    const categoryDistribution = {
+      labels: categoryRows.map((r) => r.label),
+      values: categoryRows.map((r) => Number.parseInt(r.value, 10) || 0),
+    };
+
+    return res.json({
+      success: true,
+      data: {
+        jobsOverTime,
+        incomeOverTime,
+        categoryDistribution,
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const getAdminJobs = async (req, res, next) => {
+  try {
+    const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
+    const status = typeof req.query.status === 'string' ? req.query.status.trim().toLowerCase() : '';
+    const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(Number.parseInt(req.query.limit, 10) || 25, 1), 100);
+    const offset = (page - 1) * limit;
+
+    const where = {};
+    if (search) {
+      where[Op.or] = [
+        { title: { [Op.iLike]: `%${search}%` } },
+        { description: { [Op.iLike]: `%${search}%` } },
+      ];
+    }
+
+    if (status) {
+      where.status = status;
+    }
+
+    const { rows, count } = await Job.findAndCountAll({
+      where,
+      include: [
+        { model: Category, as: 'category', attributes: ['id', 'name'] },
+        { model: User, as: 'poster', attributes: ['id', 'name', 'email'] },
+      ],
+      attributes: {
+        include: [
+          [literal('(SELECT COUNT(*) FROM applications a WHERE a.job_id = "Job"."id")'), 'applications_count'],
+        ],
+      },
+      order: [['created_at', 'DESC']],
+      limit,
+      offset,
+      distinct: true,
+    });
+
+    const jobs = rows.map((job) => ({
+      id: job.id,
+      title: job.title,
+      description: job.description,
+      price: parseMoney(job.price),
+      status: job.status,
+      isBoosted: Boolean(job.is_boosted),
+      poster: job.poster
+        ? {
+          id: job.poster.id,
+          name: job.poster.name,
+          email: job.poster.email,
+        }
+        : null,
+      category: job.category
+        ? {
+          id: job.category.id,
+          name: job.category.name,
+        }
+        : null,
+      applicationsCount: Number.parseInt(job.get('applications_count'), 10) || 0,
+      createdAt: job.created_at,
+    }));
+
+    return res.json({
+      success: true,
+      data: {
+        jobs,
+        pagination: {
+          page,
+          limit,
+          total: count,
+        },
+      },
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const deleteAdminJob = async (req, res, next) => {
+  try {
+    const jobId = Number.parseInt(req.params.id, 10);
+    if (Number.isNaN(jobId)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid job id',
+      });
+    }
+
+    const job = await Job.findByPk(jobId);
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: 'Job not found',
+      });
+    }
+
+    await job.destroy();
+
+    return res.json({
+      success: true,
+      message: 'Job deleted by admin',
+      data: { id: jobId },
     });
   } catch (error) {
     return next(error);
@@ -375,7 +847,13 @@ const deleteAdminCategory = async (req, res, next) => {
 
 module.exports = {
   getAdminStats,
+  getAdminUsers,
+  updateAdminUserStatus,
   getFlaggedAccounts,
+  updateFlaggedAccountStatus,
+  getAdminJobs,
+  deleteAdminJob,
+  getAdminCharts,
   getAdminCategories,
   createAdminCategory,
   updateAdminCategory,

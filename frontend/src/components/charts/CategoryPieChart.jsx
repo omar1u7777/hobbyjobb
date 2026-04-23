@@ -17,6 +17,11 @@ const categoryPieData = {
   ],
 };
 
+const FALLBACK_CATEGORY = {
+  labels: categoryPieData.labels,
+  values: categoryPieData.datasets[0].data,
+};
+
 const categoryPieOptions = {
   responsive: true,
   maintainAspectRatio: false,
@@ -31,15 +36,31 @@ const categoryPieOptions = {
   },
 };
 
-export default function CategoryPieChart() {
+export default function CategoryPieChart({ labels = [], values = [], apiLive = false, loading = false }) {
+  const finalLabels = labels.length > 0 ? labels : FALLBACK_CATEGORY.labels;
+  const finalValues = values.length > 0 ? values : FALLBACK_CATEGORY.values;
+
+  const data = {
+    ...categoryPieData,
+    labels: finalLabels,
+    datasets: [
+      {
+        ...categoryPieData.datasets[0],
+        data: finalValues,
+      },
+    ],
+  };
+
   return (
     <article className="card" style={{ padding: 16 }}>
       <div style={{ marginBottom: 10 }}>
         <h2 style={{ fontSize: 16, marginBottom: 4 }}>Kategori-fördelning</h2>
-        <p style={{ fontSize: 12, color: 'var(--muted)' }}>Aktiva jobb i plattformen</p>
+        <p style={{ fontSize: 12, color: 'var(--muted)' }}>
+          {loading ? 'Laddar...' : apiLive ? 'Live-data aktiva jobb per kategori' : 'Mock-data aktiva jobb per kategori'}
+        </p>
       </div>
       <div style={{ height: 240 }}>
-        <Doughnut options={categoryPieOptions} data={categoryPieData} />
+        <Doughnut options={categoryPieOptions} data={data} />
       </div>
     </article>
   );

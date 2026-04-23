@@ -19,6 +19,16 @@ export const adminService = {
     return Array.isArray(accounts) ? accounts : [];
   },
 
+  async updateFlaggedAccountStatus(id, payload) {
+    const { account } = unwrap(await api.patch(`/admin/flagged-accounts/${id}`, payload));
+    return account || null;
+  },
+
+  async getCharts() {
+    const charts = unwrap(await api.get('/admin/charts'));
+    return charts || null;
+  },
+
   async getCategories() {
     const { categories } = unwrap(await api.get('/admin/categories'));
     return Array.isArray(categories) ? categories : [];

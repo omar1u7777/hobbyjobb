@@ -40,6 +40,8 @@ export default function JobFilter({ params, onChange }) {
       padding: 24,
       position: 'sticky',
       top: 88,
+      zIndex: 1,
+      overflow: 'hidden',
     }}>
       <h3 style={{ fontSize: 14, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--muted)', marginBottom: 14 }}>
         Filter
@@ -85,7 +87,7 @@ export default function JobFilter({ params, onChange }) {
             onChange={e => setMinPrice(e.target.value)}
             onBlur={applyPrice}
             min="0"
-            style={{ flex: 1, padding: '9px 12px', border: '1.5px solid var(--border)', borderRadius: 7, fontSize: 14, outline: 'none', fontFamily: 'var(--font)' }}
+            style={{ flex: 1, padding: '6px 8px', border: '1.5px solid var(--border)', borderRadius: 7, fontSize: 13, outline: 'none', fontFamily: 'var(--font)', boxSizing: 'border-box', minWidth: 0 }}
           />
           <input
             type="number"
@@ -94,7 +96,7 @@ export default function JobFilter({ params, onChange }) {
             onChange={e => setMaxPrice(e.target.value)}
             onBlur={applyPrice}
             min="0"
-            style={{ flex: 1, padding: '9px 12px', border: '1.5px solid var(--border)', borderRadius: 7, fontSize: 14, outline: 'none', fontFamily: 'var(--font)' }}
+            style={{ flex: 1, padding: '6px 8px', border: '1.5px solid var(--border)', borderRadius: 7, fontSize: 13, outline: 'none', fontFamily: 'var(--font)', boxSizing: 'border-box', minWidth: 0 }}
           />
         </div>
         <input

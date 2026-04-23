@@ -18,9 +18,11 @@ export function AuthProvider({ children }) {
     }
     authService.getMe()
       .then(me => setUser(me))
-      .catch(() => {
-        localStorage.removeItem('hj_token');
-        setToken(null);
+      .catch((err) => {
+        if (err?.response?.status === 401) {
+          localStorage.removeItem('hj_token');
+          setToken(null);
+        }
       })
       .finally(() => setLoading(false));
   }, [token]);

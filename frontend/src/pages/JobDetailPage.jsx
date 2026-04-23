@@ -1,12 +1,14 @@
 // git commit: "feat(jobs): build JobDetailPage with job info, application form, and poster profile"
 import { applicationService } from '../services/applicationService.js';
 import { paymentService } from '../services/paymentService.js';
+import { reviewService } from '../services/reviewService.js';
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { jobService } from '../services/jobService.js';
 import { useAuth } from '../hooks/useAuth.js';
 import { formatPrice, formatDate } from '../utils/formatters.js';
 import CategoryBadge from '../components/jobs/CategoryBadge.jsx';
+import ReviewForm from '../components/jobs/ReviewForm.jsx';
 import Alert from '../components/common/Alert.jsx';
 import Modal from '../components/common/Modal.jsx';
 import Spinner from '../components/common/Spinner.jsx';
@@ -28,6 +30,11 @@ export default function JobDetailPage() {
   const [releaseLoading, setReleaseLoading] = useState(false);
   const [releaseErr, setReleaseErr] = useState('');
   const [releaseOk, setReleaseOk]   = useState(false);
+
+  const [jobReviews, setJobReviews] = useState([]);
+  const [reviewOpen, setReviewOpen] = useState(false);
+  const [reviewLoading, setReviewLoading] = useState(false);
+  const [reviewErr, setReviewErr] = useState('');
 
   const handleRelease = async () => {
     if (!window.confirm('Markera jobbet som slutfört och frigör betalningen till utföraren?')) return;
@@ -52,6 +59,45 @@ export default function JobDetailPage() {
       .catch(e => setError(e.message))
       .finally(() => setLoading(false));
   }, [id]);
+
+  // Load reviews when job is completed
+  useEffect(() => {
+    if (job?.status === 'completed') {
+      reviewService.getForJob(id)
+        .then(r => { if (Array.isArray(r)) setJobReviews(r); })
+        .catch(() => setJobReviews([]));
+    }
+  }, [job?.status, id]);
+
+  const revieweeId = user && job
+    ? (user.id === job.poster_id ? job.accepted_applicant?.id : job.poster_id)
+    : null;
+  const revieweeName = user && job
+    ? (user.id === job.poster_id ? job.accepted_applicant?.name : (job.poster?.name ?? 'beställaren'))
+    : '';
+  const isParticipant = user && job && (user.id === job.poster_id || user.id === job.accepted_applicant?.id);
+  const hasReviewed = user && jobReviews.some(r => (r.reviewer?.id ?? r.reviewer_id) === user.id);
+  const canReview = job?.status === 'completed' && isParticipant && !!revieweeId && !hasReviewed;
+
+  const handleSubmitReview = async ({ rating, comment }) => {
+    setReviewLoading(true);
+    setReviewErr('');
+    try {
+      await reviewService.create({
+        job_id: Number(id),
+        reviewee_id: revieweeId,
+        rating,
+        comment: comment || undefined,
+      });
+      const refreshed = await reviewService.getForJob(id);
+      if (Array.isArray(refreshed)) setJobReviews(refreshed);
+      setReviewOpen(false);
+    } catch (e) {
+      setReviewErr(e.message);
+    } finally {
+      setReviewLoading(false);
+    }
+  };
 
   const handleApply = async () => {
     if (!applyMsg.trim()) { setApplyErr('Skriv ett meddelande till beställaren.'); return; }
@@ -129,6 +175,27 @@ export default function JobDetailPage() {
                 </Link>
               </div>
             </div>
+
+            {/* Job Reviews - shown for completed jobs */}
+            {job.status === 'completed' && jobReviews.length > 0 && (
+              <div className="section">
+                <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Recensioner för detta jobb</h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {jobReviews.map(r => (
+                    <div key={r.id} style={{ background: 'var(--bg)', borderRadius: 8, border: '1px solid var(--border)', padding: 16 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                        <span style={{ fontSize: 13, fontWeight: 700 }}>{r.reviewer?.name ?? 'Användare'}</span>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                          <span style={{ color: '#F59E0B', fontSize: 14 }}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
+                          <span style={{ fontSize: 12, color: 'var(--muted)' }}>{formatDate(r.created_at)}</span>
+                        </div>
+                      </div>
+                      <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.6 }}>{r.comment}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Right: Booking card */}
@@ -138,7 +205,7 @@ export default function JobDetailPage() {
                 {formatPrice(job.price)}
               </div>
               <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 20 }}>
-                {job.price_type === 'hourly' ? 'Per timme' : 'Fast pris'} · inkl. 8% plattformsavgift
+                {job.price_type === 'hourly' ? 'Per timme' : job.price_type === 'negotiable' ? 'Förhandlingsbart' : 'Fast pris'} · inkl. 8% plattformsavgift
               </p>
 
               {isOwner ? (
@@ -169,12 +236,31 @@ export default function JobDetailPage() {
                       🏁 Jobbet är slutfört och utföraren har fått betalt.
                     </Alert>
                   )}
+                  {canReview && (
+                    <button
+                      className="btn btn-outline btn-full"
+                      style={{ marginBottom: 8 }}
+                      onClick={() => setReviewOpen(true)}
+                    >
+                      ⭐ Lämna recension
+                    </button>
+                  )}
                   <Link to={`/mina-jobb`} className="btn btn-outline btn-full">Hantera jobb</Link>
                 </div>
               ) : applyOk ? (
                 <Alert type="success">✅ Din ansökan är skickad! Beställaren hör av sig.</Alert>
               ) : job.status !== 'open' ? (
-                <Alert type="info">Jobbet är inte längre öppet för ansökningar.</Alert>
+                <>
+                  <Alert type="info" style={{ marginBottom: 8 }}>Jobbet är inte längre öppet för ansökningar.</Alert>
+                  {canReview && (
+                    <button
+                      className="btn btn-primary btn-full"
+                      onClick={() => setReviewOpen(true)}
+                    >
+                      ⭐ Lämna recension
+                    </button>
+                  )}
+                </>
               ) : (
                 <button className="btn btn-primary btn-full btn-lg" onClick={() => setApplyOpen(true)}>
                   Ansök nu
@@ -196,6 +282,16 @@ export default function JobDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Review modal */}
+      <Modal open={reviewOpen} onClose={() => setReviewOpen(false)} title="Lämna recension">
+        {reviewErr && <Alert type="error" style={{ marginBottom: 16 }}>{reviewErr}</Alert>}
+        <ReviewForm
+          revieweeName={revieweeName}
+          onSubmit={handleSubmitReview}
+          loading={reviewLoading}
+        />
+      </Modal>
 
       {/* Apply modal */}
       <Modal open={applyOpen} onClose={() => setApplyOpen(false)} title="Ansök på jobbet">

@@ -6,8 +6,19 @@ const rateLimiter = require('./src/middleware/rateLimiter');
 
 const app = express();
 
-// Security middleware
-app.use(helmet());
+// Trust first proxy (Render/Vercel/Heroku sit behind a load balancer).
+// Required for express-rate-limit to see the real client IP and for
+// req.secure / secure cookies to work correctly behind HTTPS termination.
+app.set('trust proxy', 1);
+
+// Security middleware.
+// crossOriginResourcePolicy MUST be 'cross-origin' because the API is consumed
+// from a different origin (Vercel). Helmet's default 'same-origin' causes the
+// browser to reject successful responses even when CORS headers are correct,
+// which surfaces as a generic "Network Error" in the frontend.
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
 app.use(rateLimiter);
 
 // CORS configuration
@@ -30,11 +41,15 @@ app.use('/api/jobs', require('./src/routes/jobs'));
 app.use('/api/applications', require('./src/routes/applications'));
 app.use('/api/users', require('./src/routes/users'));
 app.use('/api/messages', require('./src/routes/messages'));
+app.use('/api/reviews', require('./src/routes/reviews'));
 app.use('/api/admin', require('./src/routes/admin'));
 
-// Health check endpoint
+// Health check endpoints
 app.get('/', (req, res) => {
   res.json({ message: 'HobbyJobb API is running', status: 'ok' });
+});
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
 // Error handling middleware

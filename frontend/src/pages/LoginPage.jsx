@@ -86,9 +86,7 @@ export default function LoginPage() {
             {errors.password && <p className="error">{errors.password}</p>}
           </div>
 
-          <div style={{ textAlign: 'right', marginTop: -8, marginBottom: 18 }}>
-            <Link to="/forgot-password" style={{ fontSize: 13, color: 'var(--blue)', fontWeight: 600 }}>Glömt lösenord?</Link>
-          </div>
+          <div style={{ marginBottom: 18 }} />
 
           <button type="submit" className="btn btn-primary btn-full" disabled={loading}>
             {loading ? <Spinner size={18} color="#fff" /> : 'Logga in'}

@@ -66,7 +66,7 @@ export default function JobListPage() {
             <JobFilter params={params} onChange={updateParams} />
 
             {/* Results */}
-            <main style={{ zIndex: 2 }}>
+            <section style={{ zIndex: 2 }}>
               {/* Header */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
                 <p style={{ fontSize: 15, color: 'var(--muted)' }}>
@@ -101,7 +101,7 @@ export default function JobListPage() {
                   )}
                 </div>
               )}
-            </main>
+            </section>
           </div>
         </div>
       </div>

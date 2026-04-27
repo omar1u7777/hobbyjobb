@@ -9,7 +9,7 @@ export default function HobbyIncomeWarning({ totalYear, jobPrice = 0 }) {
   const pct            = Math.min((projectedTotal / HOBBY_ANNUAL_LIMIT) * 100, 100);
   const remaining      = Math.max(HOBBY_ANNUAL_LIMIT - totalYear, 0);
 
-  if (totalYear <= 0) return null;
+  if (totalYear <= 0 && Number(jobPrice) <= 0) return null;
 
   const isBlocked = totalYear >= HOBBY_ANNUAL_LIMIT;
   const isWarning = projectedTotal >= 25_000;

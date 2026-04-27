@@ -104,7 +104,7 @@ export default function JobFilter({ params, onChange }) {
           min="0"
           max="5000"
           value={maxPrice || 5000}
-          onChange={e => { setMaxPrice(e.target.value); applyPrice(); }}
+          onChange={e => { const v = e.target.value; setMaxPrice(v); onChange({ minPrice: minPrice || null, maxPrice: v || null }); }}
           style={{ width: '100%', accentColor: 'var(--blue)' }}
         />
       </div>

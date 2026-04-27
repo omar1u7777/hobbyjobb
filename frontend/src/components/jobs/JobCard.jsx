@@ -51,7 +51,7 @@ export default function JobCard({ job }) {
       {/* Price */}
       <div style={{ textAlign: 'right', flexShrink: 0 }}>
         <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--blue)' }}>{formatPrice(job.price)}</div>
-        <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{job.price_type === 'hourly' ? 'Per timme' : 'Fast pris'}</div>
+        <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{job.price_type === 'hourly' ? 'Per timme' : job.price_type === 'negotiable' ? 'Förhandlingsbart' : 'Fast pris'}</div>
       </div>
     </Link>
   );

@@ -163,11 +163,10 @@ export default function JobDetailPage() {
                 </div>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 15 }}>{job.poster?.name ?? job.poster_name}</div>
-                  <div style={{ color: '#F59E0B', fontSize: 13 }}>
-                    {'★'.repeat(5)}
-                    <span style={{ color: 'var(--muted)', marginLeft: 6 }}>
-                      · {job.poster?.jobs_completed ?? 0} jobb slutförda
-                    </span>
+                  <div style={{ fontSize: 13, color: 'var(--muted)' }}>
+                    {job.poster?.jobs_completed
+                      ? `${job.poster.jobs_completed} jobb slutförda`
+                      : 'Ny användare'}
                   </div>
                 </div>
                 <Link to={`/profil/${job.poster_id}`} className="btn btn-ghost btn-sm" style={{ marginLeft: 'auto' }}>

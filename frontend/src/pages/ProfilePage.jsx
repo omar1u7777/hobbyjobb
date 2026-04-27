@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { validators } from '../utils/validators.js';
 import { useAuth } from '../hooks/useAuth.js';
 import { useHobbyLimit } from '../hooks/useHobbyLimit.js';
 import { userService } from '../services/userService.js';
@@ -56,7 +57,7 @@ export default function ProfilePage() {
     userService.getReviews(userId)
       .then(r => { if (Array.isArray(r)) setReviews(r); })
       .catch(() => setReviews([]));
-  }, [isOwn, userId]);
+  }, [userId]);
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -82,8 +83,9 @@ export default function ProfilePage() {
       setPwErr('Lösenorden matchar inte');
       return;
     }
-    if (pwForm.new.length < 6) {
-      setPwErr('Lösenordet måste vara minst 6 tecken');
+    const pwValidation = validators.password(pwForm.new);
+    if (pwValidation) {
+      setPwErr(pwValidation);
       return;
     }
     setPwLoading(true);

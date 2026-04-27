@@ -12,7 +12,7 @@ export const jobService = {
         jobs: inner.jobs,
         total: inner.pagination.total ?? inner.jobs.length,
         page: inner.pagination.page ?? 1,
-        pages: inner.pagination.totalPages ?? 1,
+        pages: inner.pagination.totalPages ?? Math.ceil((inner.pagination.total || 1) / (inner.pagination.limit || 20)),
       };
     }
     return { jobs: [], total: 0, page: 1, pages: 1 };

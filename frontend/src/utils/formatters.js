@@ -6,12 +6,20 @@ export function formatPrice(amount) {
   return new Intl.NumberFormat('sv-SE').format(amount) + ' kr';
 }
 
-/** Short relative date: "Idag", "Igår", "3 apr" */
+/** Short relative date: "Idag", "Igår", "3 apr", "Imorgon", "Om 3 dagar" */
 export function formatDate(dateStr) {
   if (!dateStr) return '';
   const d    = new Date(dateStr);
   const now  = new Date();
   const diff = Math.floor((now - d) / 86_400_000);
+  // Future dates (e.g. expires_at)
+  if (diff < 0) {
+    const absDiff = Math.abs(diff);
+    if (absDiff === 1) return 'Imorgon';
+    if (absDiff < 7)   return `Om ${absDiff} dagar`;
+    return d.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' });
+  }
+  // Past dates
   if (diff === 0) return 'Idag';
   if (diff === 1) return 'Igår';
   if (diff > 1 && diff < 7)  return `${diff} dagar sedan`;

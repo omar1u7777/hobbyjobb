@@ -1,5 +1,5 @@
 # 🔵 HobbyJobb – Hobbyverksamhet Plattform
-### DA219B · Fullstack Webbapplikation · Grupp 5
+### DA219B · Fullstack Webbapplikation · Grupp 18
 
 > **HobbyJobb** är en webbaserad plattform för lokala småjobb och hobbyverksamhet i Sverige.  
 > Privatpersoner kan erbjuda eller hitta tjänster som gräsklippning, flytt, hundpromenad m.m.  

@@ -1,5 +1,5 @@
 ﻿# Project Proposal – DA219B VT26
-### Grupp 5 · Högskolan Kristianstad
+### Grupp 18 · Högskolan Kristianstad
 
 ---
 
@@ -84,5 +84,5 @@ The platform directly addresses a real problem: many people in Sweden informally
 HobbyJobb is a technically ambitious, legally grounded, and commercially relevant full-stack application. It demonstrates the full spectrum of modern web development: user authentication, relational database design, REST API development, third-party payment integration, CI/CD deployment, and responsive UI design.
 .
 
-**Team HobbyJobb — Grupp 5**  
+**Team HobbyJobb — Grupp 18**  
 DA219B · Fullstack utveckling · VT26 · Högskolan Kristianstad

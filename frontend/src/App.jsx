@@ -59,7 +59,10 @@ function GuestRoute({ children }) {
 function AdminRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <Spinner fullPage />;
-  if (!user || !user.is_admin) return <Navigate to="/" replace />;
+
+  const isAdmin = user && (user.is_admin === true || user.is_admin === 1 || user.is_admin === '1' || user.is_admin === 'true');
+  if (!isAdmin) return <Navigate to="/" replace />;
+
   return children;
 }
 

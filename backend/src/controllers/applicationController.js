@@ -1,4 +1,4 @@
-const { Application, Job, User, Category } = require('../models');
+const { Application, Job, User, Category, Message } = require('../models');
 const { APPLICATION_STATUS, JOB_STATUS } = require('../../config/constants');
 
 const createApplication = async (req, res, next) => {
@@ -127,7 +127,19 @@ const updateApplicationStatus = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Only the job owner can update this application' });
     }
 
+    const wasAcceptedBefore = application.status === APPLICATION_STATUS.ACCEPTED;
     await application.update({ status });
+
+    // Auto-start the conversation if just accepted
+    if (!wasAcceptedBefore && status === APPLICATION_STATUS.ACCEPTED) {
+      await Message.create({
+        job_id: application.job_id,
+        sender_id: req.user.id, // The poster
+        receiver_id: application.applicant_id, // The applicant
+        content: '👋 Hej! Din ansökan har accepterats. Vi kan nu diskutera detaljerna kring uppdraget här.',
+        is_read: false,
+      });
+    }
 
     // NOTE: job stays 'open' after acceptance. It only moves to 'in_progress'
     // when the poster successfully pays (escrow held). See payments.js.

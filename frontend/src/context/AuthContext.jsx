@@ -10,22 +10,24 @@ export function AuthProvider({ children }) {
   const [token, setToken]     = useState(() => localStorage.getItem('hj_token'));
   const [loading, setLoading] = useState(true);
 
-  // On mount: validate stored token
+  // On mount only: validate stored token (not re-run on login/logout)
   useEffect(() => {
-    if (!token) {
+    const stored = localStorage.getItem('hj_token');
+    if (!stored) {
       setLoading(false);
       return;
     }
     authService.getMe()
       .then(me => setUser(me))
       .catch((err) => {
-        if (err?.response?.status === 401) {
+        if (err?.status === 401) {
           localStorage.removeItem('hj_token');
           setToken(null);
         }
       })
       .finally(() => setLoading(false));
-  }, [token]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const login = useCallback(async (email, password) => {
     const { user: me, token: jwt } = await authService.login(email, password);

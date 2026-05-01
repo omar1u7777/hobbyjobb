@@ -31,7 +31,8 @@ const generateToken = (user) => {
 // @access  Public
 const register = async (req, res) => {
   try {
-    const { name, email, password, location } = req.body;
+    const { name, password, location } = req.body;
+    const email = req.body.email?.toLowerCase().trim();
 
     // Validation
     if (!name || !email || !password) {
@@ -120,7 +121,8 @@ const register = async (req, res) => {
 // @access  Public
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { password } = req.body;
+    const email = req.body.email?.toLowerCase().trim();
 
     // Validation
     if (!email || !password) {

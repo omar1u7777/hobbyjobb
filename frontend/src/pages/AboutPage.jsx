@@ -75,7 +75,7 @@ export default function AboutPage() {
           </h1>
 
           <p style={{ color: 'var(--ink)', maxWidth: 860, lineHeight: 1.75, marginBottom: 18 }}>
-            HobbyJobb är utvecklat inom kursen DA219B av Grupp 5 på Högskolan Kristianstad.
+            HobbyJobb är utvecklat inom kursen DA219B av Grupp 18 på Högskolan Kristianstad.
             Visionen är en modern marknadsplats där privatpersoner kan hitta eller erbjuda
             mindre tjänster på ett tryggt och tydligt sätt.
           </p>
@@ -114,7 +114,7 @@ export default function AboutPage() {
 
         <section className="section">
           <div className="section-hdr">
-            <h3>Team Grupp 5</h3>
+            <h3>Team Grupp 18</h3>
           </div>
 
           <div className="about-team-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12 }}>

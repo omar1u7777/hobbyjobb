@@ -222,7 +222,7 @@ export default function CheckoutPage() {
             <span style={{ fontWeight: 800, color: 'var(--blue)', fontSize: 18 }}>{formatPrice(job.price)}</span>
           </div>
           <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 8 }}>
-            Utföraren får {formatPrice(job.price * 0.92)} kr efter plattformsavgift
+            Utföraren får {formatPrice(job.price * 0.92)} efter plattformsavgift
           </p>
         </div>
 

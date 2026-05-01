@@ -28,11 +28,11 @@ function ensureDbReady(res) {
 
 const createCheckout = async (req, res, next) => {
   try {
-    const { jobId, amount } = req.body;
+    const { jobId } = req.body;
     const userId = req.user.id;
 
-    if (!jobId || !amount) {
-      return res.status(400).json({ success: false, message: 'jobId and amount are required' });
+    if (!jobId) {
+      return res.status(400).json({ success: false, message: 'jobId is required' });
     }
     if (!ensureStripeReady(res) || !ensureDbReady(res)) return;
 
@@ -62,7 +62,7 @@ const createCheckout = async (req, res, next) => {
     const payeeId = acceptedApplication.applicant_id;
 
     const existing = await Payment.findOne({
-      where: { job_id: jobId, payer_id: userId, status: 'pending' },
+      where: { job_id: jobId, payer_id: userId, status: { [Op.in]: ['pending', 'held'] } },
     });
     if (existing && existing.stripe_payment_id) {
       try {
@@ -85,7 +85,8 @@ const createCheckout = async (req, res, next) => {
       }
     }
 
-    const amountInOre = stripeConfig.toOre(Number(amount));
+    const amount = Number(job.price);
+    const amountInOre = stripeConfig.toOre(amount);
     const platformFeeOre = stripeConfig.calculatePlatformFee(amountInOre);
     const payeeOre = amountInOre - platformFeeOre;
 
@@ -178,7 +179,7 @@ async function handlePaymentSuccess(paymentIntent) {
     console.error('Payment not found for intent:', paymentIntent.id);
     return;
   }
-  await payment.update({ status: 'held', confirmed_at: new Date() });
+  await payment.update({ status: 'held' });
   if (Job) {
     await Job.update({ status: 'in_progress' }, { where: { id: payment.job_id } });
   }
@@ -278,7 +279,7 @@ const confirmPayment = async (req, res, next) => {
       // Idempotent guard: only transition pending -> held once.
       // Prevents double-processing if webhook and this endpoint race.
       if (payment.status === 'pending') {
-        await payment.update({ status: 'held', confirmed_at: new Date() });
+        await payment.update({ status: 'held' });
         await Job.update({ status: 'in_progress' }, { where: { id: payment.job_id } });
       }
       return res.json({
@@ -323,7 +324,7 @@ const releaseEscrow = async (req, res, next) => {
 
     const transaction = await sequelize.transaction();
     try {
-      await payment.update({ status: 'released' }, { transaction });
+      await payment.update({ status: 'released', confirmed_at: new Date() }, { transaction });
       await Job.update({ status: 'completed' }, { where: { id: jobId }, transaction });
 
       const payee = await User.findByPk(payment.payee_id, { transaction });

@@ -19,7 +19,14 @@ app.set('trust proxy', 1);
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
-app.use(rateLimiter);
+
+// Rate-limit everything EXCEPT the Stripe webhook endpoint. Stripe webhooks come
+// from a small pool of IPs and a load spike must not result in 429s — Stripe
+// will retry, but throttling is a code smell and risks delayed escrow updates.
+app.use((req, res, next) => {
+  if (req.path === '/api/payments/webhook') return next();
+  return rateLimiter(req, res, next);
+});
 
 // CORS configuration
 app.use(cors({

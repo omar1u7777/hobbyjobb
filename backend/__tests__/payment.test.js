@@ -182,13 +182,15 @@ describe('Payment Routes', () => {
 
   // ── CONFIRM PAYMENT ─────────────────────────────────────────────────────
   describe('POST /api/payments/confirm', () => {
-    it('should transition pending -> held (NOT released)', async () => {
+    it('should transition pending -> held (NOT released) atomically', async () => {
       const mockP = {
         id: 1, payer_id: 1, status: 'pending', job_id: 10,
         update: jest.fn(),
       };
       stripe.paymentIntents.retrieve.mockResolvedValue({ id: 'pi_123', status: 'succeeded' });
       Payment.findOne.mockResolvedValue(mockP);
+      const tx = { commit: jest.fn(), rollback: jest.fn() };
+      sequelize.transaction.mockResolvedValue(tx);
 
       const res = await request(buildApp())
         .post('/api/payments/confirm')
@@ -196,7 +198,13 @@ describe('Payment Routes', () => {
         .send({ paymentIntentId: 'pi_123' });
 
       expect(res.status).toBe(200);
-      expect(mockP.update).toHaveBeenCalledWith({ status: 'held' });
+      // C2: payment + job must be updated inside the same transaction
+      expect(mockP.update).toHaveBeenCalledWith({ status: 'held' }, { transaction: tx });
+      expect(Job.update).toHaveBeenCalledWith(
+        { status: 'in_progress' },
+        expect.objectContaining({ transaction: tx })
+      );
+      expect(tx.commit).toHaveBeenCalled();
     });
 
     it('should be idempotent — no update if already held', async () => {
@@ -306,14 +314,14 @@ describe('Payment Routes', () => {
       );
     });
 
-    it('should set hobby_limit_reached when total >= 30000', async () => {
+    it('should set hobby_limit_reached when total exactly hits 30000', async () => {
       const mockP = {
         id: 1, payer_id: 1, payee_id: 2, amount_payee: 5000, status: 'held',
         update: jest.fn(),
       };
       Payment.findOne.mockResolvedValue(mockP);
       const mockPayee = {
-        hobby_total_year: 28000, hobby_job_count: 5, hobby_warned: true,
+        hobby_total_year: 25000, hobby_job_count: 5, hobby_warned: true,
         update: jest.fn(),
       };
       User.findByPk.mockResolvedValue(mockPayee);
@@ -330,10 +338,70 @@ describe('Payment Routes', () => {
         { transaction: tx }
       );
     });
+
+    // C3: hobby-limit MUST block release if it would exceed the annual limit.
+    // This is HobbyJobb's legal protection layer (see README).
+    it('should BLOCK release with 403 if payout would exceed annual hobby limit', async () => {
+      const mockP = {
+        id: 1, payer_id: 1, payee_id: 2, amount_payee: 5000, status: 'held',
+        update: jest.fn(),
+      };
+      Payment.findOne.mockResolvedValue(mockP);
+      User.findByPk.mockResolvedValue({
+        hobby_total_year: 28000, hobby_job_count: 5, hobby_warned: true,
+        update: jest.fn(),
+      });
+      const tx = { commit: jest.fn(), rollback: jest.fn() };
+      sequelize.transaction.mockResolvedValue(tx);
+
+      const res = await request(buildApp())
+        .post('/api/payments/release/10')
+        .set('Authorization', `Bearer ${makeToken(1)}`)
+        .send();
+
+      expect(res.status).toBe(403);
+      expect(res.body.success).toBe(false);
+      expect(res.body.message).toMatch(/Hobbygränsen/);
+      // Critically: transaction must NOT be opened, payment must NOT be released.
+      expect(mockP.update).not.toHaveBeenCalled();
+      expect(sequelize.transaction).not.toHaveBeenCalled();
+    });
   });
 
   // ── WEBHOOK ─────────────────────────────────────────────────────────────
   describe('POST /api/payments/webhook', () => {
+    // C1: Stripe retries webhooks for up to 3 days. A late retry of
+    // payment_intent.succeeded after the escrow has been released MUST NOT
+    // regress payment.status from 'released' back to 'held' or job.status
+    // from 'completed' back to 'in_progress'.
+    it('should NOT regress released payment back to held on late webhook retry', async () => {
+      const mockP = {
+        id: 1, status: 'released', job_id: 10, payer_id: 1,
+        update: jest.fn(),
+      };
+      Payment.findOne.mockResolvedValue(mockP);
+      Job.update.mockClear();
+
+      const app = express();
+      app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
+      app.use(express.json());
+      app.use('/api/payments', require('../src/routes/payments'));
+      app.use(require('../src/middleware/errorHandler'));
+
+      const res = await request(app)
+        .post('/api/payments/webhook')
+        .set('content-type', 'application/json')
+        .send(Buffer.from(JSON.stringify({
+          type: 'payment_intent.succeeded',
+          data: { object: { id: 'pi_late_retry', metadata: {} } },
+        })));
+
+      expect(res.status).toBe(200);
+      // The webhook returned OK to Stripe but did NOT mutate the released payment.
+      expect(mockP.update).not.toHaveBeenCalled();
+      expect(Job.update).not.toHaveBeenCalled();
+    });
+
     it('should reject unsigned webhooks in production', async () => {
       const originalEnv = process.env.NODE_ENV;
       process.env.NODE_ENV = 'production';
@@ -353,6 +421,32 @@ describe('Payment Routes', () => {
 
       expect(res.status).toBe(400);
       process.env.NODE_ENV = originalEnv;
+    });
+  });
+
+  // ── BOOST CONFIRM ───────────────────────────────────────────────────────
+  describe('POST /api/payments/boost/confirm', () => {
+    // C5: defense-in-depth — confirmBoost must verify job.poster_id even though
+    // createBoost already validated ownership. Protects against tampered
+    // metadata or future code paths that create boost intents differently.
+    it('should reject non-owner even when intent metadata says owner matches', async () => {
+      stripe.paymentIntents.retrieve.mockResolvedValue({
+        id: 'pi_boost', status: 'succeeded',
+        amount: 2900, metadata: {
+          type: 'boost', userId: '1', jobId: '10', durationHours: '48',
+          boostPackage: 'standard', payerId: '1',
+        },
+      });
+      // Job in DB is owned by user 99, NOT user 1 (the authenticated caller)
+      Job.findByPk.mockResolvedValue({ id: 10, poster_id: 99, update: jest.fn() });
+
+      const res = await request(buildApp())
+        .post('/api/payments/boost/confirm')
+        .set('Authorization', `Bearer ${makeToken(1)}`)
+        .send({ paymentIntentId: 'pi_boost' });
+
+      expect(res.status).toBe(403);
+      expect(res.body.message).toMatch(/owner/i);
     });
   });
 

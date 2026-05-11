@@ -209,21 +209,23 @@ export default function CheckoutPage() {
             <span style={{ color: 'var(--muted)' }}>Jobb:</span>
             <span style={{ fontWeight: 600 }}>{job.title}</span>
           </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span style={{ color: 'var(--muted)' }}>Pris:</span>
-            <span style={{ fontWeight: 600 }}>{formatPrice(job.price)}</span>
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span style={{ color: 'var(--muted)' }}>Plattformsavgift (8%):</span>
-            <span style={{ fontWeight: 600 }}>{formatPrice(job.price * 0.08)}</span>
-          </div>
           <div style={{ borderTop: '1px solid var(--border-light)', marginTop: 12, paddingTop: 12, display: 'flex', justifyContent: 'space-between' }}>
-            <span style={{ fontWeight: 700 }}>Totalt att betala:</span>
+            <span style={{ fontWeight: 700 }}>Du betalar:</span>
             <span style={{ fontWeight: 800, color: 'var(--blue)', fontSize: 18 }}>{formatPrice(job.price)}</span>
           </div>
-          <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 8 }}>
-            Utföraren får {formatPrice(job.price * 0.92)} efter plattformsavgift
-          </p>
+          <div style={{ marginTop: 12, padding: 12, background: 'var(--bg)', borderRadius: 8, fontSize: 13, color: 'var(--muted)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+              <span>Utföraren får:</span>
+              <span style={{ fontWeight: 600, color: 'var(--green-text)' }}>{formatPrice(job.price * 0.92)}</span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <span>HobbyJobb plattformsavgift (8%):</span>
+              <span style={{ fontWeight: 600 }}>{formatPrice(job.price * 0.08)}</span>
+            </div>
+            <p style={{ fontSize: 11, marginTop: 6, fontStyle: 'italic' }}>
+              Avgiften dras från utförarens andel — du betalar inget extra.
+            </p>
+          </div>
         </div>
 
         {/* Stripe Checkout */}

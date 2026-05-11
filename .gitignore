@@ -1,6 +1,5 @@
 ﻿# Beroenden
 node_modules/
-package-lock.json
 
 # Miljövariabler (far ALDRIG pushas till GitHub)
 .env

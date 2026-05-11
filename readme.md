@@ -929,6 +929,17 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [x] `POST /api/messages` — Skicka meddelande — **S2** ✅
 - [x] `GET /api/messages/unread-count` — Antal olästa meddelanden — **S3** ✅ (via NotificationContext)
 
+### 1F — Backend Testing (S1)
+> 🔒 Kräver att 1C (Auth API) och FAS 4 (Payments) är klara
+- [x] Jest + Supertest installerat som devDependencies — **S1** ✅
+- [x] `backend/jest.config.js` — Jest-konfiguration (node environment, 10s timeout) — **S1** ✅
+- [x] `backend/__tests__/helpers/createApp.js` — Test helper för Express app — **S1** ✅
+- [x] `backend/__tests__/auth.test.js` — 19 tester för auth routes (register, login, getMe, changePassword, email-normalisering) — **S1** ✅
+- [x] `backend/__tests__/middleware.test.js` — 5 tester för middleware (requireAuth, requireAdmin, errorHandler) — **S1** ✅
+- [x] `backend/__tests__/payment.test.js` — 18 tester för payment controller (checkout, confirm, release, webhook, hobby limits, amount från DB) — **S1** ✅
+- [x] `backend/__tests__/config.test.js` — 19 tester för config (stripe.js, database.js SSL logic) — **S1** ✅
+- [x] Alla 61 tester passerar (`npm test`) — **S1** ✅
+
 ---
 
 ## 🎨 FAS 2 — Frontend: Grundstruktur & Design
@@ -1014,18 +1025,24 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [x] Stripe-konto skapat på dashboard.stripe.com — **S1** 
 - [ ] Connect aktiverat i Stripe Dashboard — **S1** *(MVP: plattform håller escrow utan Connect)*
 - [x] `backend/config/stripe.js` — Stripe-klient med API-nyckel + fee-beräkning — **S1** 
-- [x] `POST /api/payments/checkout` — Skapar Stripe PaymentIntent med platform-fee (8%) — **S1** 
-- [x] `POST /api/payments/confirm` — Client-side confirm fallback (verifierar mot Stripe API) — **S1** 
-- [x] `POST /api/payments/release/:jobId` — Frigör escrow till utföraren (92%) + uppdaterar hobby_total_year — **S1** 
-- [x] `POST /api/payments/webhook` — Hanterar Stripe-events (payment_intent.succeeded etc.) — **S1** 
-- [x] `GET /api/payments/history` — Betalningshistorik för inloggad användare — **S1** 
+- [x] `POST /api/payments/checkout` — Skapar Stripe PaymentIntent med platform-fee (8%) — **S1** ✅
+  - **Säkerhetsfix:** `amount` hämtas från `job.price` i DB (inte från request body) — **S1** ✅
+- [x] `POST /api/payments/confirm` — Client-side confirm fallback (verifierar mot Stripe API) — **S1** ✅
+- [x] `POST /api/payments/release/:jobId` — Frigör escrow till utföraren (92%) + uppdaterar hobby_total_year — **S1** ✅
+  - **Säkerhetsfix:** `confirmed_at` sätts endast på escrow-release (inte vid betalning) — **S1** ✅
+  - **Säkerhetsfix:** Double-betalningsskydd med `Op.in: ['pending', 'held']` — **S1** ✅
+- [x] `POST /api/payments/webhook` — Hanterar Stripe-events (payment_intent.succeeded etc.) — **S1** ✅
+  - **Säkerhetsfix:** Signature-verifiering krävs i production (avvisar unsigned webhooks) — **S1** ✅
+- [x] `GET /api/payments/history` — Betalningshistorik för inloggad användare — **S1** ✅
 - [x] `POST /api/payments/boost` + `/boost/confirm` — Direkt betalning för Boost-annonsering (29 kr/48h eller 59 kr/7 dagar) — **S1** ✅
 - [x] `BoostJobPage.jsx` — Paketval + Stripe Elements för boost-betalning — **S1** ✅
 - [x] `MyJobsPage` — 🚀 "Boosta"-knapp per jobb — **S1** ✅
 - [x] `frontend/src/services/paymentService.js` — createCheckout(), confirmPayment(), releaseEscrow(), getHistory() — **S1** 
-- [x] `CheckoutPage.jsx` — Stripe Elements betalningsflöde med sammanfattning — **S1** 
-- [x] `PaymentSuccessPage.jsx` — Bekräftelsesida efter genomförd betalning — **S1** 
-- [x] `JobDetailPage` — "Betala & starta jobbet" + "Markera klart & frigör betalning" knappar — **S1** 
+- [x] `CheckoutPage.jsx` — Stripe Elements betalningsflöde med sammanfattning — **S1** ✅
+  - **Fix:** Borttaget dubblett "kr" i prisvisning — **S1** ✅
+- [x] `PaymentSuccessPage.jsx` — Bekräftelsesida efter genomförd betalning — **S1** ✅
+  - **Fix:** Borttaget falskt påstående om email (ingen email-service) — **S1** ✅
+- [x] `JobDetailPage` — "Betala & starta jobbet" + "Markera klart & frigör betalning" knappar — **S1** ✅
 
 ---
 

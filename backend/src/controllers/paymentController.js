@@ -28,11 +28,11 @@ function ensureDbReady(res) {
 
 const createCheckout = async (req, res, next) => {
   try {
-    const { jobId, amount } = req.body;
+    const { jobId } = req.body;
     const userId = req.user.id;
 
-    if (!jobId || !amount) {
-      return res.status(400).json({ success: false, message: 'jobId and amount are required' });
+    if (!jobId) {
+      return res.status(400).json({ success: false, message: 'jobId is required' });
     }
     if (!ensureStripeReady(res) || !ensureDbReady(res)) return;
 
@@ -62,7 +62,7 @@ const createCheckout = async (req, res, next) => {
     const payeeId = acceptedApplication.applicant_id;
 
     const existing = await Payment.findOne({
-      where: { job_id: jobId, payer_id: userId, status: 'pending' },
+      where: { job_id: jobId, payer_id: userId, status: { [Op.in]: ['pending', 'held'] } },
     });
     if (existing && existing.stripe_payment_id) {
       try {
@@ -85,7 +85,8 @@ const createCheckout = async (req, res, next) => {
       }
     }
 
-    const amountInOre = stripeConfig.toOre(Number(amount));
+    const amount = Number(job.price);
+    const amountInOre = stripeConfig.toOre(amount);
     const platformFeeOre = stripeConfig.calculatePlatformFee(amountInOre);
     const payeeOre = amountInOre - platformFeeOre;
 
@@ -178,9 +179,29 @@ async function handlePaymentSuccess(paymentIntent) {
     console.error('Payment not found for intent:', paymentIntent.id);
     return;
   }
-  await payment.update({ status: 'held', confirmed_at: new Date() });
-  if (Job) {
-    await Job.update({ status: 'in_progress' }, { where: { id: payment.job_id } });
+
+  // Idempotency guard: only transition pending -> held. Stripe retries webhooks
+  // up to 3 days; without this guard a late retry after `releaseEscrow` would
+  // regress the payment from 'released' back to 'held' and leave hobby totals
+  // already incremented, causing permanent state inconsistency.
+  if (payment.status !== 'pending') {
+    console.log('Webhook ignored (already processed):', paymentIntent.id, 'status=', payment.status);
+    return;
+  }
+
+  // Atomic update: payment.status + job.status must change together so the
+  // frontend never sees Payment=held while Job=open (a race window that allowed
+  // double-charge via repeated /checkout calls).
+  const transaction = await sequelize.transaction();
+  try {
+    await payment.update({ status: 'held' }, { transaction });
+    if (Job) {
+      await Job.update({ status: 'in_progress' }, { where: { id: payment.job_id }, transaction });
+    }
+    await transaction.commit();
+  } catch (err) {
+    await transaction.rollback();
+    throw err;
   }
   console.log('Payment held:', paymentIntent.id);
 }
@@ -278,8 +299,17 @@ const confirmPayment = async (req, res, next) => {
       // Idempotent guard: only transition pending -> held once.
       // Prevents double-processing if webhook and this endpoint race.
       if (payment.status === 'pending') {
-        await payment.update({ status: 'held', confirmed_at: new Date() });
-        await Job.update({ status: 'in_progress' }, { where: { id: payment.job_id } });
+        // Atomic: payment + job updated together so a crash between the two
+        // statements cannot leave Payment=held while Job=open.
+        const transaction = await sequelize.transaction();
+        try {
+          await payment.update({ status: 'held' }, { transaction });
+          await Job.update({ status: 'in_progress' }, { where: { id: payment.job_id }, transaction });
+          await transaction.commit();
+        } catch (err) {
+          await transaction.rollback();
+          throw err;
+        }
       }
       return res.json({
         success: true,
@@ -321,9 +351,29 @@ const releaseEscrow = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Only the payer can release funds' });
     }
 
+    // Hobby annual limit enforcement (HobbyJobb's legal protection layer).
+    // Block release if this payout would push the payee over HOBBY_ANNUAL_LIMIT.
+    // The payer must contact the payee/admin to handle it outside escrow.
+    const payeePreCheck = await User.findByPk(payment.payee_id);
+    if (payeePreCheck) {
+      const projectedTotal =
+        Number(payeePreCheck.hobby_total_year || 0) + Number(payment.amount_payee);
+      if (projectedTotal > HOBBY_ANNUAL_LIMIT) {
+        return res.status(403).json({
+          success: false,
+          message: `Hobbygränsen på ${HOBBY_ANNUAL_LIMIT} kr/år skulle överskridas. Kontakta supporten.`,
+          data: {
+            currentTotal: Number(payeePreCheck.hobby_total_year || 0),
+            attemptedAmount: Number(payment.amount_payee),
+            limit: HOBBY_ANNUAL_LIMIT,
+          },
+        });
+      }
+    }
+
     const transaction = await sequelize.transaction();
     try {
-      await payment.update({ status: 'released' }, { transaction });
+      await payment.update({ status: 'released', confirmed_at: new Date() }, { transaction });
       await Job.update({ status: 'completed' }, { where: { id: jobId }, transaction });
 
       const payee = await User.findByPk(payment.payee_id, { transaction });
@@ -454,6 +504,14 @@ const confirmBoost = async (req, res, next) => {
     const job = await Job.findByPk(jobId);
     if (!job) {
       return res.status(404).json({ success: false, message: 'Job not found' });
+    }
+
+    // Defense-in-depth: even though createBoost already verified ownership and
+    // wrote userId into intent.metadata, re-verify against the actual job row.
+    // Protects against any future code path that creates boost intents without
+    // the same ownership check, or against tampered metadata in dev.
+    if (job.poster_id !== req.user.id) {
+      return res.status(403).json({ success: false, message: 'Only the job owner can confirm this boost' });
     }
 
     const now = new Date();

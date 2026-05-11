@@ -9,7 +9,7 @@
     "dev": "nodemon server.js",
     "migrate": "npx sequelize-cli db:migrate",
     "seed": "npx sequelize-cli db:seed:all",
-    "test": "echo \"No tests defined yet - skipping\" && exit 0"
+    "test": "jest --verbose --forceExit"
   },
   "keywords": [],
   "author": "Student 1 – Omar Ahmad Alhaek",
@@ -33,6 +33,8 @@
     "stripe": "^16.0.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.4"
+    "jest": "^30.3.0",
+    "nodemon": "^3.1.4",
+    "supertest": "^7.2.2"
   }
 }

@@ -25,7 +25,9 @@ api.interceptors.response.use(
       err?.response?.data?.error ||
       err.message ||
       'Något gick fel. Försök igen.';
-    return Promise.reject(new Error(msg));
+    const error = new Error(msg);
+    error.status = err?.response?.status;
+    return Promise.reject(error);
   }
 );
 

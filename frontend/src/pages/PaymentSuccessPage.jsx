@@ -113,8 +113,7 @@ export default function PaymentSuccessPage() {
         </div>
 
         <p style={{ textAlign: 'center', marginTop: 24, fontSize: 13, color: 'var(--muted)' }}>
-          En bekräftelse har skickats till din e-post. 
-          <Link to="/chatt" style={{ color: 'var(--blue)', fontWeight: 600 }}>Gå till chatten</Link>
+          <Link to="/chatt" style={{ color: 'var(--blue)', fontWeight: 600 }}>Gå till chatten</Link> för att koordinera med utföraren.
         </p>
       </div>
     </main>

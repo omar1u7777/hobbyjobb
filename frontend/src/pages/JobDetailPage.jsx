@@ -205,7 +205,7 @@ export default function JobDetailPage() {
                 {formatPrice(job.price)}
               </div>
               <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 20 }}>
-                {job.price_type === 'hourly' ? 'Per timme' : job.price_type === 'negotiable' ? 'Förhandlingsbart' : 'Fast pris'} · inkl. 8% plattformsavgift
+                {job.price_type === 'hourly' ? 'Per timme' : job.price_type === 'negotiable' ? 'Förhandlingsbart' : 'Fast pris'} · ingen extra avgift för dig
               </p>
 
               {isOwner ? (

@@ -119,7 +119,7 @@ export default function Navbar() {
                   }} onClick={() => setDropOpen(false)}>
                     <DropItem to="/profil">👤 Min profil</DropItem>
                     <DropItem to="/mina-jobb">📋 Mina jobb</DropItem>
-                    {user.is_admin && <DropItem to="/admin">⚙️ Admin</DropItem>}
+                    {(user.is_admin === true || user.is_admin === 1 || user.is_admin === '1' || user.is_admin === 'true') && <DropItem to="/admin">⚙️ Admin</DropItem>}
                     <div style={{ borderTop: '1px solid var(--border-light)' }}>
                       <button onClick={handleLogout} style={{
                         width: '100%',

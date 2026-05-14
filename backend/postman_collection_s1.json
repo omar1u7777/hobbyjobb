@@ -2,20 +2,19 @@
   "info": {
     "_postman_id": "hobbyjobb-s1-collection",
     "name": "HobbyJobb S1 – Auth & Payments",
-    "description": "Postman collection för S1 Omar Alhaek – Auth och Payments endpoints",
+    "description": "Postman collection för S1 (Omar Alhaek) – täcker Auth- och Payments-endpoints inklusive efter-fix-flödet (idempotent webhook, atomic confirm, hobby-limit på release, boost ownership).\n\n## Variabler\n- `host` – välj `http://127.0.0.1:5000` (lokalt) eller `https://hobbyjobb-api.onrender.com` (prod).\n- `baseUrl` – härleds automatiskt till `{{host}}/api`.\n- `token` – sätts automatiskt av Login.\n- `jobId` – jobb-id som används av checkout/release/boost.\n- `paymentIntentId` – sätts automatiskt av Create Checkout.\n- `boostPaymentIntentId` – sätts automatiskt av Create Boost.\n\n## Flöde\n1. Register (engångs) eller Login med en befintlig användare.\n2. GetMe för att verifiera token.\n3. Create Checkout → Confirm Payment → (efter motpart markerat klart) Release Escrow.\n4. Create Boost → Confirm Boost.\n5. Webhook-requesten fungerar endast i development (i produktion krävs giltig `Stripe-Signature`-header och returneras annars 400).",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    {
-      "key": "baseUrl",
-      "value": "http://127.0.0.1:5000/api",
-      "type": "string"
-    },
-    {
-      "key": "token",
-      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTEsImVtYWlsIjoiZGVtby5hbWluQGhvYmJ5am9iYi5zZSIsImlzX2FkbWluIjpmYWxzZSwiaWF0IjoxNzc3NjQ1MjA5LCJleHAiOjE3NzgyNTAwMDl9.9pDgX4vMKnTJQmy9D18m5mWTXilm2NeIFS4U0av1Sys",
-      "type": "string"
-    }
+    { "key": "host", "value": "http://127.0.0.1:5000", "type": "string" },
+    { "key": "prodHost", "value": "https://hobbyjobb-api.onrender.com", "type": "string" },
+    { "key": "baseUrl", "value": "{{host}}/api", "type": "string" },
+    { "key": "token", "value": "", "type": "string" },
+    { "key": "jobId", "value": "1", "type": "string" },
+    { "key": "paymentIntentId", "value": "", "type": "string" },
+    { "key": "boostPaymentIntentId", "value": "", "type": "string" },
+    { "key": "testEmail", "value": "postman.test@hobbyjobb.se", "type": "string" },
+    { "key": "testPassword", "value": "password123", "type": "string" }
   ],
   "item": [
     {
@@ -25,57 +24,130 @@
           "name": "Register",
           "request": {
             "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "url": "{{baseUrl}}/auth/register",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"password123\",\n  \"location\": \"Kristianstad\"\n}"
+              "raw": "{\n  \"name\": \"Postman Test\",\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\",\n  \"location\": \"Kristianstad\"\n}"
+            },
+            "description": "Skapar en ny användare. Returnerar 201 + token vid lyckad registrering, 409 om e-posten redan finns."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201 or 409 (already exists)', () => {",
+                  "  pm.expect([201, 409]).to.include(pm.response.code);",
+                  "});",
+                  "if (pm.response.code === 201) {",
+                  "  const body = pm.response.json();",
+                  "  if (body?.data?.token) pm.collectionVariables.set('token', body.data.token);",
+                  "}"
+                ]
+              }
             }
-          }
+          ]
         },
         {
           "name": "Login",
           "request": {
             "method": "POST",
-            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "url": "{{baseUrl}}/auth/login",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"email\": \"demo.amin@hobbyjobb.se\",\n  \"password\": \"Password123!\"\n}"
-            }
+              "raw": "{\n  \"email\": \"{{testEmail}}\",\n  \"password\": \"{{testPassword}}\"\n}"
+            },
+            "description": "Loggar in användaren som skapades i Register. Sparar JWT i `token`-variabeln."
           },
-          "event": [{
-            "listen": "test",
-            "script": {
-              "exec": ["pm.collectionVariables.set('token', pm.response.json().data?.token || pm.response.json().token);"]
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Body contains token', () => {",
+                  "  pm.expect(body?.data?.token || body?.token).to.be.a('string');",
+                  "});",
+                  "const token = body?.data?.token || body?.token;",
+                  "if (token) pm.collectionVariables.set('token', token);"
+                ]
+              }
             }
-          }]
+          ]
         },
         {
           "name": "GetMe",
           "request": {
             "method": "GET",
             "header": [
-              {"key": "Authorization", "value": "Bearer {{token}}"},
-              {"key": "Content-Type", "value": "application/json"}
+              { "key": "Authorization", "value": "Bearer {{token}}" }
             ],
-            "url": "{{baseUrl}}/auth/me"
-          }
+            "url": "{{baseUrl}}/auth/me",
+            "description": "Returnerar profilen för den inloggade användaren."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Returns user object', () => pm.expect(pm.response.json()?.data?.user).to.be.an('object'));"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Change Password",
           "request": {
             "method": "PUT",
             "header": [
-              {"key": "Authorization", "value": "Bearer {{token}}"},
-              {"key": "Content-Type", "value": "application/json"}
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
             ],
             "url": "{{baseUrl}}/auth/password",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newpassword123\"\n}"
+              "raw": "{\n  \"currentPassword\": \"{{testPassword}}\",\n  \"newPassword\": \"password456\"\n}"
+            },
+            "description": "Byter lösenord. Båda fält måste skickas, nytt lösenord minst 6 tecken. Kom ihåg att uppdatera `testPassword` efter lyckad körning."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 or 401 (wrong current)', () => {",
+                  "  pm.expect([200, 401]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
             }
-          }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/auth/logout",
+            "description": "JWT är stateless – endpointen returnerar bara success. Klienten måste själv slänga token."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
         }
       ]
     },
@@ -87,99 +159,183 @@
           "request": {
             "method": "POST",
             "header": [
-              {"key": "Authorization", "value": "Bearer {{token}}"},
-              {"key": "Content-Type", "value": "application/json"}
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
             ],
             "url": "{{baseUrl}}/payments/checkout",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"jobId\": 50,\n  \"amount\": 1\n}"
+              "raw": "{\n  \"jobId\": {{jobId}}\n}"
+            },
+            "description": "Skapar Stripe PaymentIntent med beloppet från jobbets `price`. Endast `jobId` läses ur bodyn – beloppet kontrolleras serversidan för att undvika tampering."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 or 201', () => pm.expect([200, 201]).to.include(pm.response.code));",
+                  "const body = pm.response.json();",
+                  "const pi = body?.data?.paymentIntentId || body?.paymentIntentId;",
+                  "if (pi) pm.collectionVariables.set('paymentIntentId', pi);"
+                ]
+              }
             }
-          }
-        },
-        {
-          "name": "Get Payment History",
-          "request": {
-            "method": "GET",
-            "header": [
-              {"key": "Authorization", "value": "Bearer {{token}}"}
-            ],
-            "url": "{{baseUrl}}/payments/history"
-          }
+          ]
         },
         {
           "name": "Confirm Payment",
           "request": {
             "method": "POST",
             "header": [
-              {"key": "Authorization", "value": "Bearer {{token}}"},
-              {"key": "Content-Type", "value": "application/json"}
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
             ],
             "url": "{{baseUrl}}/payments/confirm",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"paymentIntentId\": \"pi_test_123\"\n}"
+              "raw": "{\n  \"paymentIntentId\": \"{{paymentIntentId}}\"\n}"
+            },
+            "description": "Bekräftar betalning. Efter S1-fixet körs Payment-skapande + Job-statusuppdatering atomiskt i en transaktion – om något steg fallerar rullas båda tillbaka."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+                ]
+              }
             }
-          }
+          ]
         },
         {
           "name": "Release Escrow",
           "request": {
             "method": "POST",
             "header": [
-              {"key": "Authorization", "value": "Bearer {{token}}"},
-              {"key": "Content-Type", "value": "application/json"}
+              { "key": "Authorization", "value": "Bearer {{token}}" }
             ],
-            "url": "{{baseUrl}}/payments/release/50",
-            "body": {
-              "mode": "raw",
-              "raw": "{}"
+            "url": "{{baseUrl}}/payments/release/{{jobId}}",
+            "description": "Frisläpper escrow till säljaren när jobbet är slutfört. Efter S1-fixet blockeras release om mottagaren skulle överskrida 30 000 SEK/år (hobby-gränsen)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200, 403 (hobby-limit) or 404', () => {",
+                  "  pm.expect([200, 403, 404]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
             }
-          }
+          ]
         },
         {
           "name": "Create Boost",
           "request": {
             "method": "POST",
             "header": [
-              {"key": "Authorization", "value": "Bearer {{token}}"},
-              {"key": "Content-Type", "value": "application/json"}
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
             ],
             "url": "{{baseUrl}}/payments/boost",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"jobId\": 50,\n  \"package\": \"standard\",\n  \"durationHours\": 48\n}"
+              "raw": "{\n  \"jobId\": {{jobId}},\n  \"package\": \"standard\"\n}"
+            },
+            "description": "Skapar Stripe PaymentIntent för boost-köp. Endast `jobId` och `package` läses; varaktigheten bestäms av paketet på servern."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 or 201', () => pm.expect([200, 201]).to.include(pm.response.code));",
+                  "const body = pm.response.json();",
+                  "const pi = body?.data?.paymentIntentId || body?.paymentIntentId;",
+                  "if (pi) pm.collectionVariables.set('boostPaymentIntentId', pi);"
+                ]
+              }
             }
-          }
+          ]
         },
         {
           "name": "Confirm Boost",
           "request": {
             "method": "POST",
             "header": [
-              {"key": "Authorization", "value": "Bearer {{token}}"},
-              {"key": "Content-Type", "value": "application/json"}
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
             ],
             "url": "{{baseUrl}}/payments/boost/confirm",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"paymentIntentId\": \"pi_boost_123\"\n}"
+              "raw": "{\n  \"paymentIntentId\": \"{{boostPaymentIntentId}}\"\n}"
+            },
+            "description": "Aktiverar boost. Efter S1-fixet verifieras att den inloggade användaren faktiskt äger jobbet innan boost aktiveras (förhindrar att en användare boostar någon annans jobb via stulet PI)."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 or 403 (not owner)', () => {",
+                  "  pm.expect([200, 403]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
             }
-          }
+          ]
         },
         {
-          "name": "Webhook (Stripe – development)",
+          "name": "Get Payment History",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{baseUrl}}/payments/history",
+            "description": "Listar alla betalningar där användaren är payer eller payee."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Webhook (Stripe – development only)",
           "request": {
             "method": "POST",
             "header": [
-              {"key": "Content-Type", "value": "application/json"}
+              { "key": "Content-Type", "value": "application/json" }
             ],
             "url": "{{baseUrl}}/payments/webhook",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"type\": \"payment_intent.succeeded\",\n  \"data\": {\n    \"object\": {\n      \"id\": \"pi_test_123\",\n      \"amount\": 50000,\n      \"currency\": \"sek\",\n      \"metadata\": {\n        \"jobId\": \"1\",\n        \"payerId\": \"1\",\n        \"payeeId\": \"2\"\n      }\n    }\n  }\n}"
+              "raw": "{\n  \"type\": \"payment_intent.succeeded\",\n  \"data\": {\n    \"object\": {\n      \"id\": \"pi_test_postman\",\n      \"amount\": 50000,\n      \"currency\": \"sek\",\n      \"metadata\": {\n        \"jobId\": \"{{jobId}}\",\n        \"payerId\": \"1\",\n        \"payeeId\": \"2\"\n      }\n    }\n  }\n}"
+            },
+            "description": "OBS: Fungerar endast i development. I produktion kräver endpointen giltig `Stripe-Signature`-header och returnerar annars 400 (S1-säkerhetsfix). Använd Stripe CLI (`stripe listen --forward-to ...`) för verkliga signerade events. Efter S1-fixet är handlern idempotent – samma `paymentIntentId` skapar bara en Payment-rad även vid retries."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200 (dev) or 400 (prod requires signature)', () => {",
+                  "  pm.expect([200, 400]).to.include(pm.response.code);",
+                  "});"
+                ]
+              }
             }
-          }
+          ]
         }
       ]
     },
@@ -190,8 +346,19 @@
           "name": "Health Check",
           "request": {
             "method": "GET",
-            "url": "http://localhost:5000/health"
-          }
+            "url": "{{host}}/health",
+            "description": "Liveness-probe. Returnerar 200 OK när servern svarar."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
         }
       ]
     }

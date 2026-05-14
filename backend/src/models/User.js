@@ -76,5 +76,16 @@ module.exports = (sequelize) => {
     tableName: 'users',
     timestamps: true,
     underscored: true,
+    hooks: {
+      // Normalisera email till lowercase + trim FÖR validate/save.
+      // Skyddar mot mixed-case duplicates och garanterar att login (som
+      // lowercase:ar input) alltid hittar raden. Gäller create + update +
+      // bulkCreate, oavsett om controller/seed/script är källan.
+      beforeValidate: (user) => {
+        if (user.email && typeof user.email === 'string') {
+          user.email = user.email.toLowerCase().trim();
+        }
+      },
+    },
   });
 };

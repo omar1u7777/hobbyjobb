@@ -4,79 +4,6 @@ import { useAuth } from '../hooks/useAuth.js';
 import ChatWindow from '../components/chat/ChatWindow.jsx';
 import { messageService } from '../services/messageService.js';
 
-// Placeholder id used in seed data until backend messages API is connected.
-// When API is live, `currentUserId` (from useAuth) replaces this in runtime.
-const SEED_CURRENT_USER_ID = 'u-me';
-
-const INITIAL_CONVERSATIONS = [
-  {
-    id: 'c-101',
-    jobId: '101',
-    jobTitle: 'Gräsklippning och kantskärning',
-    participant: { id: 'u-anna', name: 'Anna L.' },
-    unread: 0,
-    updatedAt: '2026-04-18T14:20:00.000Z',
-    messages: [
-      {
-        id: 'm-1',
-        senderId: 'u-anna',
-        text: 'Hej! Kan du komma på lördag kl 10?',
-        sentAt: '2026-04-18T13:20:00.000Z',
-      },
-      {
-        id: 'm-2',
-        senderId: SEED_CURRENT_USER_ID,
-        text: 'Ja, det funkar bra för mig.',
-        sentAt: '2026-04-18T13:24:00.000Z',
-      },
-    ],
-  },
-  {
-    id: 'c-202',
-    jobId: '202',
-    jobTitle: 'IKEA-montering av 3 möbler',
-    participant: { id: 'u-bjorn', name: 'Björn K.' },
-    unread: 2,
-    updatedAt: '2026-04-18T16:10:00.000Z',
-    messages: [
-      {
-        id: 'm-3',
-        senderId: 'u-bjorn',
-        text: 'Toppen, då ses vi imorgon eftermiddag.',
-        sentAt: '2026-04-18T15:55:00.000Z',
-      },
-      {
-        id: 'm-4',
-        senderId: 'u-bjorn',
-        text: 'Ta gärna med skruvdragare om du har.',
-        sentAt: '2026-04-18T16:10:00.000Z',
-      },
-    ],
-  },
-  {
-    id: 'c-303',
-    jobId: '303',
-    jobTitle: 'Hundpromenad 2 gånger i veckan',
-    participant: { id: 'u-maria', name: 'Maria S.' },
-    unread: 1,
-    updatedAt: '2026-04-17T19:45:00.000Z',
-    messages: [
-      {
-        id: 'm-5',
-        senderId: SEED_CURRENT_USER_ID,
-        text: 'Perfekt, jag kan börja på måndag.',
-        sentAt: '2026-04-17T19:35:00.000Z',
-      },
-      {
-        id: 'm-6',
-        senderId: 'u-maria',
-        text: 'Toppen! Jag skickar adressen imorgon.',
-        sentAt: '2026-04-17T19:45:00.000Z',
-      },
-    ],
-  },
-];
-
 function formatLastSeen(dateStr) {
   const date = new Date(dateStr);
   if (Number.isNaN(date.getTime())) return '';
@@ -90,43 +17,23 @@ function formatLastSeen(dateStr) {
   return date.toLocaleDateString('sv-SE', { month: 'short', day: 'numeric' });
 }
 
-function hydrateMockConversations(activeUserId) {
-  return INITIAL_CONVERSATIONS.map((conversation) => ({
-    ...conversation,
-    unread: Number(conversation.unread ?? 0),
-    previewText: conversation.messages[conversation.messages.length - 1]?.text ?? '',
-    messages: conversation.messages.map((message) => ({
-      ...message,
-      senderId: message.senderId === SEED_CURRENT_USER_ID ? activeUserId : message.senderId,
-    })),
-  }));
-}
-
 export default function ChatPage() {
   const { jobId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
-  // Use real user id when logged in, otherwise fall back to seed id for mock data
-  const currentUserId = user?.id ?? SEED_CURRENT_USER_ID;
-  const [conversations, setConversations] = useState(() => hydrateMockConversations(currentUserId));
-  const [apiEnabled, setApiEnabled] = useState(false);
+  const currentUserId = user?.id;
+
+  const [conversations, setConversations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [chatError, setChatError] = useState('');
   const [loadedJobIds, setLoadedJobIds] = useState(() => new Set());
 
   useEffect(() => {
-    if (apiEnabled) return;
-    setConversations(hydrateMockConversations(currentUserId));
-  }, [currentUserId, apiEnabled]);
-
-  useEffect(() => {
     let cancelled = false;
 
     async function bootstrapConversations() {
       if (!user?.id) {
-        setApiEnabled(false);
-        setConversations(hydrateMockConversations(currentUserId));
         setIsLoading(false);
         return;
       }
@@ -138,16 +45,11 @@ export default function ChatPage() {
         const apiConversations = await messageService.getConversations();
         if (cancelled) return;
 
-        // A successful API response is authoritative, even when it is empty:
-        // the user legitimately has no conversations yet and should see an
-        // empty state instead of fictional seed data.
-        setApiEnabled(true);
         setConversations(apiConversations);
         setLoadedJobIds(new Set());
-      } catch (_) {
+      } catch (error) {
         if (cancelled) return;
-        setApiEnabled(false);
-        setConversations(hydrateMockConversations(currentUserId));
+        setChatError('Kunde inte hämta dina konversationer. Databasen kan vara nere.');
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -157,7 +59,7 @@ export default function ChatPage() {
     return () => {
       cancelled = true;
     };
-  }, [user?.id, currentUserId]);
+  }, [user?.id]);
 
   const sortedConversations = useMemo(
     () => [...conversations].sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)),
@@ -174,7 +76,7 @@ export default function ChatPage() {
   }, [conversations, sortedConversations, jobId]);
 
   const loadConversationMessages = async (conversation, force = false) => {
-    if (!conversation || !apiEnabled) return;
+    if (!conversation) return;
 
     const normalizedJobId = String(conversation.jobId);
     if (!force && loadedJobIds.has(normalizedJobId)) return;
@@ -201,12 +103,12 @@ export default function ChatPage() {
         return next;
       });
     } catch (_) {
-      setChatError('Kunde inte hamta meddelanden just nu.');
+      setChatError('Kunde inte hämta meddelanden just nu.');
     }
   };
 
   useEffect(() => {
-    if (!selectedConversation || !apiEnabled) return;
+    if (!selectedConversation) return;
 
     void loadConversationMessages(selectedConversation);
 
@@ -224,7 +126,7 @@ export default function ChatPage() {
 
       messageService.markConversationAsRead(selectedConversation.jobId).catch(() => {});
     }
-  }, [selectedConversation?.id, apiEnabled]);
+  }, [selectedConversation?.id]);
 
   const handleSelectConversation = (conversation) => {
     navigate(`/chatt/${conversation.jobId}`);
@@ -240,112 +142,109 @@ export default function ChatPage() {
       )
     );
 
-    if (apiEnabled) {
-      messageService.markConversationAsRead(conversation.jobId).catch(() => {});
-      void loadConversationMessages(conversation);
-    }
+    messageService.markConversationAsRead(conversation.jobId).catch(() => {});
+    void loadConversationMessages(conversation);
   };
 
   const handleSend = async (text) => {
-    if (!selectedConversation) return;
+    if (!selectedConversation || !selectedConversation.participant?.id) return;
 
     const now = new Date().toISOString();
 
-    if (apiEnabled && selectedConversation.participant?.id) {
-      try {
-        setIsSending(true);
-        setChatError('');
+    try {
+      setIsSending(true);
+      setChatError('');
 
-        const sentMessage = await messageService.sendMessage({
-          jobId: selectedConversation.jobId,
-          receiverId: selectedConversation.participant.id,
-          content: text,
-        });
+      const sentMessage = await messageService.sendMessage({
+        jobId: selectedConversation.jobId,
+        receiverId: selectedConversation.participant.id,
+        content: text,
+      });
 
-        const apiMessage = {
-          id: sentMessage.id,
-          senderId: sentMessage.senderId ?? currentUserId,
-          text: sentMessage.text || text,
-          sentAt: sentMessage.sentAt || now,
-        };
+      const apiMessage = {
+        id: sentMessage.id,
+        senderId: sentMessage.senderId ?? currentUserId,
+        text: sentMessage.text || text,
+        sentAt: sentMessage.sentAt || now,
+      };
 
-        setConversations((prev) =>
-          prev.map((conversation) =>
-            conversation.id === selectedConversation.id
-              ? {
-                  ...conversation,
-                  messages: [...conversation.messages, apiMessage],
-                  previewText: apiMessage.text,
-                  updatedAt: apiMessage.sentAt,
-                }
-              : conversation
-          )
-        );
+      setConversations((prev) =>
+        prev.map((conversation) =>
+          conversation.id === selectedConversation.id
+            ? {
+                ...conversation,
+                messages: [...conversation.messages, apiMessage],
+                previewText: apiMessage.text,
+                updatedAt: apiMessage.sentAt,
+              }
+            : conversation
+        )
+      );
 
-        setLoadedJobIds((prev) => {
-          const next = new Set(prev);
-          next.add(String(selectedConversation.jobId));
-          return next;
-        });
-        return;
-      } catch (error) {
-        setChatError(error.message || 'Kunde inte skicka meddelandet.');
-      } finally {
-        setIsSending(false);
-      }
+      setLoadedJobIds((prev) => {
+        const next = new Set(prev);
+        next.add(String(selectedConversation.jobId));
+        return next;
+      });
+    } catch (error) {
+      setChatError(error.message || 'Kunde inte skicka meddelandet.');
+    } finally {
+      setIsSending(false);
     }
-
-    const newMessage = {
-      id: `m-${Date.now()}`,
-      senderId: currentUserId,
-      text,
-      sentAt: now,
-    };
-
-    setConversations((prev) =>
-      prev.map((conversation) =>
-        conversation.id === selectedConversation.id
-          ? {
-              ...conversation,
-              messages: [...conversation.messages, newMessage],
-              previewText: newMessage.text,
-              updatedAt: now,
-            }
-          : conversation
-      )
-    );
   };
 
   return (
-    <main style={{ padding: '36px 0 64px' }}>
+    <main style={{ padding: '40px 0 80px', background: 'var(--bg-light)', minHeight: 'calc(100vh - var(--nav-h))' }}>
       <div className="container">
-        <div style={{ marginBottom: 20 }}>
-          <h1 style={{ fontSize: 26, fontWeight: 800, marginBottom: 4 }}>Meddelanden</h1>
-          <p style={{ color: 'var(--muted)' }}>
-            {apiEnabled
-              ? 'Chatt kopplad till API med fallback till mock-data vid behov.'
-              : 'Chatt med mock-data. API-fallback aktiv.'}
-          </p>
+        <div style={{ marginBottom: 32, display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+          <div>
+            <h1 style={{ fontSize: 32, fontWeight: 800, marginBottom: 8, letterSpacing: '-0.5px' }}>Meddelanden</h1>
+            <p style={{ color: 'var(--muted)', fontSize: 15 }}>
+              Chatt kopplad till API. Håll kontakten med dina uppdragsgivare.
+            </p>
+          </div>
           {chatError ? (
-            <p style={{ marginTop: 8, fontSize: 13, color: 'var(--red)' }}>{chatError}</p>
+            <div style={{ background: '#FEE2E2', color: '#DC2626', padding: '8px 16px', borderRadius: 8, fontSize: 13, fontWeight: 600 }}>
+              {chatError}
+            </div>
           ) : null}
         </div>
 
-        <section className="chat-layout" style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 16, alignItems: 'start' }}>
-          <aside className="card" style={{ overflow: 'hidden' }}>
-            <header style={{ borderBottom: '1px solid var(--border)', padding: '14px 16px' }}>
-              <h2 style={{ fontSize: 16 }}>Konversationer</h2>
+        <section className="chat-layout" style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 24, alignItems: 'start' }}>
+          <aside style={{ 
+            background: 'rgba(255, 255, 255, 0.7)', 
+            backdropFilter: 'blur(20px)', 
+            borderRadius: 24, 
+            border: '1px solid rgba(255,255,255,0.8)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
+            overflow: 'hidden',
+            height: 600,
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <header style={{ 
+              borderBottom: '1px solid rgba(0,0,0,0.05)', 
+              padding: '20px 24px',
+              background: 'rgba(255,255,255,0.5)'
+            }}>
+              <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--dark)' }}>Konversationer</h2>
             </header>
 
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
               {isLoading && sortedConversations.length === 0 ? (
-                <p style={{ padding: '12px 14px', fontSize: 13, color: 'var(--muted)' }}>Laddar konversationer...</p>
+                <div style={{ padding: '24px 16px', textAlign: 'center' }}>
+                  <p style={{ fontSize: 14, color: 'var(--muted)' }}>Laddar konversationer...</p>
+                </div>
               ) : null}
 
-              {!isLoading && apiEnabled && sortedConversations.length === 0 ? (
-                <p style={{ padding: '16px 14px', fontSize: 13, color: 'var(--muted)' }}>
-                  Inga konversationer ännu. När du ansöker på ett jobb eller någon ansöker på ditt jobb kan ni chatta här.
-                </p>
+              {!isLoading && sortedConversations.length === 0 ? (
+                <div style={{ padding: '32px 16px', textAlign: 'center', background: 'rgba(255,255,255,0.5)', borderRadius: 16 }}>
+                  <div style={{ fontSize: 32, marginBottom: 12 }}>📭</div>
+                  <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 8, color: 'var(--dark)' }}>Inga meddelanden</h3>
+                  <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 20, lineHeight: 1.5 }}>
+                    När du ansöker på ett jobb eller någon ansöker på ditt jobb kan ni chatta här.
+                  </p>
+                </div>
               ) : null}
 
               {sortedConversations.map((conversation) => {
@@ -357,26 +256,36 @@ export default function ChatPage() {
                     key={conversation.id}
                     onClick={() => handleSelectConversation(conversation)}
                     style={{
-                      border: 'none',
-                      borderBottom: '1px solid var(--border-light)',
-                      background: isSelected ? 'var(--blue-light)' : 'var(--white)',
+                      border: isSelected ? '1px solid rgba(37,99,235,0.2)' : '1px solid transparent',
+                      background: isSelected ? 'linear-gradient(135deg, rgba(37,99,235,0.08), rgba(37,99,235,0.02))' : 'transparent',
+                      borderRadius: 16,
                       textAlign: 'left',
-                      padding: '12px 14px',
+                      padding: '14px 16px',
                       cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      position: 'relative',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isSelected) e.currentTarget.style.background = 'rgba(0,0,0,0.02)';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isSelected) e.currentTarget.style.background = 'transparent';
                     }}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                      <p style={{ fontSize: 14, fontWeight: 700 }}>{conversation.participant.name}</p>
-                      <span style={{ fontSize: 11, color: 'var(--muted)' }}>{formatLastSeen(conversation.updatedAt)}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
+                      <p style={{ fontSize: 15, fontWeight: isSelected ? 700 : 600, color: 'var(--dark)' }}>{conversation.participant.name}</p>
+                      <span style={{ fontSize: 11, color: isSelected ? 'var(--blue)' : 'var(--muted)', fontWeight: 500 }}>
+                        {formatLastSeen(conversation.updatedAt)}
+                      </span>
                     </div>
 
-                    <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2, marginBottom: 4 }}>{conversation.jobTitle}</p>
+                    <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 8, fontWeight: 500 }}>{conversation.jobTitle}</p>
 
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
                       <p
                         style={{
-                          fontSize: 12,
-                          color: 'var(--ink)',
+                          fontSize: 13,
+                          color: isSelected ? 'var(--ink)' : 'var(--muted)',
                           whiteSpace: 'nowrap',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
@@ -389,16 +298,18 @@ export default function ChatPage() {
                       {conversation.unread > 0 ? (
                         <span
                           style={{
-                            minWidth: 18,
-                            height: 18,
-                            borderRadius: 999,
-                            background: 'var(--red)',
+                            minWidth: 20,
+                            height: 20,
+                            borderRadius: 10,
+                            background: 'linear-gradient(135deg, var(--red), #EF4444)',
                             color: '#fff',
                             fontSize: 11,
+                            fontWeight: 700,
                             display: 'inline-flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             padding: '0 6px',
+                            boxShadow: '0 2px 8px rgba(239,68,68,0.3)'
                           }}
                         >
                           {conversation.unread}

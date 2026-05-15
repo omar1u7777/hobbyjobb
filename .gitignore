@@ -17,3 +17,7 @@ npm-debug.log*
 # OS-filer
 .DS_Store
 Thumbs.db
+
+# Coverage reports
+coverage/
+frontend/coverage/

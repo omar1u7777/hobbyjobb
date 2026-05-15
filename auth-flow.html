@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HobbyJobb Auth Flow</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+    <h1>Registration Flow</h1>
+    <div class="mermaid">
+    sequenceDiagram
+        participant User as 👤 Användare
+        participant Frontend as React Frontend
+        participant Backend as Node.js API
+        participant DB as PostgreSQL
+        participant JWT as JWT Service
+
+        User->>Frontend: Fyller i registreringsformulär<br>(name, email, password, location)
+        Frontend->>Frontend: Validerar input (client-side)
+        Frontend->>Backend: POST /api/auth/register<br>{ name, email, password, location }
+
+        Backend->>Backend: email = email.toLowerCase().trim()
+        Backend->>Backend: Validerar: name, email, password required
+        Backend->>Backend: Validerar email (regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/)
+        Backend->>Backend: Validerar password (length >= 6)
+
+        Backend->>DB: User.findOne({ where: { email } })
+        DB-->>Backend: null (användare finns inte) eller existing user
+
+        alt Användare finns redan
+            Backend-->>Frontend: 409 Conflict<br>"User with this email already exists"
+        else Användare finns inte
+            Backend->>Backend: bcrypt.genSalt(10)
+            Backend->>Backend: bcrypt.hash(password, salt)
+            Backend->>DB: User.create({ name, email, password: hashed, location })
+            DB-->>Backend: User record
+            Backend->>JWT: jwt.sign({ id, email, is_admin }, JWT_SECRET, { expiresIn: '7d' })
+            JWT-->>Backend: token
+            Backend-->>Frontend: 201 Created<br>{ user (utan password), token }
+        end
+
+        Frontend->>Frontend: Spara token i localStorage
+        Frontend->>User: Redirect till dashboard
+    </div>
+
+    <h1>Login Flow</h1>
+    <div class="mermaid">
+    sequenceDiagram
+        participant User as 👤 Användare
+        participant Frontend as React Frontend
+        participant Backend as Node.js API
+        participant DB as PostgreSQL
+        participant JWT as JWT Service
+
+        User->>Frontend: Fyller in login-formulär<br>(email, password)
+        Frontend->>Backend: POST /api/auth/login<br>{ email, password }
+
+        Backend->>Backend: email = email.toLowerCase().trim()
+        Backend->>Backend: Validerar: email, password required
+
+        Backend->>DB: User.findOne({ where: { email } })
+        DB-->>Backend: User record eller null
+
+        alt Användaren finns inte
+            Backend-->>Frontend: 401 Unauthorized<br>"Invalid credentials"
+        else Användaren finns
+            Backend->>Backend: bcrypt.compare(password, user.password)
+            alt Lösenord matchar
+                Backend->>JWT: jwt.sign({ id, email, is_admin }, JWT_SECRET, { expiresIn: '7d' })
+                JWT-->>Backend: token
+                Backend-->>Frontend: 200 OK<br>{ user (utan password), token }
+                Frontend->>Frontend: Spara token i localStorage
+                Frontend->>User: Redirect till dashboard
+            else Lösenord matchar inte
+                Backend-->>Frontend: 401 Unauthorized<br>"Invalid credentials"
+            end
+        end
+    </div>
+
+    <h1>Protected Route Flow</h1>
+    <div class="mermaid">
+    sequenceDiagram
+        participant User as 👤 Användare
+        participant Frontend as React Frontend
+        participant Middleware as requireAuth Middleware
+        participant Backend as Controller
+        participant DB as PostgreSQL
+
+        User->>Frontend: Klickar på skyddad sida
+        Frontend->>Frontend: Hämtar token från localStorage
+        Frontend->>Backend: GET /api/protected<br>Authorization: Bearer {token}
+
+        Middleware->>Middleware: Extraherar token från header
+        Middleware->>Middleware: jwt.verify(token, JWT_SECRET)
+
+        alt Token ogiltig
+            Middleware-->>Frontend: 401 Unauthorized<br>"Invalid token"
+            Frontend->>User: Redirect till login
+        else Token giltig
+            Middleware->>Middleware: req.user = { id, email, is_admin }
+            Middleware->>Backend: Fortsätt till controller
+            Backend->>DB: User.findByPk(req.user.id)
+            DB-->>Backend: User data
+            Backend-->>Frontend: 200 OK<br>{ data }
+        end
+    </div>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+</body>
+</html>

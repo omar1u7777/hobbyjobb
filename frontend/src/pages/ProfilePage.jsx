@@ -9,6 +9,7 @@ import { authService } from '../services/authService.js';
 import IncomeTracker from '../components/profile/IncomeTracker.jsx';
 import ReviewList from '../components/profile/ReviewList.jsx';
 import UserStats from '../components/profile/UserStats.jsx';
+import ConnectStatus from '../components/profile/ConnectStatus.jsx';
 import Alert from '../components/common/Alert.jsx';
 import Spinner from '../components/common/Spinner.jsx';
 
@@ -267,6 +268,10 @@ export default function ProfilePage() {
             {isOwn && (
               <div>
                 <IncomeTracker totalYear={totalYear} pct={pct} isNear={isNear} />
+                <div className="section" style={{ marginTop: 24 }}>
+                  <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Utbetalningar</h3>
+                  <ConnectStatus />
+                </div>
               </div>
             )}
           </div>

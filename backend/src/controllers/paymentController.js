@@ -228,6 +228,29 @@ async function handleRefund(charge) {
   console.log('Payment refunded:', charge.payment_intent);
 }
 
+async function handleAccountUpdated(account) {
+  if (!User) return;
+  const user = await User.findOne({ where: { stripe_account_id: account.id } });
+  if (!user) {
+    console.error('Stripe account not linked to any user:', account.id);
+    return;
+  }
+
+  const isActive = account.charges_enabled && account.payouts_enabled;
+  const isRestricted = account.requirements?.currently_due?.length > 0 ||
+                       account.requirements?.past_due?.length > 0 ||
+                       account.requirements?.disabled_reason;
+
+  let newStatus = 'pending';
+  if (isActive) newStatus = 'active';
+  else if (isRestricted) newStatus = 'restricted';
+
+  if (user.stripe_account_status !== newStatus) {
+    await user.update({ stripe_account_status: newStatus });
+    console.log(`Stripe account ${account.id} status changed to ${newStatus}`);
+  }
+}
+
 const webhook = async (req, res) => {
   const sig = req.headers['stripe-signature'];
   const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -261,6 +284,9 @@ const webhook = async (req, res) => {
         break;
       case 'charge.refunded':
         await handleRefund(event.data.object);
+        break;
+      case 'account.updated':
+        await handleAccountUpdated(event.data.object);
         break;
       default:
         console.log(`Unhandled Stripe event: ${event.type}`);
@@ -371,12 +397,45 @@ const releaseEscrow = async (req, res, next) => {
       }
     }
 
+    // Validate payee has active Connect account and attempt Stripe transfer BEFORE DB commit
+    const payee = await User.findByPk(payment.payee_id);
+    let transferId = null;
+
+    if (payee?.stripe_account_id && payee?.stripe_account_status === 'active') {
+      try {
+        // Convert SEK → öre (Stripe requires integer smallest currency unit)
+        const amountInOre = Math.round(Number(payment.amount_payee) * 100);
+
+        const transfer = await stripe.transfers.create({
+          amount: amountInOre,
+          currency: 'sek',
+          destination: payee.stripe_account_id,
+          transfer_group: payment.stripe_payment_id,
+        }, {
+          idempotencyKey: `release-${payment.id}-${Date.now()}`,
+        });
+        transferId = transfer.id;
+      } catch (err) {
+        // Fail fast: do NOT update DB if transfer fails
+        console.error('Stripe transfer failed:', err.message);
+        return res.status(502).json({
+          success: false,
+          message: 'Överföringen misslyckades. Försök igen senare.',
+        });
+      }
+    }
+
+    // Only after successful transfer (or no transfer needed), update DB atomically
     const transaction = await sequelize.transaction();
     try {
-      await payment.update({ status: 'released', confirmed_at: new Date() }, { transaction });
+      await payment.update({
+        status: 'released',
+        confirmed_at: new Date(),
+        stripe_transfer_id: transferId,
+      }, { transaction });
+
       await Job.update({ status: 'completed' }, { where: { id: jobId }, transaction });
 
-      const payee = await User.findByPk(payment.payee_id, { transaction });
       if (payee) {
         const newTotal = Number(payee.hobby_total_year || 0) + Number(payment.amount_payee);
         const newJobCount = Number(payee.hobby_job_count || 0) + 1;
@@ -394,15 +453,14 @@ const releaseEscrow = async (req, res, next) => {
       throw err;
     }
 
-    // Stripe Connect Transfer would go here in production:
-    //   stripe.transfers.create({ amount, currency, destination, transfer_group })
-
     res.json({
       success: true,
       data: {
         paymentId: payment.id,
         amountReleased: Number(payment.amount_payee),
         status: 'released',
+        transferred: !!transferId,
+        stripeTransferId: transferId || null,
       },
     });
   } catch (error) {
@@ -437,6 +495,9 @@ const createBoost = async (req, res, next) => {
     }
     if (job.poster_id !== userId) {
       return res.status(403).json({ success: false, message: 'Only the job owner can boost this job' });
+    }
+    if (job.status !== 'open') {
+      return res.status(400).json({ success: false, message: 'Endast öppna jobb kan boostas' });
     }
 
     const paymentIntent = await stripe.paymentIntents.create({

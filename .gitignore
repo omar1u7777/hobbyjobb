@@ -21,3 +21,6 @@ Thumbs.db
 # Coverage reports
 coverage/
 frontend/coverage/
+
+# Frontend lock file (Windows-generated, causes CI issues)
+frontend/package-lock.json

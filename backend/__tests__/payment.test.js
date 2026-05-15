@@ -259,7 +259,7 @@ describe('Payment Routes', () => {
 
       expect(res.status).toBe(200);
       expect(mockP.update).toHaveBeenCalledWith(
-        { status: 'released', confirmed_at: expect.any(Date) },
+        { status: 'released', confirmed_at: expect.any(String), stripe_transfer_id: null },
         { transaction: tx }
       );
     });

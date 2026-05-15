@@ -72,6 +72,17 @@ module.exports = (sequelize) => {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
     },
+    // Stripe Connect integration
+    stripe_account_id: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      unique: true,
+    },
+    stripe_account_status: {
+      type: DataTypes.STRING(20),
+      allowNull: false,
+      defaultValue: 'none',
+    },
   }, {
     tableName: 'users',
     timestamps: true,

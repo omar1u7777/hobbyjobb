@@ -50,6 +50,7 @@ app.use('/api/users', require('./src/routes/users'));
 app.use('/api/messages', require('./src/routes/messages'));
 app.use('/api/reviews', require('./src/routes/reviews'));
 app.use('/api/admin', require('./src/routes/admin'));
+app.use('/api/connect', require('./src/routes/connect'));
 
 // Health check endpoints
 app.get('/', (req, res) => {

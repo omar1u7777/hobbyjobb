@@ -92,6 +92,12 @@ export default function MyJobsPage() {
 
         {error && <Alert type="error" style={{ marginBottom: 20 }} onClose={() => setError('')}>{error}</Alert>}
 
+        {tab === 'published' && (
+          <Alert type="info" style={{ marginBottom: 20 }}>
+            💡 Kom ihåg: Den som utför jobbet måste koppla ett Stripe-konto i sin profil för att kunna ta emot utbetalningar.
+          </Alert>
+        )}
+
         {/* Tabs */}
         <div style={{ display: 'flex', background: 'var(--border-light)', borderRadius: 8, padding: 4, marginBottom: 24, width: 'fit-content', gap: 2 }}>
           {TABS.map(t => (

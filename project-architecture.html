@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>HobbyJobb Complete System Architecture</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        h1, h2 { color: #333; }
+        .mermaid { margin: 20px 0; }
+        pre { background: #f4f4f4; padding: 15px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>HobbyJobb Complete System Architecture</h1>
+
+    <h2>High-Level System Overview</h2>
+    <div class="mermaid">
+    graph TB
+        subgraph "Client Layer"
+            User[👤 Användare]
+            Browser[🌐 Webbläsare<br>React App]
+        end
+
+        subgraph "Frontend (Vercel)"
+            Vercel[Vercel<br>React + Vite<br>hobbyjobb.vercel.app]
+            React[React Components<br>Pages, Context, Hooks]
+            Router[React Router<br>SPA Navigation]
+        end
+
+        subgraph "Backend (Render)"
+            Render[Render<br>Node.js + Express<br>hobbyjobb-api.onrender.com]
+            API[REST API<br>Express Routes]
+            Controllers[Controllers<br>Business Logic]
+            Middleware[Middleware<br>Auth, CORS, Rate Limit]
+        end
+
+        subgraph "Database Layer"
+            PG[PostgreSQL<br>Render<br>hobbyjobb-db]
+            Models[Sequelize Models<br>User, Job, Application, Payment]
+            Migrations[Migrations<br>Schema Management]
+        end
+
+        subgraph "External Services"
+            Stripe[Stripe<br>Payment Processing<br>Test Mode]
+            GitHub[GitHub<br>Version Control<br>CI/CD]
+        end
+
+        User --> Browser
+        Browser --> Vercel
+        Vercel --> React
+        React --> Router
+        Router --> Render
+        Render --> API
+        API --> Controllers
+        Controllers --> Middleware
+        Middleware --> PG
+        PG --> Models
+        Models --> Migrations
+        API --> Stripe
+        GitHub --> Vercel
+        GitHub --> Render
+
+        style User fill:#e1f5ff
+        style Vercel fill:#f3e5f5
+        style Render fill:#fff3e0
+        style PG fill:#e8f5e9
+        style Stripe fill:#fce4ec
+        style GitHub fill:#f5f5f5
+    </div>
+
+    <h2>Detailed Architecture</h2>
+    <div class="mermaid">
+    graph TB
+        subgraph "Frontend (Vercel - hobbyjobb.vercel.app)"
+            direction TB
+            Landing[LandingPage.jsx]
+            Home[HomePage.jsx]
+            AuthPages[Auth Pages<br>LoginPage.jsx<br>RegisterPage.jsx]
+            JobPages[Job Pages<br>JobListPage.jsx<br>JobDetailPage.jsx<br>PostJobPage.jsx<br>EditJobPage.jsx<br>MyJobsPage.jsx<br>BoostJobPage.jsx]
+            Profile[ProfilePage.jsx<br>IncomeTracker.jsx]
+            Chat[ChatPage.jsx<br>ChatWindow.jsx]
+            Admin[AdminDashboardPage.jsx<br>Charts, Stats]
+            Components[Common Components<br>Navbar, Footer, Button, Modal]
+            Contexts[Contexts<br>AuthContext, NotificationContext]
+            Services[Services<br>api.js, authService.js, jobService.js<br>paymentService.js]
+        end
+
+        subgraph "Backend (Render - hobbyjobb-api.onrender.com)"
+            direction TB
+            Server[server.js<br>Express App]
+            Routes[Routes<br>auth.js, jobs.js, applications.js<br>users.js, payments.js, admin.js<br>categories.js, messages.js, reviews.js]
+            Controllers[Controllers<br>authController.js, jobController.js<br>applicationController.js, paymentController.js<br>userController.js, adminController.js<br>categoryController.js, messageController.js<br>reviewController.js]
+            Middleware[Middleware<br>requireAuth.js, requireAdmin.js<br>rateLimiter.js, errorHandler.js]
+            Models[Sequelize Models<br>User.js, Job.js, Application.js<br>Payment.js, Message.js, Review.js]
+        end
+
+        subgraph "Database (PostgreSQL)"
+            direction TB
+            Users[Users Table<br>id, name, email, password<br>is_admin, hobby_total_year]
+            Jobs[Jobs Table<br>id, title, description, price<br>poster_id, category_id, status]
+            Applications[Applications Table<br>id, job_id, applicant_id<br>status, message]
+            Payments[Payments Table<br>id, job_id, payer_id, payee_id<br>amount_total, status]
+            Messages[Messages Table<br>id, sender_id, receiver_id<br>job_id, content]
+            Reviews[Reviews Table<br>id, job_id, reviewer_id<br>reviewee_id, rating, comment]
+            Categories[Categories Table<br>id, name, icon, max_price]
+        end
+
+        subgraph "External Services"
+            direction TB
+            StripeAPI[Stripe API<br>PaymentIntent<br>Webhooks]
+            GitHubActions[GitHub Actions<br>CI/CD Pipeline]
+        end
+
+        Components --> Contexts
+        Contexts --> Services
+        Services -->|HTTP + JWT| Server
+        Server --> Routes
+        Routes --> Middleware
+        Middleware --> Controllers
+        Controllers --> Models
+        Models --> Users
+        Models --> Jobs
+        Models --> Applications
+        Models --> Payments
+        Models --> Messages
+        Models --> Reviews
+        Models --> Categories
+        Controllers -->|Stripe SDK| StripeAPI
+        GitHubActions --> Vercel
+        GitHubActions --> Render
+
+        style Vercel fill:#f3e5f5
+        style Render fill:#fff3e0
+        style PG fill:#e8f5e9
+    </div>
+
+    <h2>Data Flow Diagram</h2>
+    <div class="mermaid">
+    sequenceDiagram
+        participant User as 👤 Användare
+        participant FE as React Frontend
+        participant BE as Express Backend
+        participant DB as PostgreSQL
+        participant Stripe as Stripe API
+
+        Note over User,Stripe: Auth Flow
+        User->>FE: Registrerar / Loggar in
+        FE->>BE: POST /api/auth/register or /login
+        BE->>DB: Skapa/Hämta User
+        BE->>BE: Generera JWT token
+        BE-->>FE: { user, token }
+        FE->>FE: Spara token i localStorage
+
+        Note over User,Stripe: Job Flow
+        User->>FE: Skapar jobb
+        FE->>BE: POST /api/jobs (med JWT)
+        BE->>DB: Skapa Job record
+        BE-->>FE: Job skapat
+        User->>FE: Söker jobb
+        FE->>BE: GET /api/jobs (med JWT)
+        BE->>DB: Query Jobs med filter
+        DB-->>BE: Jobs lista
+        BE-->>FE: Jobs data
+        User->>FE: Ansöker på jobb
+        FE->>BE: POST /api/applications (med JWT)
+        BE->>DB: Skapa Application
+        BE-->>FE: Application skapad
+
+        Note over User,Stripe: Payment Flow
+        User->>FE: Accepterar ansökan + betalar
+        FE->>BE: POST /api/payments/checkout (med JWT)
+        BE->>Stripe: Skapa PaymentIntent
+        Stripe-->>BE: PaymentIntent + client_secret
+        BE->>DB: Skapa Payment (status: pending)
+        BE-->>FE: client_secret
+        FE->>User: Visa Stripe Elements
+        User->>Stripe: Betalar
+        Stripe->>BE: Webhook: payment_intent.succeeded
+        BE->>DB: Uppdatera Payment → held<br>Job → in_progress
+        User->>FE: Bekräftar jobbet klart
+        FE->>BE: POST /api/payments/release/:jobId (med JWT)
+        BE->>DB: Uppdatera Payment → released<br>Job → completed<br>User.hobby_total_year
+        Note over BE: Stripe Connect Transfers implementerat
+        BE-->>FE: Success
+    </div>
+
+    <h2>Deployment Architecture</h2>
+    <div class="mermaid">
+    graph TB
+        subgraph "Development"
+            DevLocal[Local Dev<br>npm run dev<br>frontend localhost 5173<br>backend localhost 5000]
+            DevDB[Local PostgreSQL<br>hobbyjobb_dev]
+        end
+
+        subgraph "Version Control"
+            GitHub[GitHub<br>omar1u7777 hobbyjobb<br>main protected<br>develop integration]
+            PR[Pull Request<br>develop to main<br>Code Review Required]
+        end
+
+        subgraph "CI/CD"
+            Actions[GitHub Actions<br>github workflows]
+            CI[CI Pipeline<br>Run tests on push]
+            CD[CD Pipeline<br>Auto-deploy on main]
+        end
+
+        subgraph "Production"
+            Vercel[Vercel<br>Frontend<br>hobbyjobb.vercel.app<br>Deploy from main branch]
+            RenderBackend[Render<br>Backend<br>hobbyjobb-api.onrender.com<br>Deploy from main branch]
+            RenderDB[Render<br>PostgreSQL<br>hobbyjobb-db<br>Frankfurt region]
+        end
+
+        DevLocal -->|git push| GitHub
+        GitHub -->|PR| PR
+        PR -->|Merge to main| GitHub
+        GitHub -->|Trigger| Actions
+        Actions --> CI
+        CI -->|Tests pass| CD
+        CD --> Vercel
+        CD --> RenderBackend
+        RenderBackend --> RenderDB
+
+        style DevLocal fill:#e3f2fd
+        style GitHub fill:#f5f5f5
+        style Actions fill:#fff3e0
+        style Vercel fill:#f3e5f5
+        style RenderBackend fill:#fff3e0
+        style RenderDB fill:#e8f5e9
+    </div>
+
+    <h2>Database Schema Overview</h2>
+    <div class="mermaid">
+    erDiagram
+        Users ||--o{ Jobs : "posts"
+        Users ||--o{ Applications : "sends"
+        Users ||--o{ Applications : "receives"
+        Users ||--o{ Payments : "pays"
+        Users ||--o{ Payments : "receives"
+        Users ||--o{ Messages : "sends"
+        Users ||--o{ Messages : "receives"
+        Users ||--o{ Reviews : "writes"
+        Users ||--o{ Reviews : "receives"
+
+        Jobs ||--o{ Applications : "has"
+        Jobs ||--o{ Payments : "has"
+        Jobs ||--o{ Messages : "has"
+        Jobs ||--o{ Reviews : "has"
+        Jobs }o--|| Categories : "belongs to"
+
+        Payments }o--|| Jobs : "for"
+        Payments }o--|| Users : "from"
+        Payments }o--|| Users : "to"
+
+        Messages }o--|| Jobs : "about"
+        Messages }o--|| Users : "from"
+        Messages }o--|| Users : "to"
+
+        Reviews }o--|| Jobs : "for"
+        Reviews }o--|| Users : "by"
+        Reviews }o--|| Users : "of"
+
+        Users {
+            int id PK
+            string name
+            string email UK
+            string password
+            string location
+            decimal lat
+            decimal lng
+            text bio
+            string avatar
+            boolean is_admin
+            boolean is_verified
+            decimal hobby_total_year
+            int hobby_job_count
+            boolean hobby_warned
+            boolean hobby_limit_reached
+            string stripe_account_id UK
+            string stripe_account_status
+            timestamp created_at
+        }
+
+        Jobs {
+            int id PK
+            string title
+            text description
+            decimal price
+            string price_type
+            int category_id FK
+            int poster_id FK
+            string location
+            decimal lat
+            decimal lng
+            string status
+            boolean is_hobby_valid
+            string hobby_type
+            boolean is_boosted
+            timestamp boost_expires_at
+            timestamp expires_at
+            timestamp created_at
+        }
+
+        Applications {
+            int id PK
+            int job_id FK
+            int applicant_id FK
+            string status
+            text message
+            timestamp created_at
+        }
+
+        Payments {
+            int id PK
+            int job_id FK
+            int payer_id FK
+            int payee_id FK
+            decimal amount_total
+            decimal amount_platform
+            decimal amount_payee
+            string stripe_payment_id
+            string stripe_transfer_id
+            string status
+            timestamp confirmed_at
+            timestamp created_at
+        }
+
+        Messages {
+            int id PK
+            int sender_id FK
+            int receiver_id FK
+            int job_id FK
+            text content
+            boolean is_read
+            timestamp created_at
+        }
+
+        Reviews {
+            int id PK
+            int job_id FK
+            int reviewer_id FK
+            int reviewee_id FK
+            int rating
+            text comment
+            timestamp created_at
+        }
+
+        Categories {
+            int id PK
+            string name
+            string icon
+            text description
+            decimal max_price
+        }
+    </div>
+
+    <h2>Security Architecture</h2>
+    <div class="mermaid">
+    graph TB
+        subgraph "Authentication"
+            JWT[JWT Tokens<br>7 day expiration]
+            Bcrypt[bcrypt Password Hashing<br>10 salt rounds]
+            MiddlewareAuth[requireAuth Middleware<br>JWT Verification]
+            MiddlewareAdmin[requireAdmin Middleware<br>Role Check]
+        end
+
+        subgraph "API Security"
+            CORS[CORS<br>ALLOWED_ORIGINS whitelist]
+            Helmet[Helmet<br>Security Headers]
+            RateLimit[Rate Limiting<br>Prevent abuse]
+            ProxyTrust[Trust Proxy<br>Render compatibility]
+        end
+
+        subgraph "Payment Security"
+            WebhookSig[Webhook Signature Verification<br>Required in production]
+            AmountFromDB[Amount from Database<br>Not request body]
+            Ownership[Ownership Checks<br>Only poster can pay/release]
+            DoublePay[Double-Payment Protection<br>Check existing payments]
+        end
+
+        subgraph "Data Security"
+            PasswordExclude[Password Excluded<br>From all responses]
+            InputValidation[Input Validation<br>Email regex, password length]
+            SQLInjection[SQL Injection Protection<br>Sequelize ORM]
+            HobbyLimit[Hobby Limit Enforcement<br>30,000 kr/year]
+        end
+
+        JWT --> MiddlewareAuth
+        Bcrypt --> MiddlewareAuth
+        MiddlewareAuth --> MiddlewareAdmin
+        MiddlewareAuth --> CORS
+        MiddlewareAuth --> Helmet
+        MiddlewareAuth --> RateLimit
+        WebhookSig --> AmountFromDB
+        AmountFromDB --> Ownership
+        Ownership --> DoublePay
+        InputValidation --> PasswordExclude
+        SQLInjection --> PasswordExclude
+        HobbyLimit --> DoublePay
+
+        style JWT fill:#e1f5ff
+        style Bcrypt fill:#e1f5ff
+        style MiddlewareAuth fill:#fff3e0
+        style MiddlewareAdmin fill:#fff3e0
+        style CORS fill:#e8f5e9
+        style Helmet fill:#e8f5e9
+        style RateLimit fill:#e8f5e9
+        style WebhookSig fill:#fce4ec
+        style AmountFromDB fill:#fce4ec
+        style Ownership fill:#fce4ec
+        style DoublePay fill:#fce4ec
+        style PasswordExclude fill:#f3e5f5
+        style InputValidation fill:#f3e5f5
+        style SQLInjection fill:#f3e5f5
+        style HobbyLimit fill:#f3e5f5
+    </div>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+</body>
+</html>

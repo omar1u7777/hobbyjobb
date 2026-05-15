@@ -2,6 +2,7 @@
 import { applicationService } from '../services/applicationService.js';
 import { paymentService } from '../services/paymentService.js';
 import { reviewService } from '../services/reviewService.js';
+import { connectService } from '../services/connectService.js';
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { jobService } from '../services/jobService.js';
@@ -31,6 +32,9 @@ export default function JobDetailPage() {
   const [releaseErr, setReleaseErr] = useState('');
   const [releaseOk, setReleaseOk]   = useState(false);
 
+  const [connectModalOpen, setConnectModalOpen] = useState(false);
+  const [checkingConnect, setCheckingConnect] = useState(false);
+
   const [jobReviews, setJobReviews] = useState([]);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [reviewLoading, setReviewLoading] = useState(false);
@@ -49,6 +53,25 @@ export default function JobDetailPage() {
       setReleaseErr(e.message);
     } finally {
       setReleaseLoading(false);
+    }
+  };
+
+  const handlePaymentClick = async () => {
+    if (!job.accepted_applicant?.id) return;
+
+    setCheckingConnect(true);
+    try {
+      const statusData = await connectService.getStatus();
+      if (statusData.stripe_account_status !== 'active') {
+        setConnectModalOpen(true);
+      } else {
+        navigate(`/checkout/${id}`);
+      }
+    } catch (e) {
+      // If we can't check status, proceed with payment (backend will validate)
+      navigate(`/checkout/${id}`);
+    } finally {
+      setCheckingConnect(false);
     }
   };
 
@@ -212,14 +235,20 @@ export default function JobDetailPage() {
                 <div>
                   <Alert type="info" style={{ marginBottom: 12 }}>Det här är ditt eget jobb.</Alert>
                   {releaseErr && <Alert type="error" style={{ marginBottom: 12 }}>{releaseErr}</Alert>}
-                  {job.status === 'open' && (
-                    <Link
-                      to={`/checkout/${job.id}`}
+                  {job.status === 'open' && job.accepted_applicant && (
+                    <button
                       className="btn btn-primary btn-full btn-lg"
+                      onClick={handlePaymentClick}
+                      disabled={checkingConnect}
                       style={{ marginBottom: 8 }}
                     >
-                      💳 Betala & starta jobbet
-                    </Link>
+                      {checkingConnect ? <Spinner size={18} color="#fff" /> : '💳 Betala & starta jobbet'}
+                    </button>
+                  )}
+                  {job.status === 'open' && !job.accepted_applicant && (
+                    <Alert type="info" style={{ marginBottom: 8 }}>
+                      Väntar på sökande. När du antagit någon kan du betala för att starta jobbet.
+                    </Alert>
                   )}
                   {job.status === 'in_progress' && !releaseOk && (
                     <button
@@ -309,6 +338,19 @@ export default function JobDetailPage() {
         </div>
         <button className="btn btn-primary btn-full" onClick={handleApply} disabled={applyLoading}>
           {applyLoading ? <Spinner size={18} color="#fff" /> : 'Skicka ansökan'}
+        </button>
+      </Modal>
+
+      {/* Connect warning modal */}
+      <Modal open={connectModalOpen} onClose={() => setConnectModalOpen(false)} title="Utbetalningar inte aktiverade">
+        <Alert type="warning" style={{ marginBottom: 16 }}>
+          Den antagna sökanden har inte aktiverat utbetalningar ännu. Betalning kan inte genomföras förrän de kopplat ett Stripe-konto.
+        </Alert>
+        <p style={{ marginBottom: 16, color: 'var(--muted)' }}>
+          Kontakta sökanden och be dem slutföra Stripe Connect-onboarding i sin profil.
+        </p>
+        <button className="btn btn-outline btn-full" onClick={() => setConnectModalOpen(false)}>
+          Stäng
         </button>
       </Modal>
 

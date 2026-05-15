@@ -134,10 +134,10 @@ const getJob = async (req, res, next) => {
 
     const applicationsCount = await Application.count({ where: { job_id: job.id } });
 
-    // Expose the accepted applicant for in_progress / completed jobs so the
-    // frontend can resolve the review counterpart without a second request.
+    // Expose the accepted applicant for open / in_progress / completed jobs
+    // so the frontend can show payment button or resolve review counterpart.
     let acceptedApplicant = null;
-    if (job.status === 'in_progress' || job.status === 'completed') {
+    if (job.status === 'open' || job.status === 'in_progress' || job.status === 'completed') {
       const accepted = await Application.findOne({
         where: { job_id: job.id, status: 'accepted' },
         include: [{ model: User, as: 'applicant', attributes: ['id', 'name', 'avatar'] }],

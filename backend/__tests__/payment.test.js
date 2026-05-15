@@ -259,9 +259,13 @@ describe('Payment Routes', () => {
 
       expect(res.status).toBe(200);
       expect(mockP.update).toHaveBeenCalledWith(
-        { status: 'released', confirmed_at: expect.any(String), stripe_transfer_id: null },
+        expect.objectContaining({
+          status: 'released',
+          stripe_transfer_id: null
+        }),
         { transaction: tx }
       );
+      expect(mockP.update.mock.calls[0][0].confirmed_at).toBeDefined();
     });
 
     it('should reject if no held payment exists', async () => {

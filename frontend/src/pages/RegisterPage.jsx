@@ -49,7 +49,7 @@ export default function RegisterPage() {
 
   return (
     <div style={{ minHeight: 'calc(100vh - var(--nav-h) - 80px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px' }}>
-      <div style={{ background: 'var(--white)', borderRadius: 14, boxShadow: 'var(--sh-lg)', padding: 40, width: '100%', maxWidth: 440, border: '1px solid var(--border)' }}>
+      <div className="auth-card" style={{ background: 'var(--white)', borderRadius: 14, boxShadow: 'var(--sh-lg)', padding: 40, width: '100%', maxWidth: 440, border: '1px solid var(--border)' }}>
 
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <Link to="/" style={{ fontSize: 24, fontWeight: 800, color: 'var(--dark)' }}>
@@ -144,6 +144,12 @@ export default function RegisterPage() {
           <button className="btn btn-primary" onClick={() => setHobbyModal(false)}>Förstår — stäng</button>
         </div>
       </Modal>
+
+      <style>{`
+        @media(max-width:500px){
+          .auth-card{padding:24px 20px!important}
+        }
+      `}</style>
     </div>
   );
 }

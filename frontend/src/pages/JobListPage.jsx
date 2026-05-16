@@ -28,8 +28,8 @@ export default function JobListPage() {
       {/* Search bar */}
       <div style={{ background: 'var(--white)', borderBottom: '1px solid var(--border)', padding: '20px 0' }}>
         <div className="container">
-          <form onSubmit={handleSearch} style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: 220, display: 'flex', alignItems: 'center', background: 'var(--bg)', border: '1.5px solid var(--border)', borderRadius: 8, padding: '0 16px', gap: 10, transition: 'border .15s' }}
+          <form onSubmit={handleSearch} className="search-form" style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+            <div className="search-input-wrap" style={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', background: 'var(--bg)', border: '1.5px solid var(--border)', borderRadius: 8, padding: '0 16px', gap: 10, transition: 'border .15s' }}
               onFocusCapture={e => e.currentTarget.style.borderColor='var(--blue)'}
               onBlurCapture={e => e.currentTarget.style.borderColor='var(--border)'}
             >
@@ -41,15 +41,13 @@ export default function JobListPage() {
                 style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: 15, color: 'var(--dark)', flex: 1, padding: '13px 0' }}
               />
             </div>
-            <div style={{ width: 200, display: 'flex', alignItems: 'center', background: 'var(--bg)', border: '1.5px solid var(--border)', borderRadius: 8, padding: '0 16px', gap: 10 }}
-              className="loc-input"
-            >
+            <div className="loc-input" style={{ width: 200, display: 'flex', alignItems: 'center', background: 'var(--bg)', border: '1.5px solid var(--border)', borderRadius: 8, padding: '0 16px', gap: 10 }}>
               <span style={{ fontSize: 16 }}>📍</span>
               <input
                 value={location}
                 onChange={e => setLocation(e.target.value)}
                 placeholder="Stad eller postnummer"
-                style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: 15, color: 'var(--dark)', width: '100%' }}
+                style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: 15, color: 'var(--dark)', width: '100%', padding: '13px 0' }}
               />
             </div>
             <button type="submit" className="btn btn-primary">Sök</button>
@@ -65,10 +63,10 @@ export default function JobListPage() {
             {/* Sidebar filter */}
             <JobFilter params={params} onChange={updateParams} />
 
-            {/* Results */}
-            <main style={{ zIndex: 2 }}>
+            {/* Results — BUG FIX: replaced nested <main> with <section> for valid HTML */}
+            <section style={{ zIndex: 2 }}>
               {/* Header */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 8 }}>
                 <p style={{ fontSize: 15, color: 'var(--muted)' }}>
                   Visar <strong style={{ color: 'var(--dark)' }}>{total} jobb</strong>
                   {params.search ? ` för "${params.search}"` : ' nära dig'}
@@ -101,14 +99,23 @@ export default function JobListPage() {
                   )}
                 </div>
               )}
-            </main>
+            </section>
           </div>
         </div>
       </div>
 
       <style>{`
-        @media(max-width:900px){.list-layout{grid-template-columns:1fr!important}}
-        @media(max-width:600px){.loc-input{display:none!important}}
+        @media(max-width:900px){
+          .list-layout{grid-template-columns:1fr!important}
+        }
+        @media(max-width:600px){
+          .loc-input{display:none!important}
+          .search-form{gap:8px!important}
+          .search-input-wrap{min-width:0!important}
+        }
+        @media(max-width:400px){
+          .search-form .btn{width:100%!important;justify-content:center}
+        }
       `}</style>
     </main>
   );

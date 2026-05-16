@@ -1,6 +1,6 @@
 // git commit: "feat(jobs): build JobFilter sidebar with category, price range, and distance options"
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { jobService } from '../../services/jobService.js';
 
 const DISTANCES = [
@@ -15,6 +15,7 @@ export default function JobFilter({ params, onChange }) {
   const [categories, setCategories] = useState([]);
   const [minPrice, setMinPrice]     = useState(params.minPrice ?? '');
   const [maxPrice, setMaxPrice]     = useState(params.maxPrice ?? '');
+  const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
     jobService.getCategories().then(setCategories).catch(() => {});
@@ -23,8 +24,19 @@ export default function JobFilter({ params, onChange }) {
   const setCategory = (id) => onChange({ category: id === params.category ? null : id });
   const setDistance = (km) => onChange({ radius: km });
 
-  const applyPrice = () =>
+  // BUG FIX: Use callback to read freshest state instead of stale closure values
+  const applyPrice = useCallback(() => {
     onChange({ minPrice: minPrice || null, maxPrice: maxPrice || null });
+  }, [minPrice, maxPrice, onChange]);
+
+  const handleSliderChange = (e) => {
+    const val = e.target.value;
+    setMaxPrice(val);
+    // Defer the onChange so React has time to update state
+    setTimeout(() => {
+      onChange({ minPrice: minPrice || null, maxPrice: val || null });
+    }, 0);
+  };
 
   const reset = () => {
     setMinPrice('');
@@ -32,21 +44,8 @@ export default function JobFilter({ params, onChange }) {
     onChange({ category: null, radius: null, minPrice: null, maxPrice: null, sort: null });
   };
 
-  return (
-    <aside style={{
-      background: 'var(--white)',
-      borderRadius: 'var(--r)',
-      border: '1px solid var(--border)',
-      padding: 24,
-      position: 'sticky',
-      top: 88,
-      zIndex: 1,
-      overflow: 'hidden',
-    }}>
-      <h3 style={{ fontSize: 14, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--muted)', marginBottom: 14 }}>
-        Filter
-      </h3>
-
+  const filterContent = (
+    <>
       {/* Category */}
       <div style={{ marginBottom: 24, paddingBottom: 24, borderBottom: '1px solid var(--border-light)' }}>
         <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Kategori</h4>
@@ -104,7 +103,7 @@ export default function JobFilter({ params, onChange }) {
           min="0"
           max="5000"
           value={maxPrice || 5000}
-          onChange={e => { setMaxPrice(e.target.value); applyPrice(); }}
+          onChange={handleSliderChange}
           style={{ width: '100%', accentColor: 'var(--blue)' }}
         />
       </div>
@@ -161,6 +160,48 @@ export default function JobFilter({ params, onChange }) {
       >
         Rensa filter
       </button>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Mobile toggle button */}
+      <button
+        className="filter-toggle"
+        onClick={() => setMobileOpen(!mobileOpen)}
+        style={{
+          display: 'none',
+          width: '100%', padding: '12px 16px', borderRadius: 8, fontSize: 14, fontWeight: 600,
+          color: 'var(--blue)', background: 'var(--blue-light)', border: '1.5px solid var(--blue-mid)',
+          cursor: 'pointer', transition: 'all .15s', marginBottom: 16,
+          alignItems: 'center', justifyContent: 'center', gap: 8,
+        }}
+      >
+        {mobileOpen ? '✕ Stäng filter' : '☰ Visa filter'}
+      </button>
+
+      <aside className="job-filter" style={{
+        background: 'var(--white)',
+        borderRadius: 'var(--r)',
+        border: '1px solid var(--border)',
+        padding: 24,
+        position: 'sticky',
+        top: 88,
+        zIndex: 1,
+        overflow: 'hidden',
+      }}>
+        <h3 style={{ fontSize: 14, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--muted)', marginBottom: 14 }}>
+          Filter
+        </h3>
+        {filterContent}
+      </aside>
+
+      <style>{`
+        @media(max-width:900px){
+          .filter-toggle{display:flex!important}
+          .job-filter{position:static!important;display:${mobileOpen ? 'block' : 'none'}!important}
+        }
+      `}</style>
+    </>
   );
 }

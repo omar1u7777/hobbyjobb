@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth.js';
 import { useHobbyLimit } from '../hooks/useHobbyLimit.js';
 import { userService } from '../services/userService.js';
 import { authService } from '../services/authService.js';
+import { validators } from '../utils/validators.js';
 import IncomeTracker from '../components/profile/IncomeTracker.jsx';
 import ReviewList from '../components/profile/ReviewList.jsx';
 import UserStats from '../components/profile/UserStats.jsx';
@@ -83,8 +84,9 @@ export default function ProfilePage() {
       setPwErr('Lösenorden matchar inte');
       return;
     }
-    if (pwForm.new.length < 6) {
-      setPwErr('Lösenordet måste vara minst 6 tecken');
+    const pwError = validators.password(pwForm.new);
+    if (pwError) {
+      setPwErr(pwError);
       return;
     }
     setPwLoading(true);
@@ -109,9 +111,9 @@ export default function ProfilePage() {
   return (
     <main>
       {/* Dark hero */}
-      <div style={{ background: 'var(--dark)', padding: '40px 0 0', color: '#fff' }}>
-        <div className="container">
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap', paddingBottom: 0 }}>
+      <div style={{ background: 'var(--dark)', color: '#fff' }} className="profile-hero">
+        <div className="container" style={{ padding: '40px var(--sp-6) 0' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap', paddingBottom: 0 }} className="profile-hero__inner">
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 20 }}>
               <div style={{
                 width: 80, height: 80, borderRadius: '50%',
@@ -144,7 +146,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Tabs */}
-          <div style={{ display: 'flex', gap: 0, marginTop: 24, borderBottom: '1px solid rgba(255,255,255,.1)' }}>
+          <div className="profile-tabs" style={{ display: 'flex', gap: 0, marginTop: 24, borderBottom: '1px solid rgba(255,255,255,.1)', overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
             {(isOwn ? TABS : TABS.filter(t => t !== 'Inställningar')).map(t => (
               <button
                 key={t}
@@ -243,7 +245,7 @@ export default function ProfilePage() {
                           type="password"
                           value={pwForm.new}
                           onChange={e => setPwForm(p => ({ ...p, new: e.target.value }))}
-                          placeholder="Minst 6 tecken"
+                          placeholder="Minst 8 tecken"
                         />
                       </div>
                       <div className="form-group">
@@ -279,8 +281,19 @@ export default function ProfilePage() {
       </div>
 
       <style>{`
-        @media(max-width:900px){.profile-layout{grid-template-columns:1fr!important}.stats-grid{grid-template-columns:repeat(2,1fr)!important}}
-        @media(max-width:500px){.stats-grid{grid-template-columns:1fr 1fr!important}}
+        @media(max-width:900px){
+          .profile-layout{grid-template-columns:1fr!important}
+          .stats-grid{grid-template-columns:repeat(2,1fr)!important}
+          .profile-hero__inner{align-items:center!important}
+        }
+        @media(max-width:600px){
+          .profile-hero .container{padding-top:24px!important}
+          .profile-tabs{gap:0}
+          .profile-tabs::-webkit-scrollbar{display:none}
+        }
+        @media(max-width:500px){
+          .stats-grid{grid-template-columns:1fr 1fr!important}
+        }
       `}</style>
     </main>
   );

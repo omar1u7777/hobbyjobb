@@ -151,10 +151,10 @@ export default function JobDetailPage() {
           ← Tillbaka till jobblistan
         </Link>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: 28, alignItems: 'start' }} className="detail-layout">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 28, alignItems: 'flex-start' }} className="detail-layout">
 
           {/* Left: Job info */}
-          <div>
+          <div className="detail-main" style={{ flex: 1, minWidth: 0 }}>
             <div className="section">
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, marginBottom: 20 }}>
                 <div style={{ width: 56, height: 56, borderRadius: 12, background: 'var(--blue-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 26, flexShrink: 0 }}>
@@ -186,11 +186,10 @@ export default function JobDetailPage() {
                 </div>
                 <div>
                   <div style={{ fontWeight: 700, fontSize: 15 }}>{job.poster?.name ?? job.poster_name}</div>
-                  <div style={{ color: '#F59E0B', fontSize: 13 }}>
-                    {'★'.repeat(5)}
-                    <span style={{ color: 'var(--muted)', marginLeft: 6 }}>
-                      · {job.poster?.jobs_completed ?? 0} jobb slutförda
-                    </span>
+                  <div style={{ fontSize: 13, color: 'var(--muted)' }}>
+                    {(job.poster?.jobs_completed ?? 0) > 0
+                      ? `${job.poster.jobs_completed} jobb slutförda`
+                      : 'Ny användare'}
                   </div>
                 </div>
                 <Link to={`/profil/${job.poster_id}`} className="btn btn-ghost btn-sm" style={{ marginLeft: 'auto' }}>
@@ -222,7 +221,7 @@ export default function JobDetailPage() {
           </div>
 
           {/* Right: Booking card */}
-          <div style={{ position: 'sticky', top: 88 }}>
+          <div className="detail-sidebar" style={{ position: 'sticky', top: 88, width: 340, flexShrink: 0 }}>
             <div style={{ background: 'var(--white)', borderRadius: 14, border: '1px solid var(--border)', boxShadow: 'var(--sh-lg)', padding: 28 }}>
               <div style={{ fontSize: 32, fontWeight: 900, color: 'var(--blue)', marginBottom: 4 }}>
                 {formatPrice(job.price)}
@@ -354,7 +353,16 @@ export default function JobDetailPage() {
         </button>
       </Modal>
 
-      <style>{`@media(max-width:900px){.detail-layout{grid-template-columns:1fr!important}}`}</style>
+      <style>{`
+        @media(max-width:900px){
+          .detail-layout{flex-direction:column!important}
+          .detail-sidebar{position:static!important;width:100%!important;order:-1}
+          .detail-main{width:100%!important}
+        }
+        @media(max-width:500px){
+          .detail-layout{gap:16px!important}
+        }
+      `}</style>
     </main>
   );
 }

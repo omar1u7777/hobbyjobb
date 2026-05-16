@@ -95,7 +95,15 @@ export default function PostJobPage() {
         </div>
       </div>
 
-      <style>{`@media(max-width:900px){.postjob-layout{grid-template-columns:1fr!important}}`}</style>
+      <style>{`
+        @media(max-width:900px){
+          .postjob-layout{grid-template-columns:1fr!important}
+          .postjob-layout aside{position:static!important;order:-1}
+        }
+        @media(max-width:500px){
+          .postjob-layout{gap:16px!important}
+        }
+      `}</style>
     </main>
   );
 }

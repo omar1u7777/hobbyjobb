@@ -9,7 +9,7 @@ export default function JobCard({ job }) {
   const isToday  = job.date && new Date(job.date).toDateString() === new Date().toDateString();
 
   return (
-    <Link to={`/jobs/${job.id}`} style={{
+    <Link to={`/jobs/${job.id}`} className="job-card" style={{
       background: 'var(--white)',
       borderRadius: 'var(--r)',
       border: '1px solid var(--border)',
@@ -25,13 +25,13 @@ export default function JobCard({ job }) {
     onMouseLeave={e => { e.currentTarget.style.boxShadow='none'; e.currentTarget.style.transform='none'; e.currentTarget.style.borderColor='var(--border)'; }}
     >
       {/* Icon */}
-      <div style={{ width: 48, height: 48, borderRadius: 10, background: 'var(--blue-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
+      <div className="job-card__icon" style={{ width: 48, height: 48, borderRadius: 10, background: 'var(--blue-light)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 22, flexShrink: 0 }}>
         {getCategoryIcon(job.category?.name)}
       </div>
 
       {/* Info */}
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div className="job-card__title" style={{ fontSize: 15, fontWeight: 700, marginBottom: 4, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
           {job.title}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
@@ -48,10 +48,10 @@ export default function JobCard({ job }) {
         )}
       </div>
 
-      {/* Price */}
-      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+      {/* Price — BUG FIX: added 'negotiable' → 'Förhandlingsbart' */}
+      <div className="job-card__price" style={{ textAlign: 'right', flexShrink: 0 }}>
         <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--blue)' }}>{formatPrice(job.price)}</div>
-        <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{job.price_type === 'hourly' ? 'Per timme' : 'Fast pris'}</div>
+        <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>{job.price_type === 'hourly' ? 'Per timme' : job.price_type === 'negotiable' ? 'Förhandlingsbart' : 'Fast pris'}</div>
       </div>
     </Link>
   );

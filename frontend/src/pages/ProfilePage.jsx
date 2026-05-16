@@ -58,7 +58,7 @@ export default function ProfilePage() {
     userService.getReviews(userId)
       .then(r => { if (Array.isArray(r)) setReviews(r); })
       .catch(() => setReviews([]));
-  }, [userId]);
+  }, [isOwn, userId]);
 
   const handleSave = async (e) => {
     e.preventDefault();

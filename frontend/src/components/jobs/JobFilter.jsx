@@ -32,10 +32,7 @@ export default function JobFilter({ params, onChange }) {
   const handleSliderChange = (e) => {
     const val = e.target.value;
     setMaxPrice(val);
-    // Defer the onChange so React has time to update state
-    setTimeout(() => {
-      onChange({ minPrice: minPrice || null, maxPrice: val || null });
-    }, 0);
+    onChange({ minPrice: minPrice || null, maxPrice: val || null });
   };
 
   const reset = () => {

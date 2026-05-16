@@ -13,7 +13,7 @@ export default function ChatWindow({ conversation, currentUserId, onSend, isSend
   if (!conversation) {
     return (
       <section style={{ 
-        minHeight: 560, 
+        minHeight: 'clamp(300px, 60vh, 560px)', 
         display: 'flex', 
         flexDirection: 'column',
         alignItems: 'center',
@@ -49,7 +49,7 @@ export default function ChatWindow({ conversation, currentUserId, onSend, isSend
 
   return (
     <section style={{ 
-      height: 600, 
+      height: 'clamp(400px, 70vh, 600px)', 
       display: 'flex', 
       flexDirection: 'column', 
       overflow: 'hidden',

@@ -7,11 +7,11 @@ function formatTime(dateStr) {
 export default function MessageBubble({ message, isOwn }) {
   return (
     <div
+      className="chat-bubble-enter"
       style={{
         display: 'flex',
         justifyContent: isOwn ? 'flex-end' : 'flex-start',
         marginBottom: 8,
-        animation: 'fadeInUp 0.3s ease-out',
       }}
     >
       <article
@@ -53,12 +53,6 @@ export default function MessageBubble({ message, isOwn }) {
           {formatTime(message.sentAt)}
         </p>
       </article>
-      <style>{`
-        @keyframes fadeInUp {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   );
 }

@@ -132,13 +132,17 @@ const updateApplicationStatus = async (req, res, next) => {
 
     // Auto-start the conversation if just accepted
     if (!wasAcceptedBefore && status === APPLICATION_STATUS.ACCEPTED) {
-      await Message.create({
-        job_id: application.job_id,
-        sender_id: req.user.id, // The poster
-        receiver_id: application.applicant_id, // The applicant
-        content: '👋 Hej! Din ansökan har accepterats. Vi kan nu diskutera detaljerna kring uppdraget här.',
-        is_read: false,
-      });
+      try {
+        await Message.create({
+          job_id: application.job_id,
+          sender_id: req.user.id, // The poster
+          receiver_id: application.applicant_id, // The applicant
+          content: '👋 Hej! Din ansökan har accepterats. Vi kan nu diskutera detaljerna kring uppdraget här.',
+          is_read: false,
+        });
+      } catch (msgErr) {
+        console.error('Failed to create initial chat message:', msgErr.message);
+      }
     }
 
     // NOTE: job stays 'open' after acceptance. It only moves to 'in_progress'

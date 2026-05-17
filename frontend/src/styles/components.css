@@ -207,3 +207,12 @@
 @media (max-width: 600px) {
   .form-row { grid-template-columns: 1fr; }
 }
+
+/* ── CHAT ANIMATIONS ── */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.chat-bubble-enter {
+  animation: fadeInUp 0.3s ease-out;
+}

@@ -63,7 +63,7 @@ Täcker all autentisering:
 - **ChangePassword**
   - Byt lösenord med korrekt nuvarande lösenord
   - Felaktigt nuvarande lösenord → 401
-  - Validering: nytt lösenord för kort (< 6 tecken)
+  - Validering: nytt lösenord för kort eller svagt (< 8 tecken eller saknar bokstav/siffra)
 
 ### 2. `backend/__tests__/middleware.test.js` – 5 tester
 

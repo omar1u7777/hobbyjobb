@@ -2,6 +2,8 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { User } = require('../models');
 
+const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+
 // JWT config
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
@@ -51,11 +53,11 @@ const register = async (req, res) => {
       });
     }
 
-    // Check password length
-    if (password.length < 6) {
+    // Check password strength
+    if (!PASSWORD_REGEX.test(password)) {
       return res.status(400).json({
         success: false,
-        message: 'Password must be at least 6 characters'
+        message: 'Password must be at least 8 characters with letters and numbers'
       });
     }
 
@@ -215,10 +217,10 @@ const changePassword = async (req, res) => {
       });
     }
 
-    if (newPassword.length < 6) {
+    if (!PASSWORD_REGEX.test(newPassword)) {
       return res.status(400).json({
         success: false,
-        message: 'newPassword must be at least 6 characters',
+        message: 'newPassword must be at least 8 characters with letters and numbers',
       });
     }
 

@@ -21,7 +21,7 @@
         Backend->>Backend: email = email.toLowerCase().trim()
         Backend->>Backend: Validerar: name, email, password required
         Backend->>Backend: Validerar email (regex: /^[^\s@]+@[^\s@]+\.[^\s@]+$/)
-        Backend->>Backend: Validerar password (length >= 6)
+        Backend->>Backend: Validerar password (>= 8 tecken med bokstav + siffra)
 
         Backend->>DB: User.findOne({ where: { email } })
         DB-->>Backend: null (användare finns inte) eller existing user

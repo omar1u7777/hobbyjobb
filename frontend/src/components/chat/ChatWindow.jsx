@@ -85,7 +85,7 @@ export default function ChatWindow({ conversation, currentUserId, onSend, isSend
             fontSize: 16,
             boxShadow: '0 4px 10px rgba(37,99,235,0.2)',
           }}>
-            {conversation.participant.name?.charAt(0).toUpperCase()}
+            {conversation.participant.name?.charAt(0)?.toUpperCase() || 'U'}
           </div>
           <div>
             <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 2, color: 'var(--dark)' }}>{conversation.participant.name}</h2>

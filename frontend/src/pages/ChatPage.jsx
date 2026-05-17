@@ -49,7 +49,7 @@ export default function ChatPage() {
         setLoadedJobIds(new Set());
       } catch (error) {
         if (cancelled) return;
-        setChatError('Kunde inte hämta dina konversationer. Databasen kan vara nere.');
+        setChatError('Chatt-tjänsten är tillfälligt otillgänglig. Servern vaknar (cold start). Försök igen om en minut.');
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -210,6 +210,29 @@ export default function ChatPage() {
           ) : null}
         </div>
 
+        {chatError && !isLoading && conversations.length === 0 ? (
+          <section style={{
+            textAlign: 'center',
+            padding: 60,
+            background: 'rgba(255, 255, 255, 0.7)',
+            backdropFilter: 'blur(20px)',
+            borderRadius: 24,
+            border: '1px solid rgba(255,255,255,0.8)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
+          }}>
+            <div style={{ fontSize: 40, marginBottom: 16 }}>📡</div>
+            <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8, color: 'var(--dark)' }}>Chatt-tjänsten är tillfälligt otillgänglig</h3>
+            <p style={{ color: 'var(--muted)', maxWidth: 400, margin: '0 auto 24px', lineHeight: 1.6 }}>
+              Servern vaknar (cold start). Det kan ta upp till en minut. Försök igen strax.
+            </p>
+            <button
+              className="btn btn-primary"
+              onClick={() => window.location.reload()}
+            >
+              🔄 Försök igen
+            </button>
+          </section>
+        ) : (
         <section className="chat-layout" style={{ display: 'grid', gridTemplateColumns: '320px 1fr', gap: 24, alignItems: 'start' }}>
           <aside style={{ 
             background: 'rgba(255, 255, 255, 0.7)', 
@@ -218,7 +241,7 @@ export default function ChatPage() {
             border: '1px solid rgba(255,255,255,0.8)',
             boxShadow: '0 8px 32px rgba(0,0,0,0.04)',
             overflow: 'hidden',
-            height: 600,
+            height: 'clamp(400px, 70vh, 600px)',
             display: 'flex',
             flexDirection: 'column'
           }}>
@@ -329,6 +352,7 @@ export default function ChatPage() {
             isSending={isSending}
           />
         </section>
+        )}
       </div>
 
       <style>{`

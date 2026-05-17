@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth.js';
 import { useHobbyLimit } from '../hooks/useHobbyLimit.js';
 import { userService } from '../services/userService.js';
 import { authService } from '../services/authService.js';
+import { validators } from '../utils/validators.js';
 import IncomeTracker from '../components/profile/IncomeTracker.jsx';
 import ReviewList from '../components/profile/ReviewList.jsx';
 import UserStats from '../components/profile/UserStats.jsx';
@@ -83,8 +84,9 @@ export default function ProfilePage() {
       setPwErr('Lösenorden matchar inte');
       return;
     }
-    if (pwForm.new.length < 6) {
-      setPwErr('Lösenordet måste vara minst 6 tecken');
+    const pwError = validators.password(pwForm.new);
+    if (pwError) {
+      setPwErr(pwError);
       return;
     }
     setPwLoading(true);
@@ -243,7 +245,7 @@ export default function ProfilePage() {
                           type="password"
                           value={pwForm.new}
                           onChange={e => setPwForm(p => ({ ...p, new: e.target.value }))}
-                          placeholder="Minst 6 tecken"
+                          placeholder="Minst 8 tecken"
                         />
                       </div>
                       <div className="form-group">

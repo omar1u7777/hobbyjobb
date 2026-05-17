@@ -113,7 +113,7 @@
               "mode": "raw",
               "raw": "{\n  \"currentPassword\": \"{{testPassword}}\",\n  \"newPassword\": \"password456\"\n}"
             },
-            "description": "Byter lösenord. Båda fält måste skickas, nytt lösenord minst 6 tecken. Kom ihåg att uppdatera `testPassword` efter lyckad körning."
+            "description": "Byter lösenord. Båda fält måste skickas, nytt lösenord minst 8 tecken med bokstav och siffra. Kom ihåg att uppdatera `testPassword` efter lyckad körning."
           },
           "event": [
             {

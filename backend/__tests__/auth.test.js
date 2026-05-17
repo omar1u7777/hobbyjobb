@@ -133,6 +133,22 @@ describe('Auth Routes', () => {
       expect(res.status).toBe(400);
     });
 
+    it('should reject password without letters and numbers', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({ name: 'Omar', email: 'omar@example.com', password: 'abcdefgh' });
+
+      expect(res.status).toBe(400);
+    });
+
+    it('should reject password without letters', async () => {
+      const res = await request(app)
+        .post('/api/auth/register')
+        .send({ name: 'Omar', email: 'omar@example.com', password: '12345678' });
+
+      expect(res.status).toBe(400);
+    });
+
     it('should reject duplicate email', async () => {
       User.findOne.mockResolvedValue({ id: 1, email: 'omar@example.com' });
 
@@ -312,6 +328,19 @@ describe('Auth Routes', () => {
         .put('/api/auth/password')
         .set('Authorization', `Bearer ${token}`)
         .send({ currentPassword: 'oldpass', newPassword: '12345' });
+
+      expect(res.status).toBe(400);
+    });
+
+    it('should reject new password without letters and numbers', async () => {
+      const token = jwt.sign({ id: 1, email: 'omar@example.com', is_admin: false }, JWT_SECRET);
+      User.findByPk.mockResolvedValue({ id: 1, password: '$2b$10$old' });
+      bcrypt.compare.mockResolvedValue(true);
+
+      const res = await request(app)
+        .put('/api/auth/password')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ currentPassword: 'oldpass', newPassword: 'abcdefgh' });
 
       expect(res.status).toBe(400);
     });

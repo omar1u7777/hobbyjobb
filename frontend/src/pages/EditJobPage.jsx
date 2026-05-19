@@ -132,7 +132,7 @@ export default function EditJobPage() {
         </div>
       </div>
 
-      <style>{`@media(max-width:900px){.postjob-layout{grid-template-columns:1fr!important}}`}</style>
+      <style>{`@media(max-width:900px){.postjob-layout{grid-template-columns:1fr!important; gap: 24px !important}}`}</style>
     </main>
   );
 }

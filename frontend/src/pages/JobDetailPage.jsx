@@ -76,11 +76,31 @@ export default function JobDetailPage() {
   };
 
   useEffect(() => {
-    setLoading(true);
-    jobService.getJob(id)
-      .then(setJob)
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false));
+    async function load() {
+      setLoading(true);
+      setError('');
+
+      // Validate ID to prevent backend 500 errors
+      if (!id || id === 'undefined') {
+        setError('Ogiltigt jobb-ID');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setJob(await jobService.getJob(id));
+      } catch (e) {
+        console.error('JobDetailPage fetch error:', e);
+        if (e.message === 'Network Error') {
+          setError('Nätverksfel: Kunde inte ansluta till servern. Försök igen senare.');
+        } else {
+          setError(e.message || 'Ett oväntat fel inträffade.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
   }, [id]);
 
   // Load reviews when job is completed
@@ -138,8 +158,17 @@ export default function JobDetailPage() {
   };
 
   if (loading) return <div style={{ padding: '80px 0', textAlign: 'center' }}><Spinner /></div>;
-  if (error)   return <div className="container" style={{ padding: '60px 24px' }}><Alert type="error">{error}</Alert></div>;
-  if (!job)    return null;
+  if (error)   return (
+    <div className="container" style={{ padding: '60px 24px', textAlign: 'center' }}>
+      <Alert type="error" style={{ display: 'inline-block', textAlign: 'left', minWidth: 300 }}>
+        <strong>Ett fel uppstod:</strong><br />{error}
+      </Alert>
+      <div style={{ marginTop: 20 }}>
+        <button className="btn btn-secondary" onClick={() => window.location.reload()}>Försök igen</button>
+      </div>
+    </div>
+  );
+  if (!job)    return <div className="container" style={{ padding: '60px 24px' }}><Alert type="info">Jobbet hittades inte.</Alert></div>;
 
   const isOwner = user?.id === job.poster_id;
 

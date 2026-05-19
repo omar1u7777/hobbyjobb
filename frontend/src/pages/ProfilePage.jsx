@@ -41,23 +41,34 @@ export default function ProfilePage() {
   const [pwMsg, setPwMsg] = useState('');
   const [pwErr, setPwErr] = useState('');
 
+  const [profileError, setProfileError] = useState('');
+
   useEffect(() => {
     if (!userId) return;
-    setLoading(true);
 
-    // Load profile — this is critical
-    userService.getProfile(userId)
-      .then(p => {
+    async function load() {
+      setLoading(true);
+      setProfileError('');
+
+      try {
+        const p = await userService.getProfile(userId);
         setProfile(p);
         if (isOwn) setSettings({ name: p.name ?? '', bio: p.bio ?? '', location: p.location ?? '', avatar: p.avatar ?? '' });
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      } catch (err) {
+        setProfileError(err.message || 'Kunde inte ladda profilen.');
+      } finally {
+        setLoading(false);
+      }
 
-    // Load reviews separately — non-fatal if it fails
-    userService.getReviews(userId)
-      .then(r => { if (Array.isArray(r)) setReviews(r); })
-      .catch(() => setReviews([]));
+      // Load reviews separately — non-fatal if it fails
+      try {
+        const r = await userService.getReviews(userId);
+        if (Array.isArray(r)) setReviews(r);
+      } catch {
+        setReviews([]);
+      }
+    }
+    load();
   }, [isOwn, userId]);
 
   const handleSave = async (e) => {
@@ -102,6 +113,18 @@ export default function ProfilePage() {
   };
 
   if (loading) return <div style={{ padding: '80px 0', textAlign: 'center' }}><Spinner /></div>;
+  if (profileError) {
+    return (
+      <main style={{ padding: '80px 0', background: 'var(--bg-light)', minHeight: 'calc(100vh - var(--nav-h))' }}>
+        <div className="container" style={{ maxWidth: 500, textAlign: 'center' }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
+          <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8, color: 'var(--dark)' }}>Profil kunde inte hittas</h1>
+          <p style={{ color: 'var(--muted)', marginBottom: 24 }}>{profileError}</p>
+          <button className="btn btn-primary" onClick={() => window.location.reload()}>Försök igen</button>
+        </div>
+      </main>
+    );
+  }
   if (!profile) return null;
 
   const avgRating = reviews.length

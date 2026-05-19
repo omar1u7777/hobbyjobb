@@ -1,4 +1,4 @@
-﻿# Beroenden
+# Beroenden
 node_modules/
 
 # Miljövariabler (far ALDRIG pushas till GitHub)
@@ -21,3 +21,7 @@ Thumbs.db
 # Coverage reports
 coverage/
 frontend/coverage/
+
+# Tillfälliga/Lokala textfiler
+file_list.txt
+file_list_utf8.txt

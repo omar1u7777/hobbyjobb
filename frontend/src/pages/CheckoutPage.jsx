@@ -34,7 +34,7 @@ const stripePromise = loadStripe(
 
 // Checkout Form Component (inside Stripe Elements)
 
-function CheckoutForm({ job, clientSecret }) {
+function CheckoutForm({ job }) {
 
   const stripe = useStripe();
 
@@ -140,7 +140,7 @@ function CheckoutForm({ job, clientSecret }) {
 
       }
 
-    } catch (err) {
+    } catch {
 
       setError('Ett fel uppstod. Försök igen.');
 
@@ -228,6 +228,14 @@ function CheckoutForm({ job, clientSecret }) {
 
       </p>
 
+      <p style={{ fontSize: 11, color: 'var(--muted)', textAlign: 'center', marginTop: 8, lineHeight: 1.6 }}>
+
+        HobbyJobb förmedlar betalningen — vi agerar inte som arbetsgivare. Om du betalar mer
+        än 10 000 kr/år till samma utförare kan arbetsgivaransvar uppstå.{' '}
+        <a href="https://skatteverket.se/hobby" target="_blank" rel="noreferrer" style={{ color: 'var(--blue)' }}>Läs mer</a>
+
+      </p>
+
     </form>
 
   );
@@ -241,10 +249,6 @@ function CheckoutForm({ job, clientSecret }) {
 export default function CheckoutPage() {
 
   const { jobId } = useParams();
-
-  const navigate = useNavigate();
-
-  
 
   const [job, setJob] = useState(null);
 
@@ -458,7 +462,7 @@ export default function CheckoutPage() {
 
         <Elements stripe={stripePromise} options={{ clientSecret }}>
 
-          <CheckoutForm job={job} clientSecret={clientSecret} />
+          <CheckoutForm job={job} />
 
         </Elements>
 

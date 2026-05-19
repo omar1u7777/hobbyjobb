@@ -19,7 +19,7 @@ const PACKAGES = [
   { key: 'super',    price: 59, label: 'Super Boost',     duration: '7 dagar',   icon: '🚀' },
 ];
 
-function BoostForm({ clientSecret, pkg, jobId }) {
+function BoostForm({ pkg, jobId }) {
   const stripe = useStripe();
   const elements = useElements();
   const navigate = useNavigate();
@@ -60,7 +60,7 @@ function BoostForm({ clientSecret, pkg, jobId }) {
       } else {
         setError('Betalningen kunde inte slutföras.');
       }
-    } catch (err) {
+    } catch {
       setError('Ett fel uppstod. Försök igen.');
     } finally {
       setLoading(false);
@@ -195,7 +195,7 @@ export default function BoostJobPage() {
               <div style={{ fontSize: 13, color: 'var(--muted)', marginTop: 4 }}>{selectedPkg.duration} · {formatPrice(selectedPkg.price)}</div>
             </div>
             <Elements stripe={stripePromise} options={{ clientSecret }}>
-              <BoostForm clientSecret={clientSecret} pkg={selectedPkg} jobId={jobId} />
+              <BoostForm pkg={selectedPkg} jobId={jobId} />
             </Elements>
             <button
               onClick={() => { setSelectedPkg(null); setClientSecret(''); }}

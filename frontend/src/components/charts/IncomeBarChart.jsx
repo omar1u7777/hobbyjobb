@@ -114,7 +114,7 @@ export default function IncomeBarChart({
       <div style={{ marginBottom: 10 }}>
         <h2 style={{ fontSize: 16, marginBottom: 4 }}>Intäkt per månad</h2>
         <p style={{ fontSize: 12, color: 'var(--muted)' }}>
-          {loading ? 'Laddar...' : apiLive ? 'Live-data: plattform + brutto' : 'Mock-data: plattform + brutto'}
+          {loading ? 'Laddar...' : apiLive ? 'Plattform + brutto per månad' : 'Kunde inte ladda data'}
         </p>
       </div>
       <div style={{ height: 220 }}>

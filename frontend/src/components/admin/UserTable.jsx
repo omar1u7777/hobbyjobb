@@ -1,13 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { adminService } from '../../services/adminService.js';
 
-const MOCK_USERS = [
-  { id: 1, name: 'Anna Lindgren', hobbyTotal: 28900, status: 'Nära gräns', jobsMonth: 12 },
-  { id: 2, name: 'Björn Karlsson', hobbyTotal: 14120, status: 'OK', jobsMonth: 7 },
-  { id: 3, name: 'Maria Svensson', hobbyTotal: 30000, status: 'Spärrad', jobsMonth: 21 },
-  { id: 4, name: 'Erik Magnusson', hobbyTotal: 18450, status: 'OK', jobsMonth: 9 },
-  { id: 5, name: 'Sofia Berg', hobbyTotal: 24980, status: 'Nära gräns', jobsMonth: 16 },
-  { id: 6, name: 'David Holm', hobbyTotal: 9020, status: 'OK', jobsMonth: 4 },
-];
+function resolveStatus(user) {
+  if (user.hobbyLimitReached || user.limitPercent >= 100) return 'Spärrad';
+  if (user.hobbyWarned || user.limitPercent >= 80) return 'Nära gräns';
+  return 'OK';
+}
 
 function statusStyle(status) {
   if (status === 'Spärrad') {
@@ -21,17 +19,38 @@ function statusStyle(status) {
   return { background: 'var(--green-light)', color: 'var(--green-text)' };
 }
 
-export default function UserTable({ users = MOCK_USERS }) {
+export default function UserTable() {
+  const [users, setUsers] = useState([]);
   const [query, setQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const data = await adminService.getUsers({ limit: 50 });
+        if (!cancelled) setUsers(data);
+      } catch (_) {
+        // keep empty
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => { cancelled = true; };
+  }, []);
 
   const filteredUsers = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return users;
 
     return users.filter((user) => {
-      const name = user.name.toLowerCase();
-      const status = user.status.toLowerCase();
-      return name.includes(q) || status.includes(q);
+      const name = (user.name || '').toLowerCase();
+      const email = (user.email || '').toLowerCase();
+      const status = resolveStatus(user).toLowerCase();
+      return name.includes(q) || email.includes(q) || status.includes(q);
     });
   }, [users, query]);
 
@@ -41,7 +60,7 @@ export default function UserTable({ users = MOCK_USERS }) {
         <div>
           <h3>Användaröversikt</h3>
           <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
-            Sökbar mock-tabell för hobbystatus
+            {loading ? 'Laddar...' : `Live-data — ${users.length} användare`}
           </p>
         </div>
       </div>
@@ -51,7 +70,7 @@ export default function UserTable({ users = MOCK_USERS }) {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Sök på namn eller status..."
+          placeholder="Sök på namn, e-post eller status..."
           style={{
             width: '100%',
             border: '1.5px solid var(--border)',
@@ -70,32 +89,41 @@ export default function UserTable({ users = MOCK_USERS }) {
           <thead>
             <tr style={{ textAlign: 'left', fontSize: 12, color: 'var(--muted)' }}>
               <th style={{ padding: '8px 6px' }}>Namn</th>
-              <th style={{ padding: '8px 6px' }}>Hobby totalt</th>
-              <th style={{ padding: '8px 6px' }}>Jobb/månad</th>
+              <th style={{ padding: '8px 6px' }}>E-post</th>
+              <th style={{ padding: '8px 6px' }}>Hobbyinkomst</th>
+              <th style={{ padding: '8px 6px' }}>Gräns %</th>
               <th style={{ padding: '8px 6px' }}>Status</th>
             </tr>
           </thead>
           <tbody>
-            {filteredUsers.map((user) => (
-              <tr key={user.id} style={{ borderTop: '1px solid var(--border-light)' }}>
-                <td style={{ padding: '10px 6px', fontSize: 13, fontWeight: 600 }}>{user.name}</td>
-                <td style={{ padding: '10px 6px', fontSize: 13 }}>{user.hobbyTotal.toLocaleString('sv-SE')} kr</td>
-                <td style={{ padding: '10px 6px', fontSize: 13 }}>{user.jobsMonth}</td>
-                <td style={{ padding: '10px 6px' }}>
-                  <span
-                    style={{
-                      ...statusStyle(user.status),
-                      borderRadius: 999,
-                      padding: '4px 10px',
-                      fontSize: 11,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {user.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
+            {filteredUsers.map((user) => {
+              const status = resolveStatus(user);
+              return (
+                <tr key={user.id} style={{ borderTop: '1px solid var(--border-light)' }}>
+                  <td style={{ padding: '10px 6px', fontSize: 13, fontWeight: 600 }}>{user.name}</td>
+                  <td style={{ padding: '10px 6px', fontSize: 12, color: 'var(--muted)' }}>{user.email}</td>
+                  <td style={{ padding: '10px 6px', fontSize: 13 }}>
+                    {Number(user.hobbyTotalYear || 0).toLocaleString('sv-SE')} kr
+                  </td>
+                  <td style={{ padding: '10px 6px', fontSize: 13 }}>
+                    {user.limitPercent ?? 0}%
+                  </td>
+                  <td style={{ padding: '10px 6px' }}>
+                    <span
+                      style={{
+                        ...statusStyle(status),
+                        borderRadius: 999,
+                        padding: '4px 10px',
+                        fontSize: 11,
+                        fontWeight: 700,
+                      }}
+                    >
+                      {status}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>

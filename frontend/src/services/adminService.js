@@ -48,6 +48,21 @@ export const adminService = {
     await api.delete(`/admin/categories/${id}`);
     return true;
   },
+
+  async getUsers({ search = '', page = 1, limit = 25 } = {}) {
+    const params = { page, limit };
+    if (search) params.search = search;
+    const { users } = unwrap(await api.get('/admin/users', { params }));
+    return Array.isArray(users) ? users : [];
+  },
+
+  async getJobs({ search = '', status = '', page = 1, limit = 25 } = {}) {
+    const params = { page, limit };
+    if (search) params.search = search;
+    if (status) params.status = status;
+    const { jobs } = unwrap(await api.get('/admin/jobs', { params }));
+    return Array.isArray(jobs) ? jobs : [];
+  },
 };
 
 export default adminService;

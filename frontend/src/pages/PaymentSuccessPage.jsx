@@ -91,7 +91,7 @@ export default function PaymentSuccessPage() {
             <strong>Nästa steg:</strong>
             <ul style={{ margin: '8px 0 0 16px', padding: 0 }}>
               <li>Kontakta utföraren via chatten för att koordinera detaljer</li>
-              <li>När jobbet är slutfört, markera det som klart i "Mina jobb"</li>
+              <li>När jobbet är slutfört, markera det som klart i &quot;Mina jobb&quot;</li>
               <li>Lämna en recension efter genomfört uppdrag</li>
             </ul>
           </Alert>

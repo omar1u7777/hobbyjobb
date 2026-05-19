@@ -67,7 +67,7 @@ export default function JobDetailPage() {
       } else {
         navigate(`/checkout/${id}`);
       }
-    } catch (e) {
+    } catch {
       // If we can't check status, proceed with payment (backend will validate)
       navigate(`/checkout/${id}`);
     } finally {

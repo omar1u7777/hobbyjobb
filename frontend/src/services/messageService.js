@@ -36,8 +36,9 @@ export const messageService = {
     return raw.map(normalizeConversation);
   },
 
-  async getMessages(jobId) {
-    const { data } = await api.get(`/messages/${jobId}`);
+  async getMessages(jobId, otherUserId) {
+    const url = otherUserId ? `/messages/${jobId}?userId=${otherUserId}` : `/messages/${jobId}`;
+    const { data } = await api.get(url);
     const raw = data.data?.messages ?? data.messages ?? [];
     return raw.map(normalizeMessage);
   },
@@ -53,8 +54,8 @@ export const messageService = {
     return normalizeMessage(message);
   },
 
-  async markConversationAsRead(jobId) {
-    const { data } = await api.patch(`/messages/${jobId}/read`);
+  async markConversationAsRead(jobId, otherUserId) {
+    const { data } = await api.patch(`/messages/${jobId}/read`, { senderId: otherUserId });
     return data.data?.updatedCount ?? 0;
   },
 

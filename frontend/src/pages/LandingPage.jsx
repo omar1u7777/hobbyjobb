@@ -67,7 +67,7 @@ export default function LandingPage() {
           </p>
 
           {/* Search bar */}
-          <form onSubmit={handleHeroSearch} style={{ display:'flex', gap:12, maxWidth:560, margin:'0 auto 28px', flexWrap:'wrap' }}>
+          <form onSubmit={handleHeroSearch} className="landing-search-form" style={{ display:'flex', gap:12, maxWidth:560, margin:'0 auto 28px', flexWrap:'wrap' }}>
             <div style={{ flex:1, minWidth:220, display:'flex', alignItems:'center', background:'#fff', borderRadius:8, padding:'0 16px', gap:10 }}>
               <span>🔍</span>
               <input
@@ -140,7 +140,7 @@ export default function LandingPage() {
 
       {/* ── HOBBY INCOME METER ───────────────────────────────── */}
       <section style={{ padding:'64px 0', background:'var(--dark)', color:'#fff' }} id="hobbyinfo">
-        <div className="container" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:48, alignItems:'center', maxWidth:960, margin:'0 auto' }}>
+        <div className="container landing-split" style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:48, alignItems:'center', maxWidth:960, margin:'0 auto' }}>
           <div>
             <div style={{ fontSize:13, fontWeight:700, color:'var(--blue-soft)', textTransform:'uppercase', letterSpacing:'.06em', marginBottom:12 }}>
               Juridiskt skyddad plattform
@@ -169,7 +169,20 @@ export default function LandingPage() {
           </div>
         </div>
 
-        <style>{`@media(max-width:700px){.landing-split{grid-template-columns:1fr!important}}`}</style>
+        <style>{`
+          @media(max-width:700px){
+            .landing-split{grid-template-columns:1fr!important; gap:28px!important}
+          }
+          @media(max-width:500px){
+            .landing-search-form { flex-direction: column !important; }
+            .landing-search-form > div { width: 100% !important; }
+            .landing-search-form > button { width: 100% !important; justify-content: center; }
+          }
+          @media(max-width:480px){
+            .landing-cta-buttons { flex-direction: column !important; width: 100%; align-items: center; }
+            .landing-cta-buttons > a { width: 100% !important; justify-content: center; }
+          }
+        `}</style>
       </section>
 
       {/* ── FAQ ──────────────────────────────────────────────── */}
@@ -209,7 +222,7 @@ export default function LandingPage() {
         <div className="container" style={{ textAlign:'center', maxWidth:600, margin:'0 auto' }}>
           <h2 style={{ fontSize:32, fontWeight:900, color:'#fff', marginBottom:16 }}>Redo att komma igång?</h2>
           <p style={{ color:'rgba(255,255,255,.8)', marginBottom:32, fontSize:16 }}>Skapa ett gratis konto och hitta ditt första uppdrag idag.</p>
-          <div style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
+          <div className="landing-cta-buttons" style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}>
             <Link to="/register" className="btn btn-lg" style={{ background:'#fff', color:'var(--blue)', fontWeight:700 }}>
               Skapa konto gratis
             </Link>

@@ -6,6 +6,7 @@ import { useAuth } from '../hooks/useAuth.js';
 import { useHobbyLimit } from '../hooks/useHobbyLimit.js';
 import { userService } from '../services/userService.js';
 import { authService } from '../services/authService.js';
+import { validators } from '../utils/validators.js';
 import IncomeTracker from '../components/profile/IncomeTracker.jsx';
 import ReviewList from '../components/profile/ReviewList.jsx';
 import UserStats from '../components/profile/UserStats.jsx';
@@ -40,23 +41,34 @@ export default function ProfilePage() {
   const [pwMsg, setPwMsg] = useState('');
   const [pwErr, setPwErr] = useState('');
 
+  const [profileError, setProfileError] = useState('');
+
   useEffect(() => {
     if (!userId) return;
-    setLoading(true);
 
-    // Load profile — this is critical
-    userService.getProfile(userId)
-      .then(p => {
+    async function load() {
+      setLoading(true);
+      setProfileError('');
+
+      try {
+        const p = await userService.getProfile(userId);
         setProfile(p);
         if (isOwn) setSettings({ name: p.name ?? '', bio: p.bio ?? '', location: p.location ?? '', avatar: p.avatar ?? '' });
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      } catch (err) {
+        setProfileError(err.message || 'Kunde inte ladda profilen.');
+      } finally {
+        setLoading(false);
+      }
 
-    // Load reviews separately — non-fatal if it fails
-    userService.getReviews(userId)
-      .then(r => { if (Array.isArray(r)) setReviews(r); })
-      .catch(() => setReviews([]));
+      // Load reviews separately — non-fatal if it fails
+      try {
+        const r = await userService.getReviews(userId);
+        if (Array.isArray(r)) setReviews(r);
+      } catch {
+        setReviews([]);
+      }
+    }
+    load();
   }, [isOwn, userId]);
 
   const handleSave = async (e) => {
@@ -83,8 +95,9 @@ export default function ProfilePage() {
       setPwErr('Lösenorden matchar inte');
       return;
     }
-    if (pwForm.new.length < 6) {
-      setPwErr('Lösenordet måste vara minst 6 tecken');
+    const pwError = validators.password(pwForm.new);
+    if (pwError) {
+      setPwErr(pwError);
       return;
     }
     setPwLoading(true);
@@ -100,6 +113,18 @@ export default function ProfilePage() {
   };
 
   if (loading) return <div style={{ padding: '80px 0', textAlign: 'center' }}><Spinner /></div>;
+  if (profileError) {
+    return (
+      <main style={{ padding: '80px 0', background: 'var(--bg-light)', minHeight: 'calc(100vh - var(--nav-h))' }}>
+        <div className="container" style={{ maxWidth: 500, textAlign: 'center' }}>
+          <div style={{ fontSize: 48, marginBottom: 16 }}>⚠️</div>
+          <h1 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8, color: 'var(--dark)' }}>Profil kunde inte hittas</h1>
+          <p style={{ color: 'var(--muted)', marginBottom: 24 }}>{profileError}</p>
+          <button className="btn btn-primary" onClick={() => window.location.reload()}>Försök igen</button>
+        </div>
+      </main>
+    );
+  }
   if (!profile) return null;
 
   const avgRating = reviews.length
@@ -109,9 +134,9 @@ export default function ProfilePage() {
   return (
     <main>
       {/* Dark hero */}
-      <div style={{ background: 'var(--dark)', padding: '40px 0 0', color: '#fff' }}>
-        <div className="container">
-          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap', paddingBottom: 0 }}>
+      <div style={{ background: 'var(--dark)', color: '#fff' }} className="profile-hero">
+        <div className="container" style={{ padding: '40px var(--sp-6) 0' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, flexWrap: 'wrap', paddingBottom: 0 }} className="profile-hero__inner">
             <div style={{ display: 'flex', alignItems: 'flex-end', gap: 20 }}>
               <div style={{
                 width: 80, height: 80, borderRadius: '50%',
@@ -144,7 +169,7 @@ export default function ProfilePage() {
           </div>
 
           {/* Tabs */}
-          <div style={{ display: 'flex', gap: 0, marginTop: 24, borderBottom: '1px solid rgba(255,255,255,.1)' }}>
+          <div className="profile-tabs" style={{ display: 'flex', gap: 0, marginTop: 24, borderBottom: '1px solid rgba(255,255,255,.1)', overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
             {(isOwn ? TABS : TABS.filter(t => t !== 'Inställningar')).map(t => (
               <button
                 key={t}
@@ -202,20 +227,20 @@ export default function ProfilePage() {
                     {saveErr && <Alert type="error" style={{ marginBottom: 16 }}>{saveErr}</Alert>}
                     <form onSubmit={handleSave}>
                       <div className="form-group">
-                        <label>Namn</label>
-                        <input type="text" value={settings.name} onChange={e => setSettings(s => ({ ...s, name: e.target.value }))} />
+                        <label htmlFor="profile-name">Namn</label>
+                        <input id="profile-name" type="text" value={settings.name} onChange={e => setSettings(s => ({ ...s, name: e.target.value }))} />
                       </div>
                       <div className="form-group">
-                        <label>Plats</label>
-                        <input type="text" placeholder="t.ex. Stockholm" value={settings.location} onChange={e => setSettings(s => ({ ...s, location: e.target.value }))} />
+                        <label htmlFor="profile-location">Plats</label>
+                        <input id="profile-location" type="text" placeholder="t.ex. Stockholm" value={settings.location} onChange={e => setSettings(s => ({ ...s, location: e.target.value }))} />
                       </div>
                       <div className="form-group">
-                        <label>Avatar URL</label>
-                        <input type="url" placeholder="https://..." value={settings.avatar} onChange={e => setSettings(s => ({ ...s, avatar: e.target.value }))} />
+                        <label htmlFor="profile-avatar">Avatar URL</label>
+                        <input id="profile-avatar" type="url" placeholder="https://..." value={settings.avatar} onChange={e => setSettings(s => ({ ...s, avatar: e.target.value }))} />
                       </div>
                       <div className="form-group">
-                        <label>Bio</label>
-                        <textarea rows={4} placeholder="Berätta lite om dig själv..." value={settings.bio} onChange={e => setSettings(s => ({ ...s, bio: e.target.value }))} />
+                        <label htmlFor="profile-bio">Bio</label>
+                        <textarea id="profile-bio" rows={4} placeholder="Berätta lite om dig själv..." value={settings.bio} onChange={e => setSettings(s => ({ ...s, bio: e.target.value }))} />
                       </div>
                       <button type="submit" className="btn btn-primary" disabled={saving}>
                         {saving ? <Spinner size={16} color="#fff" /> : 'Spara ändringar'}
@@ -229,27 +254,33 @@ export default function ProfilePage() {
                     {pwErr && <Alert type="error" style={{ marginBottom: 16 }}>{pwErr}</Alert>}
                     <form onSubmit={handleChangePassword}>
                       <div className="form-group">
-                        <label>Nuvarande lösenord</label>
+                        <label htmlFor="pw-current">Nuvarande lösenord</label>
                         <input
+                          id="pw-current"
                           type="password"
+                          autoComplete="current-password"
                           value={pwForm.current}
                           onChange={e => setPwForm(p => ({ ...p, current: e.target.value }))}
                           placeholder="Ditt nuvarande lösenord"
                         />
                       </div>
                       <div className="form-group">
-                        <label>Nytt lösenord</label>
+                        <label htmlFor="pw-new">Nytt lösenord</label>
                         <input
+                          id="pw-new"
                           type="password"
+                          autoComplete="new-password"
                           value={pwForm.new}
                           onChange={e => setPwForm(p => ({ ...p, new: e.target.value }))}
-                          placeholder="Minst 6 tecken"
+                          placeholder="Minst 8 tecken"
                         />
                       </div>
                       <div className="form-group">
-                        <label>Bekräfta nytt lösenord</label>
+                        <label htmlFor="pw-confirm">Bekräfta nytt lösenord</label>
                         <input
+                          id="pw-confirm"
                           type="password"
+                          autoComplete="new-password"
                           value={pwForm.confirm}
                           onChange={e => setPwForm(p => ({ ...p, confirm: e.target.value }))}
                           placeholder="Upprepa det nya lösenordet"
@@ -279,8 +310,19 @@ export default function ProfilePage() {
       </div>
 
       <style>{`
-        @media(max-width:900px){.profile-layout{grid-template-columns:1fr!important}.stats-grid{grid-template-columns:repeat(2,1fr)!important}}
-        @media(max-width:500px){.stats-grid{grid-template-columns:1fr 1fr!important}}
+        @media(max-width:900px){
+          .profile-layout{grid-template-columns:1fr!important}
+          .stats-grid{grid-template-columns:repeat(2,1fr)!important}
+          .profile-hero__inner{align-items:center!important}
+        }
+        @media(max-width:600px){
+          .profile-hero .container{padding-top:24px!important}
+          .profile-tabs{gap:0}
+          .profile-tabs::-webkit-scrollbar{display:none}
+        }
+        @media(max-width:500px){
+          .stats-grid{grid-template-columns:1fr 1fr!important}
+        }
       `}</style>
     </main>
   );

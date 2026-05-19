@@ -86,7 +86,7 @@ export default function JobsOverTimeChart({ labels = [], values = [], apiLive = 
       <div style={{ marginBottom: 10 }}>
         <h2 style={{ fontSize: 16, marginBottom: 4 }}>Jobb över tid</h2>
         <p style={{ fontSize: 12, color: 'var(--muted)' }}>
-          {loading ? 'Laddar...' : apiLive ? 'Live-data senaste 6 manaderna' : 'Mock-data senaste 6 manaderna'}
+          {loading ? 'Laddar...' : apiLive ? 'Senaste 6 månaderna' : 'Kunde inte ladda data'}
         </p>
       </div>
       <div style={{ height: 240 }}>

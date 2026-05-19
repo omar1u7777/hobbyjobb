@@ -77,6 +77,8 @@
             Home[HomePage.jsx]
             AuthPages[Auth Pages<br>LoginPage.jsx<br>RegisterPage.jsx]
             JobPages[Job Pages<br>JobListPage.jsx<br>JobDetailPage.jsx<br>PostJobPage.jsx<br>EditJobPage.jsx<br>MyJobsPage.jsx<br>BoostJobPage.jsx]
+            PaymentPages[Payment Pages<br>CheckoutPage.jsx<br>PaymentSuccessPage.jsx]
+            InfoPages[Info Pages<br>AboutPage.jsx<br>HobbyInfoPage.jsx<br>NotFoundPage.jsx]
             Profile[ProfilePage.jsx<br>IncomeTracker.jsx]
             Chat[ChatPage.jsx<br>ChatWindow.jsx]
             Admin[AdminDashboardPage.jsx<br>Charts, Stats]
@@ -88,8 +90,8 @@
         subgraph "Backend (Render - hobbyjobb-api.onrender.com)"
             direction TB
             Server[server.js<br>Express App]
-            Routes[Routes<br>auth.js, jobs.js, applications.js<br>users.js, payments.js, admin.js<br>categories.js, messages.js, reviews.js]
-            Controllers[Controllers<br>authController.js, jobController.js<br>applicationController.js, paymentController.js<br>userController.js, adminController.js<br>categoryController.js, messageController.js<br>reviewController.js]
+            Routes[Routes<br>auth.js, jobs.js, applications.js<br>users.js, payments.js, connect.js<br>admin.js, categories.js, messages.js, reviews.js]
+            Controllers[Controllers<br>authController.js, jobController.js<br>applicationController.js, paymentController.js<br>connectController.js, userController.js<br>adminController.js, categoryController.js<br>messageController.js, reviewController.js]
             Middleware[Middleware<br>requireAuth.js, requireAdmin.js<br>rateLimiter.js, errorHandler.js]
             Models[Sequelize Models<br>User.js, Job.js, Application.js<br>Payment.js, Message.js, Review.js]
         end
@@ -303,6 +305,7 @@
             int id PK
             int job_id FK
             int applicant_id FK
+            decimal proposed_price
             string status
             text message
             timestamp created_at

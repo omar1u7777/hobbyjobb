@@ -501,11 +501,11 @@ const getAdminCharts = async (req, res, next) => {
       }),
       Job.findAll({
         attributes: [
-          [col('Category.name'), 'label'],
+          [col('category.name'), 'label'],
           [fn('COUNT', col('Job.id')), 'value'],
         ],
-        include: [{ model: Category, attributes: [], required: true }],
-        group: [col('Category.name')],
+        include: [{ model: Category, as: 'category', attributes: [], required: true }],
+        group: [col('category.name')],
         order: [[fn('COUNT', col('Job.id')), 'DESC']],
         limit: 6,
         raw: true,

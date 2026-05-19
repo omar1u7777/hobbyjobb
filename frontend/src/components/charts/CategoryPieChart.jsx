@@ -56,7 +56,7 @@ export default function CategoryPieChart({ labels = [], values = [], apiLive = f
       <div style={{ marginBottom: 10 }}>
         <h2 style={{ fontSize: 16, marginBottom: 4 }}>Kategori-fördelning</h2>
         <p style={{ fontSize: 12, color: 'var(--muted)' }}>
-          {loading ? 'Laddar...' : apiLive ? 'Live-data aktiva jobb per kategori' : 'Mock-data aktiva jobb per kategori'}
+          {loading ? 'Laddar...' : apiLive ? 'Aktiva jobb per kategori' : 'Kunde inte ladda data'}
         </p>
       </div>
       <div style={{ height: 240 }}>

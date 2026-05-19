@@ -49,7 +49,7 @@ export default function RegisterPage() {
 
   return (
     <div style={{ minHeight: 'calc(100vh - var(--nav-h) - 80px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 24px' }}>
-      <div style={{ background: 'var(--white)', borderRadius: 14, boxShadow: 'var(--sh-lg)', padding: 40, width: '100%', maxWidth: 440, border: '1px solid var(--border)' }}>
+      <div className="auth-card" style={{ background: 'var(--white)', borderRadius: 14, boxShadow: 'var(--sh-lg)', padding: 40, width: '100%', maxWidth: 440, border: '1px solid var(--border)' }}>
 
         <div style={{ textAlign: 'center', marginBottom: 28 }}>
           <Link to="/" style={{ fontSize: 24, fontWeight: 800, color: 'var(--dark)' }}>
@@ -107,11 +107,12 @@ export default function RegisterPage() {
               style={{ width: 18, height: 18, marginTop: 2, flexShrink: 0, accentColor: 'var(--blue)' }}
             />
             <label htmlFor="hobby-agree" style={{ fontSize: 13, color: '#92400E', lineHeight: 1.5, cursor: 'pointer' }}>
-              Jag bekräftar att jag använder HobbyJobb <strong style={{ color: '#78350F' }}>enbart för hobbyverksamhet</strong> och
-              förstår att inkomstgränsen är max 30 000 kr/år.{' '}
+              <strong>Jag bekräftar att jag är över 18 år</strong> och accepterar HobbyJobbs användarvillkor. 
+              Jag förstår även att plattformen endast är för <strong style={{ color: '#78350F' }}>hobbyverksamhet</strong> (max 30 000 kr/år), 
+              samt att jag själv ansvarar för eventuell inkomstdeklaration.{' '}
               <button type="button" onClick={() => setHobbyModal(true)}
                 style={{ background: 'none', border: 'none', color: 'var(--blue)', fontWeight: 700, cursor: 'pointer', fontSize: 13, padding: 0 }}>
-                Vad innebär det? →
+                Läs mer →
               </button>
             </label>
           </div>
@@ -144,6 +145,12 @@ export default function RegisterPage() {
           <button className="btn btn-primary" onClick={() => setHobbyModal(false)}>Förstår — stäng</button>
         </div>
       </Modal>
+
+      <style>{`
+        @media(max-width:500px){
+          .auth-card{padding:24px 20px!important}
+        }
+      `}</style>
     </div>
   );
 }

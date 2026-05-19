@@ -49,6 +49,8 @@ const getMessages = async (req, res, next) => {
       });
     }
 
+    const otherUserIdStr = req.query.userId;
+
     const access = await getJobAccess(jobId, req.user.id);
     if (!access.allowed) {
       return res.status(access.status).json({
@@ -57,8 +59,30 @@ const getMessages = async (req, res, next) => {
       });
     }
 
+    const whereClause = { job_id: jobId };
+
+    if (otherUserIdStr) {
+      const otherUserId = Number.parseInt(otherUserIdStr, 10);
+      if (!Number.isNaN(otherUserId)) {
+        whereClause[Op.or] = [
+          { sender_id: req.user.id, receiver_id: otherUserId },
+          { sender_id: otherUserId, receiver_id: req.user.id }
+        ];
+      } else {
+        whereClause[Op.or] = [
+          { sender_id: req.user.id },
+          { receiver_id: req.user.id }
+        ];
+      }
+    } else {
+      whereClause[Op.or] = [
+        { sender_id: req.user.id },
+        { receiver_id: req.user.id }
+      ];
+    }
+
     const messages = await Message.findAll({
-      where: { job_id: jobId },
+      where: whereClause,
       include: [
         {
           model: User,
@@ -143,6 +167,13 @@ const sendMessage = async (req, res, next) => {
       return res.status(403).json({
         success: false,
         message: 'Receiver must belong to this job conversation',
+      });
+    }
+
+    if (req.user.id !== access.job.poster_id && receiverId !== access.job.poster_id) {
+      return res.status(403).json({
+        success: false,
+        message: 'One of the participants must be the job poster',
       });
     }
 
@@ -272,6 +303,8 @@ const markConversationAsRead = async (req, res, next) => {
       });
     }
 
+    const senderIdStr = req.body.senderId;
+
     const access = await getJobAccess(jobId, req.user.id);
     if (!access.allowed) {
       return res.status(access.status).json({
@@ -280,15 +313,22 @@ const markConversationAsRead = async (req, res, next) => {
       });
     }
 
+    const whereClause = {
+      job_id: jobId,
+      receiver_id: req.user.id,
+      is_read: false,
+    };
+
+    if (senderIdStr) {
+      const senderId = Number.parseInt(senderIdStr, 10);
+      if (!Number.isNaN(senderId)) {
+        whereClause.sender_id = senderId;
+      }
+    }
+
     const [updatedCount] = await Message.update(
       { is_read: true },
-      {
-        where: {
-          job_id: jobId,
-          receiver_id: req.user.id,
-          is_read: false,
-        },
-      }
+      { where: whereClause }
     );
 
     return res.json({

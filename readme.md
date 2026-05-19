@@ -38,6 +38,10 @@ Plattformen låter privatpersoner:
 
 **Betalningar** hanteras via **Stripe Connect** — beställaren betalar via plattformen, pengarna hålls i escrow tills uppdraget bekräftas klart, sedan delas de automatiskt: **92% till utföraren, 8% till HobbyJobb**.
 
+**Live sedan april 2026:**
+- **Frontend:** [https://hobbyjobb.vercel.app](https://hobbyjobb.vercel.app)
+- **Backend API:** [https://hobbyjobb-api.onrender.com/api](https://hobbyjobb-api.onrender.com/api)
+
 ---
 
 ## Intäktsmodell
@@ -126,6 +130,21 @@ Hobbyverksamhet är inkomstbringande aktivitet som **inte** bedrivs i vinstsyfte
 - ❌ Ett alternativ till F-skattsedel / egenföretagande
 - ❌ Ansvarig för skattehantering (det är användarens ansvar)
 
+### Plattformsansvar vs Användaransvar
+
+> HobbyJobb agerar som en teknisk förmedlare (marknadsplats) och hanterar inga pengar direkt — all betalningshantering sker via Stripe Connect.
+
+| Ansvarsområde | HobbyJobb (Plattformen) | Beställaren | Utföraren |
+|---|---|---|---|
+| **Betalningsförmedling** | ✅ Via Stripe Connect (escrow) | – | – |
+| **Plattformsavgift 8%** | ✅ Dras automatiskt | – | – |
+| **Inkomstspärr (30 000 kr/år)** | ✅ Compliance by Design | – | – |
+| **Arbetsgivaravgifter** | ❌ Vi är inte arbetsgivare | ⚠️ Vid >10 000 kr/år till samma person | – |
+| **Kontrolluppgift (KU10)** | ❌ Ej plattformens ansvar | ⚠️ Vid >1 000 kr/år till samma person | – |
+| **Deklaration av hobbyinkomst** | ❌ Ej plattformens ansvar | – | ⚠️ Bilaga T2 i inkomstdeklarationen |
+| **Egenavgifter på överskott** | ❌ Ej plattformens ansvar | – | ⚠️ Betalas av utföraren |
+| **DAC7-rapportering** | 🔜 Framtida krav (2023+) | – | – |
+
 ---
 
 ## Teknikstack
@@ -136,9 +155,8 @@ Hobbyverksamhet är inkomstbringande aktivitet som **inte** bedrivs i vinstsyfte
 | React | 18.x | UI-ramverk |
 | React Router | 6.x | Sidnavigering |
 | Axios | 1.x | HTTP-anrop till API |
-| CSS Modules | – | Komponentbaserad styling |
+| Global CSS | – | Styling via CSS-variabler och komponentklasser |
 | Chart.js | 4.x | Statistik & diagram (admin) |
-| Leaflet.js | 1.x | Kartvisning av jobb |
 
 ### Backend
 | Teknik | Version | Syfte |
@@ -160,11 +178,11 @@ Hobbyverksamhet är inkomstbringande aktivitet som **inte** bedrivs i vinstsyfte
 |---|---|
 | GitHub | Versionshantering |
 | GitHub Actions | CI/CD pipeline |
-| Render / Railway | Cloud-deployment (backend) |
-| Vercel / Netlify | Cloud-deployment (frontend) |
-| Supabase / Neon | Hosted PostgreSQL |
+| Render | Cloud-deployment (backend) |
+| Vercel | Cloud-deployment (frontend) |
+| Render PostgreSQL | Hosted PostgreSQL |
 | Postman | API-testning |
-| ESLint + Prettier | Kodkvalitet |
+| ESLint 9 Flat Config | Kodkvalitet & tillgänglighet (a11y) |
 
 ---
 
@@ -182,7 +200,7 @@ Hobbyverksamhet är inkomstbringande aktivitet som **inte** bedrivs i vinstsyfte
 - Sätta upp PostgreSQL-databas och Sequelize-modeller
 - Sätta upp Stripe Connect (platform account, webhooks, escrow-flöde)
 - Checkout- och betalningsbekräftelsesidor (frontend för Stripe-flödet)
-- Konfigurera deployment (Render + Supabase) + GitHub Actions CI/CD
+- Konfigurera deployment (Render backend + Render PostgreSQL) + GitHub Actions CI/CD
 
 **Filer att äga:**
 ```
@@ -193,12 +211,16 @@ backend/src/models/index.js
 backend/config/
 backend/config/stripe.js
 backend/src/routes/payments.js
+backend/src/routes/connect.js
 backend/src/controllers/paymentController.js
+backend/src/controllers/connectController.js
 backend/src/models/Payment.js
 .github/workflows/
 frontend/src/pages/CheckoutPage.jsx
 frontend/src/pages/PaymentSuccessPage.jsx
 frontend/src/services/paymentService.js
+frontend/src/services/connectService.js
+frontend/src/components/profile/ConnectStatus.jsx
 ```
 
 ---
@@ -218,11 +240,14 @@ frontend/src/services/paymentService.js
 ```
 backend/src/controllers/jobController.js
 backend/src/controllers/applicationController.js
+backend/src/controllers/reviewController.js
 backend/src/routes/jobs.js
 backend/src/routes/applications.js
+backend/src/routes/reviews.js
 backend/src/models/Job.js
 backend/src/models/Category.js
 backend/src/models/Application.js
+backend/src/models/Review.js
 backend/migrations/
 backend/seeders/
 ```
@@ -273,6 +298,10 @@ frontend/src/pages/JobDetailPage.jsx
 frontend/src/pages/PostJobPage.jsx
 frontend/src/pages/ProfilePage.jsx
 frontend/src/pages/MyJobsPage.jsx
+frontend/src/pages/EditJobPage.jsx
+frontend/src/pages/NotFoundPage.jsx
+frontend/src/services/applicationService.js
+frontend/src/services/reviewService.js
 frontend/src/components/jobs/
 ```
 
@@ -298,6 +327,9 @@ frontend/src/pages/HobbyInfoPage.jsx
 frontend/src/pages/ChatPage.jsx
 frontend/src/components/admin/
 frontend/src/components/charts/
+frontend/src/components/charts/AdminStatsCharts.jsx
+frontend/src/services/adminService.js
+frontend/src/services/messageService.js
 frontend/src/components/chat/
 backend/src/controllers/adminController.js
 backend/src/routes/admin.js
@@ -318,82 +350,99 @@ hobbyjobb/
 ├── .gitignore
 ├── .github/
 │   └── workflows/
-│       ├── ci-backend.yml             ← Kör tester på varje push
-│       └── deploy.yml                 ← Deploy till Render/Vercel
+│       ├── ci-backend.yml             ← Kör backend-tester på varje push
+│       ├── ci-frontend.yml            ← Kör frontend-tester på varje push
+│       └── lint.yml                   ← Kör ESLint på frontend vid PR/push
 │
 ├── frontend/                          ← React webbapp
-│   ├── package.json
-│   ├── vite.config.js
-│   ├── index.html
 │   ├── .env.example
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package.json
+│   ├── package-lock.json
+│   ├── vercel.json
+│   ├── vite.config.js
+│   ├── vitest.config.js
+│   │
+│   ├── public/
+│   │   └── favicon.svg
 │   │
 │   └── src/
-│       ├── main.jsx                   ← Entry point
 │       ├── App.jsx                    ← Router setup
+│       ├── main.jsx                   ← Entry point
+│       ├── setupTests.js              ← Vitest setup
 │       │
 │       ├── styles/
+│       │   ├── components.css         ← Gemensamma klasser
 │       │   ├── global.css             ← CSS-variabler, reset
-│       │   ├── variables.css          ← --blue, --green, --ink etc
-│       │   └── components.css         ← Gemensamma klasser
+│       │   └── variables.css          ← --blue, --green, --ink etc
 │       │
 │       ├── pages/
-│       │   ├── LandingPage.jsx        ← Startsida (ej inloggad)
-│       │   ├── HomePage.jsx           ← Hem (inloggad)
-│       │   ├── LoginPage.jsx          ← Logga in
-│       │   ├── RegisterPage.jsx       ← Skapa konto + hobby-info
-│       │   ├── JobListPage.jsx        ← Alla jobb + filter
-│       │   ├── JobDetailPage.jsx      ← Enskilt jobb
-│       │   ├── PostJobPage.jsx        ← Lägg upp jobb
-│       │   ├── MyJobsPage.jsx         ← Mina jobb
-│       │   ├── ProfilePage.jsx        ← Profil + inkomstmätare
-│       │   ├── CheckoutPage.jsx       ← Stripe betalning
-│       │   ├── PaymentSuccessPage.jsx ← Bekräftelse efter betalning
-│       │   ├── ChatPage.jsx           ← Chatt
-│       │   ├── HobbyInfoPage.jsx      ← Info om hobbyverksamhet
 │       │   ├── AboutPage.jsx          ← Om oss / Team
-│       │   └── AdminDashboardPage.jsx ← Admin (skyddad route)
+│       │   ├── AdminDashboardPage.jsx ← Admin (skyddad route)
+│       │   ├── BoostJobPage.jsx       ← Betala för Boost-annonsering
+│       │   ├── BoostJobPage.test.jsx
+│       │   ├── ChatPage.jsx           ← Chatt
+│       │   ├── CheckoutPage.jsx       ← Stripe betalning
+│       │   ├── CheckoutPage.test.jsx
+│       │   ├── EditJobPage.jsx        ← Redigera jobb
+│       │   ├── HobbyInfoPage.jsx      ← Info om hobbyverksamhet
+│       │   ├── HomePage.jsx           ← Hem (inloggad)
+│       │   ├── JobDetailPage.jsx      ← Enskilt jobb
+│       │   ├── JobListPage.jsx        ← Alla jobb + filter
+│       │   ├── LandingPage.jsx        ← Startsida (ej inloggad)
+│       │   ├── LoginPage.jsx          ← Logga in
+│       │   ├── MyJobsPage.jsx         ← Mina jobb
+│       │   ├── NotFoundPage.jsx       ← 404-sida
+│       │   ├── PaymentSuccessPage.jsx ← Bekräftelse efter betalning
+│       │   ├── PaymentSuccessPage.test.jsx
+│       │   ├── PostJobPage.jsx        ← Lägg upp jobb
+│       │   ├── ProfilePage.jsx        ← Profil + inkomstmätare
+│       │   └── RegisterPage.jsx       ← Skapa konto + hobby-info
 │       │
 │       ├── components/
-│       │   ├── common/
-│       │   │   ├── Navbar.jsx
-│       │   │   ├── Footer.jsx
-│       │   │   ├── Button.jsx
-│       │   │   ├── Input.jsx
-│       │   │   ├── Modal.jsx
-│       │   │   ├── Badge.jsx
-│       │   │   ├── Spinner.jsx
-│       │   │   ├── Alert.jsx
-│       │   │   └── HobbyLimitBanner.jsx  ← Varning vid gräns
+│       │   ├── admin/
+│       │   │   ├── CategoryManager.jsx
+│       │   │   ├── FlaggedAccounts.jsx
+│       │   │   ├── JobTable.jsx
+│       │   │   └── UserTable.jsx
 │       │   │
-│       │   ├── jobs/
-│       │   │   ├── JobCard.jsx
-│       │   │   ├── JobList.jsx
-│       │   │   ├── JobFilter.jsx
-│       │   │   ├── JobForm.jsx
-│       │   │   ├── CategoryBadge.jsx
-│       │   │   ├── ReviewForm.jsx        ← Stjärnbetyg + kommentar
-│       │   │   └── HobbyIncomeWarning.jsx
-│       │   │
-│       │   ├── profile/
-│       │   │   ├── IncomeTracker.jsx     ← Inkomstmätare
-│       │   │   ├── ReviewList.jsx
-│       │   │   └── UserStats.jsx
+│       │   ├── charts/
+│       │   │   ├── AdminStatsCharts.jsx
+│       │   │   ├── CategoryPieChart.jsx
+│       │   │   ├── IncomeBarChart.jsx
+│       │   │   └── JobsOverTimeChart.jsx
 │       │   │
 │       │   ├── chat/
+│       │   │   ├── ChatInput.jsx
 │       │   │   ├── ChatWindow.jsx
-│       │   │   ├── MessageBubble.jsx
-│       │   │   └── ChatInput.jsx
+│       │   │   └── MessageBubble.jsx
 │       │   │
-│       │   ├── admin/
-│       │   │   ├── UserTable.jsx
-│       │   │   ├── JobTable.jsx
-│       │   │   ├── CategoryManager.jsx
-│       │   │   └── FlaggedAccounts.jsx
+│       │   ├── common/
+│       │   │   ├── Alert.jsx
+│       │   │   ├── Badge.jsx
+│       │   │   ├── Button.jsx
+│       │   │   ├── Footer.jsx
+│       │   │   ├── HobbyLimitBanner.jsx  ← Varning vid gräns
+│       │   │   ├── Input.jsx
+│       │   │   ├── Modal.jsx
+│       │   │   ├── Navbar.jsx
+│       │   │   └── Spinner.jsx
 │       │   │
-│       │   └── charts/
-│       │       ├── JobsOverTimeChart.jsx
-│       │       ├── CategoryPieChart.jsx
-│       │       └── IncomeBarChart.jsx
+│       │   ├── jobs/
+│       │   │   ├── CategoryBadge.jsx
+│       │   │   ├── HobbyIncomeWarning.jsx
+│       │   │   ├── JobCard.jsx
+│       │   │   ├── JobFilter.jsx
+│       │   │   ├── JobForm.jsx
+│       │   │   ├── JobList.jsx
+│       │   │   └── ReviewForm.jsx        ← Stjärnbetyg + kommentar
+│       │   │
+│       │   └── profile/
+│       │       ├── ConnectStatus.jsx     ← Stripe onboarding status
+│       │       ├── IncomeTracker.jsx     ← Inkomstmätare
+│       │       ├── ReviewList.jsx
+│       │       └── UserStats.jsx
 │       │
 │       ├── context/
 │       │   ├── AuthContext.jsx          ← Global auth-state
@@ -401,14 +450,20 @@ hobbyjobb/
 │       │
 │       ├── hooks/
 │       │   ├── useAuth.js
-│       │   ├── useJobs.js
-│       │   └── useHobbyLimit.js         ← Kollar inkomstgräns
+│       │   ├── useHobbyLimit.js         ← Kollar inkomstgräns
+│       │   └── useJobs.js
 │       │
 │       ├── services/
+│       │   ├── adminService.js          ← Admin API-anrop
 │       │   ├── api.js                   ← Axios-instans
+│       │   ├── applicationService.js    ← Ansökningar API-anrop
 │       │   ├── authService.js
+│       │   ├── connectService.js        ← Stripe Connect onboarding
 │       │   ├── jobService.js
+│       │   ├── messageService.js        ← Chatt API-anrop
 │       │   ├── paymentService.js        ← Stripe checkout, bekräfta klart
+│       │   ├── paymentService.test.js
+│       │   ├── reviewService.js         ← Recensioner API-anrop
 │       │   └── userService.js
 │       │
 │       └── utils/
@@ -418,58 +473,65 @@ hobbyjobb/
 │
 │
 └── backend/                           ← Node.js / Express API
-    ├── package.json
     ├── .env.example
+    ├── .sequelizerc
+    ├── jest.config.js                 ← Konfiguration för backend-tester
+    ├── package.json
+    ├── package-lock.json
+    ├── postman_collection_s1.json     ← Postman tester
     ├── server.js                      ← Startpunkt
+    ├── TEST-DOKUMENTATION-S1-OMAR-ALHAEK.md
     │
     ├── config/
+    │   ├── constants.js               ← HOBBY_INCOME_LIMIT, STRIPE_FEE etc
     │   ├── database.js                ← Sequelize-konfiguration
-    │   ├── stripe.js                  ← Stripe Connect-konfiguration
-    │   └── constants.js               ← HOBBY_INCOME_LIMIT, STRIPE_FEE etc
+    │   └── stripe.js                  ← Stripe Connect-konfiguration
     │
     ├── src/
-    │   ├── routes/
-    │   │   ├── index.js               ← Samlar alla routes
-    │   │   ├── auth.js                ← /api/auth/*
-    │   │   ├── jobs.js                ← /api/jobs/*
-    │   │   ├── applications.js        ← /api/applications/*
-    │   │   ├── users.js               ← /api/users/*
-    │   │   ├── categories.js          ← /api/categories/*
-    │   │   ├── messages.js            ← /api/messages/*
-    │   │   ├── payments.js            ← /api/payments/* (Stripe Connect)
-    │   │   └── admin.js               ← /api/admin/* (skyddad)
-    │   │
     │   ├── controllers/
-    │   │   ├── authController.js
-    │   │   ├── jobController.js
+    │   │   ├── adminController.js
     │   │   ├── applicationController.js
-    │   │   ├── userController.js
+    │   │   ├── authController.js
     │   │   ├── categoryController.js
+    │   │   ├── connectController.js     ← Hanterar Stripe onboarding
+    │   │   ├── jobController.js
     │   │   ├── messageController.js
     │   │   ├── paymentController.js
-    │   │   └── adminController.js
+    │   │   ├── reviewController.js      ← Hanterar recensioner
+    │   │   └── userController.js
     │   │
     │   ├── middleware/
-    │   │   ├── requireAuth.js         ← JWT-verifiering
-    │   │   ├── requireAdmin.js        ← Admin-roll
+    │   │   ├── errorHandler.js
     │   │   ├── hobbyLimitCheck.js     ← Kontrollerar inkomstgräns
     │   │   ├── rateLimiter.js
-    │   │   └── errorHandler.js
+    │   │   ├── requireAdmin.js        ← Admin-roll
+    │   │   └── requireAuth.js         ← JWT-verifiering
     │   │
     │   ├── models/
-    │   │   ├── index.js               ← Sequelize setup & relationer
-    │   │   ├── User.js
-    │   │   ├── Job.js
-    │   │   ├── Category.js
     │   │   ├── Application.js
+    │   │   ├── Category.js
+    │   │   ├── index.js               ← Sequelize setup & relationer
+    │   │   ├── Job.js
     │   │   ├── Message.js
     │   │   ├── Payment.js             ← Transaktioner, escrow-status
-    │   │   └── Review.js
+    │   │   ├── Review.js
+    │   │   └── User.js
+    │   │
+    │   ├── routes/
+    │   │   ├── admin.js               ← /api/admin/* (skyddad)
+    │   │   ├── applications.js        ← /api/applications/*
+    │   │   ├── auth.js                ← /api/auth/*
+    │   │   ├── categories.js          ← /api/categories/*
+    │   │   ├── connect.js             ← /api/connect/* (Onboarding)
+    │   │   ├── jobs.js                ← /api/jobs/*
+    │   │   ├── messages.js            ← /api/messages/*
+    │   │   ├── payments.js            ← /api/payments/* (Stripe Connect)
+    │   │   ├── reviews.js             ← /api/reviews/*
+    │   │   └── users.js               ← /api/users/*
     │   │
     │   └── utils/
-    │       ├── hobbyCalculator.js     ← Inkomstberäkning
-    │       ├── geocoder.js            ← Platsbaserad sökning
-    │       └── responseHelper.js
+    │       ├── geocode.js             ← Platsbaserad sökning
+    │       └── hobbyCalculator.js     ← Inkomstberäkning
     │
     ├── migrations/
     │   ├── 001-create-users.js
@@ -480,11 +542,23 @@ hobbyjobb/
     │   ├── 006-create-reviews.js
     │   ├── 007-create-payments.js
     │   ├── 008-reviews-unique-and-backfill-verified.js
-    │   └── 009-add-price-type-to-jobs.js
+    │   ├── 009-add-price-type-to-jobs.js
+    │   ├── 010-unique-stripe-payment-id.js
+    │   ├── 011-lowercase-user-emails.js
+    │   └── 012-add-stripe-connect-to-users.js
     │
-    └── seeders/
-        ├── 001-categories.js
-        └── 002-demo-data.js
+    ├── seeders/
+    │   ├── 001-categories.js
+    │   └── 002-demo-data.js
+    │
+    └── __tests__/                     ← Jest integrationstester
+        ├── auth.test.js
+        ├── config.test.js
+        ├── middleware.test.js
+        ├── payment.test.js
+        ├── user-model-hooks.test.js
+        └── helpers/
+            └── createApp.js
 ```
 
 ---
@@ -494,39 +568,42 @@ hobbyjobb/
 ### Tabeller och relationer
 
 ```
-┌─────────────┐         ┌─────────────────┐         ┌──────────────────┐
-│    Users    │         │      Jobs       │         │   Applications   │
-├─────────────┤         ├─────────────────┤         ├──────────────────┤
-│ id (PK)     │──┐      │ id (PK)         │──┐      │ id (PK)          │
-│ name        │  │ 1:N  │ title           │  │ 1:N  │ job_id (FK)      │
-│ email       │  └────▶ │ description     │  └────▶ │ applicant_id(FK) │
-│ password    │         │ price           │         │ status           │
-│ location    │         │ category_id(FK) │         │ message          │
-│ bio         │         │ poster_id (FK)  │         │ created_at       │
-│ avatar      │         │ location        │         └──────────────────┘
-│ is_admin    │         │ lat / lng       │
-│ is_verified │         │ status          │         ┌──────────────────┐
-│ hobby_total │ ◀──────▶│ hobby_hours_est │         │    Messages      │
-│ hobby_year  │         │ is_hobby_valid  │         ├──────────────────┤
-│ created_at  │         │ expires_at      │         │ id (PK)          │
-└─────────────┘         │ created_at      │         │ sender_id (FK)   │
-                        └─────────────────┘         │ receiver_id (FK) │
-                               │                    │ job_id (FK)      │
-                        ┌──────┘                    │ content          │
-                        ▼                           │ is_read          │
-                 ┌─────────────┐                    │ created_at       │
-                 │  Categories │                    └──────────────────┘
-                 ├─────────────┤
-                 │ id (PK)     │         ┌──────────────────┐
-                 │ name        │         │     Reviews      │
-                 │ icon        │         ├──────────────────┤
-                 │ description │         │ id (PK)          │
-                 │ max_price   │         │ job_id (FK)      │
-                 └─────────────┘         │ reviewer_id (FK) │
-                                         │ reviewee_id (FK) │
-                                         │ rating (1-5)     │
-                                         │ comment          │
-                                         └──────────────────┘
+┌─────────────────────┐         ┌─────────────────┐         ┌──────────────────┐
+│        Users        │         │      Jobs       │         │   Applications   │
+├─────────────────────┤         ├─────────────────┤         ├──────────────────┤
+│ id (PK)             │──┐      │ id (PK)         │──┐      │ id (PK)          │
+│ name                │  │ 1:N  │ title           │  │ 1:N  │ job_id (FK)      │
+│ email               │  └────▶ │ description     │  └────▶ │ applicant_id(FK) │
+│ password            │         │ price           │         │ proposed_price   │
+│ location            │         │ price_type      │         │ status           │
+│ lat                 │         │ category_id(FK) │         │ message          │
+│ lng                 │         │ poster_id (FK)  │         └──────────────────┘
+│ bio                 │         │ location        │
+│ avatar              │         │ lat / lng       │         ┌──────────────────┐
+│ is_admin            │◀──────▶│ status          │         │    Messages      │
+│ is_verified         │         │ hobby_type      │         ├──────────────────┤
+│ stripe_account_id   │         │ is_hobby_valid  │         │ id (PK)          │
+│ stripe_account_status│        │ is_boosted      │         │ sender_id (FK)   │
+│ hobby_total_year    │         │ boost_expires_at│         │ receiver_id (FK) │
+│ hobby_job_count     │         │ expires_at      │         │ job_id (FK)      │
+│ hobby_limit_reached │         │ created_at      │         │ content          │
+│ hobby_warned        │        └─────────────────┘         │ is_read          │
+│ created_at          │               │                       │ created_at       │
+└─────────────────────┘        ┌──────┘                       └──────────────────┘
+                       ▼
+                ┌─────────────┐
+                │  Categories │
+                ├─────────────┤
+                │ id (PK)     │         ┌──────────────────┐
+                │ name        │         │     Reviews      │
+                │ icon        │         ├──────────────────┤
+                │ description │         │ id (PK)          │
+                │ max_price   │         │ job_id (FK)      │
+                └─────────────┘         │ reviewer_id (FK) │
+                                        │ reviewee_id (FK) │
+                                        │ rating (1-5)     │
+                                        │ comment          │
+                                        └──────────────────┘
 
 ┌──────────────────────────────────────────────────┐
 │                    Payments                       │
@@ -545,6 +622,24 @@ hobbyjobb/
 │ created_at                                       │
 └──────────────────────────────────────────────────┘
 ```
+
+### Relationer (från `models/index.js`)
+
+| Parent | Relation | Child | Foreign Key |
+|--------|----------|-------|-------------|
+| **User** | 1 → N | Job | `poster_id` |
+| **User** | 1 → N | Application | `applicant_id` |
+| **User** | 1 → N | Message | `sender_id` |
+| **User** | 1 → N | Message | `receiver_id` |
+| **User** | 1 → N | Review | `reviewer_id` |
+| **User** | 1 → N | Review | `reviewee_id` |
+| **User** | 1 → N | Payment | `payer_id` |
+| **User** | 1 → N | Payment | `payee_id` |
+| **Category** | 1 → N | Job | `category_id` |
+| **Job** | 1 → N | Application | `job_id` |
+| **Job** | 1 → N | Message | `job_id` |
+| **Job** | 1 → N | Review | `job_id` |
+| **Job** | 1 → N | Payment | `job_id` |
 
 ### Hobbyrelaterade fält i Users
 
@@ -569,8 +664,8 @@ hobby_type:     STRING    // t.ex. "engångsjobb" / "återkommande"
 
 ## API-dokumentation
 
-**Base URL:** `https://api.hobbyjobb.se/api`  
-*Under utveckling: `http://localhost:5000/api`*
+**Produktions-URL:** `https://hobbyjobb-api.onrender.com/api`  
+*Lokal utveckling: `http://localhost:5000/api`*
 
 ### Autentisering
 
@@ -658,6 +753,14 @@ GET    /payments/history           Betalningshistorik för användare    [Auth r
 POST   /payments/boost             Köp Boost-annonsering               [Auth + ägare]
 POST   /payments/boost/confirm     Aktivera boost efter betalning      [Auth + ägare]
 POST   /payments/webhook           Stripe webhook (intern)             [Stripe signatur]
+```
+
+### Stripe Connect Onboarding
+
+```
+POST   /connect/onboard            Skapa Onboarding-länk för utförare  [Auth required]
+GET    /connect/status             Hämta Stripe Connect konto-status   [Auth required]
+POST   /connect/refresh            Ny länk vid avbruten onboarding     [Auth required]
 ```
 
 > **Flöde:**  
@@ -748,7 +851,7 @@ stripe listen --forward-to localhost:5000/api/payments/webhook
 
 ### 5. Testa API:et
 
-Importera `backend/postman_collection.json` i Postman för att testa alla endpoints.
+Importera `backend/postman_collection_s1.json` i Postman för att testa alla endpoints.
 
 ---
 
@@ -889,7 +992,7 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [x] Migration `008-reviews-unique-and-backfill-verified.js` — unik-constraint (reviewer_id + job_id) + backfill av `is_verified` — **S1**
 - [x] Migration `009-add-price-type-to-jobs.js` — ENUM `fixed/hourly/negotiable` på `jobs.price_type` — **S1**
 - [x] Alla migrationer körda framgångsrikt (`npx sequelize-cli db:migrate`) — **S1** ✅
-- [x] Seed-data: `001-categories.js` (10 kategorier) — **S2** ✅
+- [x] Seed-data: `001-categories.js` (11 kategorier) — **S2** ✅
 - [x] Seed-data: `002-demo-data.js` (5 testanvändare, 20 testjobb) — **S2** ✅
 
 ### 1C — Auth API (S1)
@@ -903,6 +1006,7 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [x] `POST /api/auth/login` — ✅ Testad & fungerar — **S1**
 - [x] `POST /api/auth/logout` — ✅ Testad & fungerar — **S1**
 - [x] `GET /api/auth/me` — ✅ Testad & fungerar — **S1**
+- [x] `PUT /api/auth/password` — Byt lösenord (kräver auth) — **S1** ✅
 
 ### 1D — Jobs & Kategorier API (S2)
 > 🔒 Kräver att Job-modellen och requireAuth (1C) är klara
@@ -934,11 +1038,13 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [x] Jest + Supertest installerat som devDependencies — **S1** ✅
 - [x] `backend/jest.config.js` — Jest-konfiguration (node environment, 10s timeout) — **S1** ✅
 - [x] `backend/__tests__/helpers/createApp.js` — Test helper för Express app — **S1** ✅
-- [x] `backend/__tests__/auth.test.js` — 19 tester för auth routes (register, login, getMe, changePassword, email-normalisering) — **S1** ✅
-- [x] `backend/__tests__/middleware.test.js` — 5 tester för middleware (requireAuth, requireAdmin, errorHandler) — **S1** ✅
-- [x] `backend/__tests__/payment.test.js` — 18 tester för payment controller (checkout, confirm, release, webhook, hobby limits, amount från DB) — **S1** ✅
-- [x] `backend/__tests__/config.test.js` — 19 tester för config (stripe.js, database.js SSL logic) — **S1** ✅
-- [x] Alla 61 tester passerar (`npm test`) — **S1** ✅
+- [x] `backend/__tests__/auth.test.js` — 22 tester för auth routes (register, login, getMe, changePassword, email-normalisering) — **S1** ✅
+- [x] `backend/__tests__/middleware.test.js` — 12 tester för middleware (requireAuth, requireAdmin, errorHandler) — **S1** ✅
+- [x] `backend/__tests__/payment.test.js` — 21 tester för payment controller (checkout, confirm, release, webhook, hobby limits, amount från DB) — **S1** ✅
+- [x] `backend/__tests__/config.test.js` — 12 tester för config (stripe.js, database.js SSL logic) — **S1** ✅
+- [x] `backend/__tests__/user-model-hooks.test.js` — 8 tester för email-normalisering (lowercase, trim, null/undefined-säkerhet) — **S1** ✅
+- [x] Alla 75 backend-tester passerar (`npm test`) — **S1** ✅
+- [x] Frontend-tester (Vitest): 22 tester (CheckoutPage, PaymentSuccessPage, BoostJobPage, paymentService) — **S1** ✅
 
 ---
 
@@ -1023,7 +1129,7 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 > **Ansvarig: S1 (backend + frontend)**
 
 - [x] Stripe-konto skapat på dashboard.stripe.com — **S1** 
-- [ ] Connect aktiverat i Stripe Dashboard — **S1** *(MVP: plattform håller escrow utan Connect)*
+- [x] Connect aktiverat i Stripe Dashboard — **S1**
 - [x] `backend/config/stripe.js` — Stripe-klient med API-nyckel + fee-beräkning — **S1** 
 - [x] `POST /api/payments/checkout` — Skapar Stripe PaymentIntent med platform-fee (8%) — **S1** ✅
   - **Säkerhetsfix:** `amount` hämtas från `job.price` i DB (inte från request body) — **S1** ✅
@@ -1037,7 +1143,9 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [x] `POST /api/payments/boost` + `/boost/confirm` — Direkt betalning för Boost-annonsering (29 kr/48h eller 59 kr/7 dagar) — **S1** ✅
 - [x] `BoostJobPage.jsx` — Paketval + Stripe Elements för boost-betalning — **S1** ✅
 - [x] `MyJobsPage` — 🚀 "Boosta"-knapp per jobb — **S1** ✅
-- [x] `frontend/src/services/paymentService.js` — createCheckout(), confirmPayment(), releaseEscrow(), getHistory() — **S1** 
+- [x] `frontend/src/services/paymentService.js` — createCheckout(), confirmPayment(), releaseEscrow(), getHistory() — **S1**
+- [x] `frontend/src/services/connectService.js` — Stripe Connect onboarding — **S1**
+- [x] `frontend/src/components/profile/ConnectStatus.jsx` — Visar Stripe-kontostatus — **S1** 
 - [x] `CheckoutPage.jsx` — Stripe Elements betalningsflöde med sammanfattning — **S1** ✅
   - **Fix:** Borttaget dubblett "kr" i prisvisning — **S1** ✅
 - [x] `PaymentSuccessPage.jsx` — Bekräftelsesida efter genomförd betalning — **S1** ✅
@@ -1084,19 +1192,29 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 
 ---
 ## 🚀 FAS 7 — Deployment & CI/CD (S1)
-> 🔒 Kräver att hela appen fungerar lokalt (FAS 1–6 klara).
+> 🔒 Kräver att hela appen fungerar lokalt (FAS 1–6 klara).  
+> **Status: Deployad till produktion (april 2026).**
 
-- [ ] Supabase-projekt skapat (hosted PostgreSQL) — **S1**
-- [ ] `DATABASE_URL` konfigurerad med Supabase-URL i Render — **S1**
-- [ ] Migrationer körda mot produktionsdatabasen — **S1**
-- [ ] Render Web Service skapad (backend `npm run start`) — **S1**
-- [ ] Alla miljövariabler inlagda i Render (JWT_SECRET, STRIPE_*, m.m.) — **S1**
-- [ ] Vercel-projekt skapat och kopplat till GitHub (`frontend/`) — **S1**
-- [ ] `VITE_API_URL` satt till Render-URL i Vercel — **S1**
-- [ ] Stripe webhook-URL uppdaterad till produktions-URL i Stripe Dashboard — **S1**
-- [ ] `.github/workflows/ci-backend.yml` — Kör `npm test` på varje push till `develop` — **S1**
-- [ ] `.github/workflows/deploy.yml` — Auto-deploy till Render/Vercel vid merge till `main` — **S1**
-- [ ] Produktions-URL testad (alla sidor, login, jobb, betalning) — **Alla**
+- [x] PostgreSQL-databas på Render (Frankfurt) — **S1**
+- [x] `DATABASE_URL` konfigurerad i Render — **S1**
+- [x] Migrationer körda mot produktionsdatabasen (`npm run start` kör `npx sequelize-cli db:migrate`) — **S1**
+- [x] Render Web Service skapad (backend, auto-deploy från `main`) — **S1**
+- [x] Alla miljövariabler inlagda i Render (`JWT_SECRET`, `STRIPE_*`, `ALLOWED_ORIGINS`, m.m.) — **S1**
+- [x] Vercel-projekt skapat och kopplat till GitHub (`frontend/`, auto-deploy från `main`) — **S1**
+- [x] `VITE_API_URL` satt till Render-backend-URL i Vercel — **S1**
+- [x] Stripe webhook-URL uppdaterad till produktions-URL i Stripe Dashboard — **S1**
+- [x] `.github/workflows/ci-backend.yml` — Kör `npm test` på varje push till `develop` — **S1**
+- [x] `.github/workflows/ci-frontend.yml` — Kör frontend-tester på varje push — **S1**
+- [x] `.github/workflows/lint.yml` — Kör ESLint på frontend vid PR/push — **S1**
+- [x] Produktions-URL testad (alla sidor, login, jobb, betalning) — **Alla**
+
+**Produktionsfixar i kodbasen (verifierbara):**
+- `server.js`: `app.set('trust proxy', 1)` för Render proxy
+- `server.js`: `helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } })` — CORS/Vercel-kompatibilitet
+- `server.js`: `ALLOWED_ORIGINS`-driven CORS-whitelist
+- `api.js`: Axios timeout 60s för Render Free-tier cold starts
+- `vercel.json`: SPA rewrite så React Router fungerar vid direktladdning
+- `payments.js`: Webhook avvisar osignerade anrop i `NODE_ENV=production`
 
 ---
 
@@ -1141,4 +1259,4 @@ HobbyJobb är en mötesplattform — användarna ansvarar själva för att håll
 
 ---
 
-*Senast uppdaterad: April 2026 · Version 0.2.0 (MVP + Stripe Connect + Review UI + price_type migration)*
+*Senast uppdaterad: Maj 2026 · Version 0.2.1 (ESLint 9 Flat Config, a11y-fixar, CI lint-workflow, mobilmeny, produktionsdeployment)*

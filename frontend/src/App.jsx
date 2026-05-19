@@ -27,10 +27,10 @@ import HobbyInfoPage from './pages/HobbyInfoPage.jsx';
 import AboutPage from './pages/AboutPage.jsx';
 import ChatPage from './pages/ChatPage.jsx';
 import AdminDashboardPage from './pages/AdminDashboardPage.jsx';
+import NotFoundPage from './pages/NotFoundPage.jsx';
 
-// Placeholder components for pages owned by other students (Student 1 / Student 5)
-// These will be replaced by the responsible students when they implement the real pages.
-function ComingSoonPage({ name }) {
+// (Placeholder kvar med _-prefix; för framtida bruk om någon route saknar implementation)
+function _ComingSoonPage({ name }) {
   return (
     <div style={{ padding: '4rem 2rem', textAlign: 'center', color: 'var(--muted)' }}>
       <h2 style={{ fontSize: 22, fontWeight: 700, marginBottom: 12, color: 'var(--dark)' }}>{name}</h2>
@@ -183,6 +183,14 @@ export default function App() {
               </PrivateRoute>
             }
           />
+          <Route
+            path="/chatt/:jobId/:userId"
+            element={
+              <PrivateRoute>
+                <ChatPage />
+              </PrivateRoute>
+            }
+          />
 
           {/* Admin */}
           <Route
@@ -195,7 +203,7 @@ export default function App() {
           />
 
           {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </Suspense>
 

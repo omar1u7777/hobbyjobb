@@ -21,22 +21,38 @@ export default function Modal({ open, onClose, title, children, maxWidth = 520 }
 
   return (
     <div
-      onClick={onClose}
       style={{
         position: 'fixed',
         inset: 0,
-        background: 'rgba(15,23,42,0.55)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 1000,
         padding: 24,
-        backdropFilter: 'blur(2px)',
       }}
     >
-      <div
-        onClick={e => e.stopPropagation()}
+      {/* Backdrop som tillgänglig knapp (tabbar, Enter/Space stänger) */}
+      <button
+        type="button"
+        aria-label="Stäng dialog"
+        onClick={onClose}
         style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(15,23,42,0.55)',
+          backdropFilter: 'blur(2px)',
+          border: 'none',
+          padding: 0,
+          margin: 0,
+          cursor: 'pointer',
+        }}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+        style={{
+          position: 'relative',
           background: 'var(--white)',
           borderRadius: 14,
           boxShadow: 'var(--sh-lg)',
@@ -55,7 +71,7 @@ export default function Modal({ open, onClose, title, children, maxWidth = 520 }
           padding: '20px 24px 16px',
           borderBottom: '1px solid var(--border-light)',
         }}>
-          <h2 style={{ fontSize: 17, fontWeight: 700 }}>{title}</h2>
+          <h2 id="modal-title" style={{ fontSize: 17, fontWeight: 700 }}>{title}</h2>
           <button
             onClick={onClose}
             style={{

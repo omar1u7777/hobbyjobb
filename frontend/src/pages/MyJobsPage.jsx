@@ -99,13 +99,13 @@ export default function MyJobsPage() {
         )}
 
         {/* Tabs */}
-        <div style={{ display: 'flex', background: 'var(--border-light)', borderRadius: 8, padding: 4, marginBottom: 24, width: 'fit-content', gap: 2 }}>
+        <div className="myjobs-tabs" style={{ display: 'flex', background: 'var(--border-light)', borderRadius: 8, padding: 4, marginBottom: 24, width: 'fit-content', maxWidth: '100%', gap: 2, overflowX: 'auto', WebkitOverflowScrolling: 'touch', scrollbarWidth: 'none' }}>
           {TABS.map(t => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
               style={{
-                padding: '9px 18px', borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: 'pointer', border: 'none',
+                padding: '9px 18px', borderRadius: 6, fontSize: 14, fontWeight: 600, cursor: 'pointer', border: 'none', whiteSpace: 'nowrap',
                 background: tab === t.key ? 'var(--white)' : 'none',
                 color: tab === t.key ? 'var(--dark)' : 'var(--muted)',
                 boxShadow: tab === t.key ? '0 1px 4px rgba(0,0,0,.1)' : 'none',
@@ -126,7 +126,7 @@ export default function MyJobsPage() {
               : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                   {jobs.map(j => (
-                    <div key={j.id} style={{ background: 'var(--white)', borderRadius: 'var(--r)', border: '1px solid var(--border)', padding: '18px 22px', display: 'flex', alignItems: 'center', gap: 16 }}>
+                    <div key={j.id} className="myjobs-row" style={{ background: 'var(--white)', borderRadius: 'var(--r)', border: '1px solid var(--border)', padding: '18px 22px', display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 6, flexWrap: 'wrap' }}>
                           <Link to={`/jobs/${j.id}`} style={{ fontSize: 15, fontWeight: 700, color: 'var(--dark)' }}>{j.title}</Link>
@@ -137,9 +137,9 @@ export default function MyJobsPage() {
                           <span style={{ fontSize: 13, color: 'var(--muted)' }}>📍 {j.location}</span>
                         </div>
                       </div>
-                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <div className="myjobs-actions" style={{ textAlign: 'right', flexShrink: 0 }}>
                         <div style={{ fontSize: 18, fontWeight: 800, color: 'var(--blue)', marginBottom: 8 }}>{formatPrice(j.price)}</div>
-                        <div style={{ display: 'flex', gap: 8 }}>
+                        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                           <Link to={`/jobs/${j.id}`} className="btn btn-ghost btn-sm">Visa</Link>
                           <Link
                             to={`/jobs/${j.id}/edit`}
@@ -221,9 +221,22 @@ export default function MyJobsPage() {
           </button>
         </div>
       </Modal>
+
+      <style>{`
+        @media(max-width:700px){
+          .myjobs-row{flex-direction:column!important;align-items:stretch!important}
+          .myjobs-actions{text-align:left!important;width:100%!important}
+          .myjobs-actions>div:last-child{justify-content:flex-start!important}
+        }
+        @media(max-width:600px){
+          .myjobs-tabs{width:100%!important; flex-wrap: wrap!important;}
+          .myjobs-tabs button{flex: 1 1 auto; text-align: center;}
+        }
+      `}</style>
     </main>
   );
 }
+
 
 function StatusBadge({ status }) {
   const map = {

@@ -43,7 +43,7 @@ export default function PostJobPage() {
       <main style={{ padding: '60px 0' }}>
         <div className="container" style={{ maxWidth: 680 }}>
           <Alert type="error">
-            <strong>Du har nått hobbyinkomstgränsen på 30 000 kr/år.</strong> Du kan inte publicera fler jobb förrän ett nytt kalenderår börjar. Läs mer på <a href="https://www.skatteverket.se" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--red)', fontWeight: 700 }}>Skatteverket.se</a>.
+            <strong>Du har nått hobbyinkomstgränsen på 30 000 kr/år.</strong> Du kan inte publicera fler jobb förrän ett nytt kalenderår börjar. Läs mer på <a href="https://skatteverket.se/hobby" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--red)', fontWeight: 700 }}>Skatteverket.se</a>.
           </Alert>
         </div>
       </main>
@@ -95,7 +95,15 @@ export default function PostJobPage() {
         </div>
       </div>
 
-      <style>{`@media(max-width:900px){.postjob-layout{grid-template-columns:1fr!important}}`}</style>
+      <style>{`
+        @media(max-width:900px){
+          .postjob-layout{grid-template-columns:1fr!important}
+          .postjob-layout aside{position:static!important;order:-1}
+        }
+        @media(max-width:500px){
+          .postjob-layout{gap:16px!important}
+        }
+      `}</style>
     </main>
   );
 }

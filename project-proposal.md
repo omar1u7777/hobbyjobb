@@ -1,4 +1,4 @@
-﻿# Project Proposal – DA219B VT26
+# Project Proposal – DA219B VT26
 ### Grupp 18 · Högskolan Kristianstad
 
 ---
@@ -23,7 +23,7 @@ Payments are handled through **Stripe Connect**, which enables an automated escr
 2. **Implement secure user authentication** using JWT (JSON Web Tokens), allowing users to register, log in, and access personalized features such as income tracking and job management.
 3. **Enforce legal compliance** by integrating Skatteverket's hobbyverksamhet rules directly into the platform logic — including automatic income warnings and posting restrictions.
 4. **Integrate a live payment system** using Stripe Connect, supporting escrow-based transactions and automatic platform fee deduction.
-5. **Deploy a production-ready application** with a React frontend (Vercel), a Node.js/Express backend (Render), and a hosted PostgreSQL database (Supabase).
+5. **Deploy a production-ready application** with a React frontend (Vercel), a Node.js/Express backend (Render), and a hosted PostgreSQL database (Render PostgreSQL).
 6. **Deliver a responsive design** accessible on mobile, tablet, and desktop devices.
 
 ---
@@ -35,12 +35,12 @@ Payments are handled through **Stripe Connect**, which enables an automated escr
 | Layer | Technology | Purpose |
 |---|---|---|
 | Frontend | React 18, React Router 6, Axios | UI, routing, API communication |
-| Styling | CSS Modules, CSS Variables | Responsive, component-scoped styling |
+| Styling | Global CSS, CSS Variables | Responsive, component-scoped styling |
 | Backend | Node.js 20, Express 4 | REST API server |
 | Database | PostgreSQL 16, Sequelize ORM | Data storage and relationships |
 | Authentication | JWT, bcrypt | Secure login and session management |
 | Payments | Stripe Connect | Escrow, automatic fee splitting (92/8%) |
-| DevOps | GitHub Actions, Render, Vercel, Supabase | CI/CD, deployment, hosted DB |
+| DevOps | GitHub Actions, Render, Vercel, Render PostgreSQL | CI/CD, deployment, hosted DB |
 
 ### Development Approach
 
@@ -54,7 +54,7 @@ Work is divided across five roles:
 | Student 2 | REST API endpoints, database schema, hobby income logic |
 | Student 3 | React project setup, shared components, landing page, responsive design |
 | Student 4 | Auth pages, job listing, job detail, profile, income tracker UI |
-| Student 5 | Admin dashboard, statistics (Chart.js), hobby info page, About page |
+| Student 5 | Admin dashboard, statistics (Chart.js), chat system, hobby info page, About page |
 
 The team will use **Postman** for API testing, **ESLint + Prettier** for code quality, and **GitHub Actions** for automated CI/CD on every push.
 
@@ -71,6 +71,7 @@ By the end of the project, HobbyJobb will deliver:
 - A **live payment flow** via Stripe Connect: buyer pays → funds held in escrow → task confirmed → automatic 92/8% split.
 - A **Boost advertising feature** allowing users to promote their listings (29 SEK / 59 SEK) as a secondary revenue stream.
 - An **admin panel** with platform statistics, flagged accounts, and category management.
+- An **in-app messaging system** allowing buyers and workers to communicate directly about the task.
 - A **fully responsive design** that works flawlessly on desktop, tablet, and mobile.
 
 The platform directly addresses a real problem: many people in Sweden informally pay neighbours or acquaintances for small tasks, with no structured way to find help, agree on price, or handle payment — and no awareness of their tax obligations. HobbyJobb solves all three.

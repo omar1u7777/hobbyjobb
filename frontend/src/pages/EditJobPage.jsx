@@ -38,7 +38,7 @@ export default function EditJobPage() {
           priceType: data.price_type || 'fixed',
           hobbyType: data.hobby_type || 'one-time',
         });
-      } catch (e) {
+      } catch {
         setError('Kunde inte hämta jobbdata. Försök igen senare.');
       } finally {
         setLoading(false);
@@ -132,7 +132,7 @@ export default function EditJobPage() {
         </div>
       </div>
 
-      <style>{`@media(max-width:900px){.postjob-layout{grid-template-columns:1fr!important}}`}</style>
+      <style>{`@media(max-width:900px){.postjob-layout{grid-template-columns:1fr!important; gap: 24px !important}}`}</style>
     </main>
   );
 }

@@ -76,34 +76,31 @@ export default function JobDetailPage() {
   };
 
   useEffect(() => {
-    setLoading(true);
-    setError('');
-    
-    // Explicitly validate ID to prevent backend 500 errors
-    if (!id || id === 'undefined') {
-      setError('Ogiltigt jobb-ID');
-      setLoading(false);
-      return;
-    }
+    async function load() {
+      setLoading(true);
+      setError('');
 
-    jobService.getJob(id)
-      .then(fetchedJob => {
-        if (!fetchedJob) {
-          setError('Kunde inte ladda jobbdetaljer.');
-          return;
-        }
-        setJob(fetchedJob);
-      })
-      .catch(e => {
+      // Validate ID to prevent backend 500 errors
+      if (!id || id === 'undefined') {
+        setError('Ogiltigt jobb-ID');
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setJob(await jobService.getJob(id));
+      } catch (e) {
         console.error('JobDetailPage fetch error:', e);
-        // Translate generic network errors to a user-friendly message
         if (e.message === 'Network Error') {
-          setError('Nätverksfel: Kunde inte ansluta till servern. Kontrollera din uppkoppling eller försök igen senare.');
+          setError('Nätverksfel: Kunde inte ansluta till servern. Försök igen senare.');
         } else {
           setError(e.message || 'Ett oväntat fel inträffade.');
         }
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
   }, [id]);
 
   // Load reviews when job is completed

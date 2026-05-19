@@ -45,24 +45,30 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (!userId) return;
-    setLoading(true);
-    setProfileError('');
 
-    // Load profile — this is critical
-    userService.getProfile(userId)
-      .then(p => {
+    async function load() {
+      setLoading(true);
+      setProfileError('');
+
+      try {
+        const p = await userService.getProfile(userId);
         setProfile(p);
         if (isOwn) setSettings({ name: p.name ?? '', bio: p.bio ?? '', location: p.location ?? '', avatar: p.avatar ?? '' });
-      })
-      .catch((err) => {
+      } catch (err) {
         setProfileError(err.message || 'Kunde inte ladda profilen.');
-      })
-      .finally(() => setLoading(false));
+      } finally {
+        setLoading(false);
+      }
 
-    // Load reviews separately — non-fatal if it fails
-    userService.getReviews(userId)
-      .then(r => { if (Array.isArray(r)) setReviews(r); })
-      .catch(() => setReviews([]));
+      // Load reviews separately — non-fatal if it fails
+      try {
+        const r = await userService.getReviews(userId);
+        if (Array.isArray(r)) setReviews(r);
+      } catch {
+        setReviews([]);
+      }
+    }
+    load();
   }, [isOwn, userId]);
 
   const handleSave = async (e) => {

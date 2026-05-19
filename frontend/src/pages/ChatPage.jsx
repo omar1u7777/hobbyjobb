@@ -18,7 +18,7 @@ function formatLastSeen(dateStr) {
 }
 
 export default function ChatPage() {
-  const { jobId } = useParams();
+  const { jobId, userId } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const currentUserId = user?.id;
@@ -47,7 +47,7 @@ export default function ChatPage() {
 
         setConversations(apiConversations);
         setLoadedJobIds(new Set());
-      } catch (error) {
+      } catch {
         if (cancelled) return;
         setChatError('Chatt-tjänsten är tillfälligt otillgänglig. Servern vaknar (cold start). Försök igen om en minut.');
       } finally {
@@ -67,26 +67,34 @@ export default function ChatPage() {
   );
 
   const selectedConversation = useMemo(() => {
-    if (jobId) {
-      const match = conversations.find((conversation) => conversation.jobId === jobId);
+    if (jobId && userId) {
+      const match = conversations.find(
+        (c) => String(c.jobId) === String(jobId) && String(c.participant.id) === String(userId)
+      );
+      if (match) return match;
+    } else if (jobId) {
+      const match = conversations.find((conversation) => String(conversation.jobId) === String(jobId));
       if (match) return match;
     }
 
     return sortedConversations[0] || null;
-  }, [conversations, sortedConversations, jobId]);
+  }, [conversations, sortedConversations, jobId, userId]);
 
   const loadConversationMessages = async (conversation, force = false) => {
     if (!conversation) return;
 
     const normalizedJobId = String(conversation.jobId);
-    if (!force && loadedJobIds.has(normalizedJobId)) return;
+    const normalizedUserId = String(conversation.participant.id);
+    const loadKey = `${normalizedJobId}-${normalizedUserId}`;
+    
+    if (!force && loadedJobIds.has(loadKey)) return;
 
     try {
-      const messages = await messageService.getMessages(normalizedJobId);
+      const messages = await messageService.getMessages(normalizedJobId, normalizedUserId);
 
       setConversations((prev) =>
         prev.map((item) =>
-          item.jobId === normalizedJobId
+          String(item.jobId) === normalizedJobId && String(item.participant.id) === normalizedUserId
             ? {
                 ...item,
                 messages,
@@ -99,7 +107,7 @@ export default function ChatPage() {
 
       setLoadedJobIds((prev) => {
         const next = new Set(prev);
-        next.add(normalizedJobId);
+        next.add(loadKey);
         return next;
       });
     } catch (_) {
@@ -124,12 +132,16 @@ export default function ChatPage() {
         )
       );
 
-      messageService.markConversationAsRead(selectedConversation.jobId).catch(() => {});
+      messageService.markConversationAsRead(selectedConversation.jobId, selectedConversation.participant.id).catch(() => {});
     }
+    // Vi använder selectedConversation?.id som identitets-nyckel istället för
+    // hela objektet — annars triggar varje setConversations() en ny render-loop.
+    // loadConversationMessages är stabil inom samma render och ska inte ingå.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedConversation?.id]);
 
   const handleSelectConversation = (conversation) => {
-    navigate(`/chatt/${conversation.jobId}`);
+    navigate(`/chatt/${conversation.jobId}/${conversation.participant.id}`);
 
     setConversations((prev) =>
       prev.map((item) =>
@@ -142,7 +154,7 @@ export default function ChatPage() {
       )
     );
 
-    messageService.markConversationAsRead(conversation.jobId).catch(() => {});
+    messageService.markConversationAsRead(conversation.jobId, conversation.participant.id).catch(() => {});
     void loadConversationMessages(conversation);
   };
 
@@ -183,7 +195,7 @@ export default function ChatPage() {
 
       setLoadedJobIds((prev) => {
         const next = new Set(prev);
-        next.add(String(selectedConversation.jobId));
+        next.add(`${selectedConversation.jobId}-${selectedConversation.participant.id}`);
         return next;
       });
     } catch (error) {
@@ -200,7 +212,7 @@ export default function ChatPage() {
           <div>
             <h1 style={{ fontSize: 32, fontWeight: 800, marginBottom: 8, letterSpacing: '-0.5px' }}>Meddelanden</h1>
             <p style={{ color: 'var(--muted)', fontSize: 15 }}>
-              Chatt kopplad till API. Håll kontakten med dina uppdragsgivare.
+              Håll kontakten med dina uppdragsgivare och utförare.
             </p>
           </div>
           {chatError ? (

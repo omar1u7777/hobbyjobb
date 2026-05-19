@@ -14,7 +14,13 @@ export default function IncomeTracker({ totalYear = 0, pct = 0, isNear = false, 
       <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 16 }}>💰 Hobbyinkomst {new Date().getFullYear()}</h3>
 
       <div style={{ fontSize: compact ? 26 : 34, fontWeight: 900, marginBottom: 2 }}>{formatPrice(totalYear)}</div>
-      <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 18 }}>av max {formatPrice(HOBBY_ANNUAL_LIMIT)}/år</p>
+      <p style={{ fontSize: 13, color: 'var(--muted)', marginBottom: 18 }}>
+        av max {formatPrice(HOBBY_ANNUAL_LIMIT)}/år{' '}
+        <span
+          title="Plattformsgräns för att skydda dig från att oavsiktligt driva näringsverksamhet. Det är inte en skattefri gräns — all hobbyinkomst ska deklareras."
+          style={{ cursor: 'help', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 16, height: 16, borderRadius: '50%', background: 'var(--border)', color: 'var(--muted)', fontSize: 10, fontWeight: 700, verticalAlign: 'middle', marginLeft: 4 }}
+        >?</span>
+      </p>
 
       {/* Bar */}
       <div style={{ background: 'var(--border)', height: 12, borderRadius: 6, overflow: 'hidden', marginBottom: 8 }}>

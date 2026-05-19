@@ -38,7 +38,7 @@ export default function EditJobPage() {
           priceType: data.price_type || 'fixed',
           hobbyType: data.hobby_type || 'one-time',
         });
-      } catch (e) {
+      } catch {
         setError('Kunde inte hämta jobbdata. Försök igen senare.');
       } finally {
         setLoading(false);

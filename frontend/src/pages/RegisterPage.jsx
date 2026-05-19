@@ -107,11 +107,12 @@ export default function RegisterPage() {
               style={{ width: 18, height: 18, marginTop: 2, flexShrink: 0, accentColor: 'var(--blue)' }}
             />
             <label htmlFor="hobby-agree" style={{ fontSize: 13, color: '#92400E', lineHeight: 1.5, cursor: 'pointer' }}>
-              Jag bekräftar att jag använder HobbyJobb <strong style={{ color: '#78350F' }}>enbart för hobbyverksamhet</strong> och
-              förstår att inkomstgränsen är max 30 000 kr/år.{' '}
+              <strong>Jag bekräftar att jag är över 18 år</strong> och accepterar HobbyJobbs användarvillkor. 
+              Jag förstår även att plattformen endast är för <strong style={{ color: '#78350F' }}>hobbyverksamhet</strong> (max 30 000 kr/år), 
+              samt att jag själv ansvarar för eventuell inkomstdeklaration.{' '}
               <button type="button" onClick={() => setHobbyModal(true)}
                 style={{ background: 'none', border: 'none', color: 'var(--blue)', fontWeight: 700, cursor: 'pointer', fontSize: 13, padding: 0 }}>
-                Vad innebär det? →
+                Läs mer →
               </button>
             </label>
           </div>

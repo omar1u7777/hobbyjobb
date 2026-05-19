@@ -4,16 +4,14 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 const CATEGORIES = [
-  { icon: '🌿', label: 'Hem & Trädgård',    count: 342 },
-  { icon: '🐶', label: 'Djur & Husdjur',     count: 128 },
-  { icon: '🚛', label: 'Flytt & Transport',  count: 89  },
-  { icon: '🔧', label: 'Handyman',           count: 215 },
-  { icon: '💻', label: 'IT & Teknik',        count: 74  },
-  { icon: '🧹', label: 'Städning',           count: 284 },
-  { icon: '🛍️', label: 'Ärenden',            count: 153 },
-  { icon: '🎨', label: 'Kreativt',           count: 61  },
-  { icon: '📚', label: 'Undervisning',       count: 47  },
-  { icon: '🏋️', label: 'Träning & Hälsa',   count: 38  },
+  { label: 'Trädgård', icon: '🌿' },
+  { label: 'Städning', icon: '🧹' },
+  { label: 'Flytt',    icon: '📦' },
+  { label: 'Handyman', icon: '🔧' },
+  { label: 'IT-hjälp', icon: '💻' },
+  { label: 'Matlagning',icon: '🍳' },
+  { label: 'Målning',  icon: '🎨' },
+  { label: 'Musik',    icon: '🎵' },
 ];
 
 const STEPS = [
@@ -26,7 +24,7 @@ const FAQS = [
   { q: 'Vad är hobbyverksamhet?',          a: 'Hobbyverksamhet är inkomst från aktiviteter du gör utan vinstsyfte och inte som huvudsyssla. Skatteverkets tumregel är max 30 000 kr/år.' },
   { q: 'Behöver jag deklarera intäkterna?', a: 'Ja — inkomster över avdragen kostnad ska deklareras. HobbyJobb hjälper dig hålla koll, men skatteansvar är alltid ditt eget.' },
   { q: 'Kostar det något att använda HobbyJobb?', a: 'Att hitta och ansöka på jobb är helt gratis. Vi tar en 8% provision när ett uppdrag slutförs via plattformen.' },
-  { q: 'Hur fungerar betalningen?',         a: 'Bestellaren betalar via Stripe. Pengarna hålls i escrow tills uppdraget bekräftas klart, då frigörs 92% till dig automatiskt.' },
+  { q: 'Hur fungerar betalningen?',         a: 'Beställaren betalar via Stripe. Pengarna hålls i escrow tills uppdraget bekräftas klart, då frigörs 92% till dig automatiskt.' },
 ];
 
 export default function LandingPage() {
@@ -60,7 +58,7 @@ export default function LandingPage() {
           </div>
 
           <h1 style={{ fontSize:'clamp(32px,5vw,54px)', fontWeight:900, lineHeight:1.15, marginBottom:20, letterSpacing:'-0.02em' }}>
-            Lokala smajobb — <br />
+            Lokala småjobb — <br />
             <span style={{ color:'#60A5FA' }}>utan krångel</span>
           </h1>
 
@@ -83,7 +81,7 @@ export default function LandingPage() {
           </form>
 
           <p style={{ fontSize:13, color:'#94A3B8' }}>
-            Över <strong style={{ color:'#fff' }}>1 200</strong> aktiva jobb · Helt gratis att ansöka
+            Hundratals lokala jobb · Helt gratis att ansöka
           </p>
         </div>
       </section>
@@ -115,7 +113,6 @@ export default function LandingPage() {
               >
                 <div style={{ fontSize:32, marginBottom:8 }}>{c.icon}</div>
                 <div style={{ fontSize:14, fontWeight:600, marginBottom:4 }}>{c.label}</div>
-                <div style={{ fontSize:12, color:'var(--muted)' }}>{c.count} jobb</div>
               </Link>
             ))}
           </div>

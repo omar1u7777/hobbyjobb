@@ -1,37 +1,55 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { adminService } from '../../services/adminService.js';
 
-const MOCK_JOBS = [
-  { id: 301, title: 'Gräsklippning och kantskärning', category: 'Hem & Trädgård', price: 650, status: 'Aktivt' },
-  { id: 302, title: 'IKEA-montering av 3 möbler', category: 'Handyman', price: 850, status: 'Aktivt' },
-  { id: 303, title: 'Hundpromenad 2 gånger i veckan', category: 'Djur & Husdjur', price: 300, status: 'Aktivt' },
-  { id: 304, title: 'Storstädning 3 rum och kök', category: 'Städning', price: 900, status: 'Flaggat' },
-  { id: 305, title: 'Hjälp med mindre flytt', category: 'Flytt & Transport', price: 1200, status: 'Pausat' },
-  { id: 306, title: 'Montering av hyllor', category: 'Handyman', price: 500, status: 'Aktivt' },
-];
-
-function statusStyle(status) {
-  if (status === 'Flaggat') {
-    return { background: 'var(--red-light)', color: 'var(--red)' };
-  }
-
-  if (status === 'Pausat') {
-    return { background: 'var(--yellow-light)', color: 'var(--yellow-text)' };
-  }
-
-  return { background: 'var(--green-light)', color: 'var(--green-text)' };
+function statusLabel(status) {
+  const map = { open: 'Öppet', in_progress: 'Pågående', completed: 'Slutfört', cancelled: 'Avbrutet' };
+  return map[status] || status;
 }
 
-export default function JobTable({ jobs = MOCK_JOBS }) {
+function statusStyle(status) {
+  if (status === 'completed') {
+    return { background: 'var(--green-light)', color: 'var(--green-text)' };
+  }
+  if (status === 'in_progress') {
+    return { background: 'var(--blue-light)', color: 'var(--blue)' };
+  }
+  if (status === 'cancelled') {
+    return { background: 'var(--red-light)', color: 'var(--red)' };
+  }
+  return { background: 'var(--yellow-light)', color: 'var(--yellow-text)' };
+}
+
+export default function JobTable() {
+  const [jobs, setJobs] = useState([]);
   const [query, setQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      try {
+        const data = await adminService.getJobs({ limit: 50 });
+        if (!cancelled) setJobs(data);
+      } catch (_) {
+        // keep empty
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    load();
+    return () => { cancelled = true; };
+  }, []);
 
   const filteredJobs = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return jobs;
 
     return jobs.filter((job) => {
-      const title = job.title.toLowerCase();
-      const category = job.category.toLowerCase();
-      const status = job.status.toLowerCase();
+      const title = (job.title || '').toLowerCase();
+      const category = (job.category?.name || '').toLowerCase();
+      const status = statusLabel(job.status).toLowerCase();
       return title.includes(q) || category.includes(q) || status.includes(q);
     });
   }, [jobs, query]);
@@ -42,7 +60,7 @@ export default function JobTable({ jobs = MOCK_JOBS }) {
         <div>
           <h3>Jobböversikt</h3>
           <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
-            Sökbar mock-tabell för jobbhantering
+            {loading ? 'Laddar...' : `Live-data — ${jobs.length} jobb`}
           </p>
         </div>
       </div>
@@ -72,6 +90,7 @@ export default function JobTable({ jobs = MOCK_JOBS }) {
             <tr style={{ textAlign: 'left', fontSize: 12, color: 'var(--muted)' }}>
               <th style={{ padding: '8px 6px' }}>Titel</th>
               <th style={{ padding: '8px 6px' }}>Kategori</th>
+              <th style={{ padding: '8px 6px' }}>Upplagd av</th>
               <th style={{ padding: '8px 6px' }}>Pris</th>
               <th style={{ padding: '8px 6px' }}>Status</th>
             </tr>
@@ -80,8 +99,9 @@ export default function JobTable({ jobs = MOCK_JOBS }) {
             {filteredJobs.map((job) => (
               <tr key={job.id} style={{ borderTop: '1px solid var(--border-light)' }}>
                 <td style={{ padding: '10px 6px', fontSize: 13, fontWeight: 600 }}>{job.title}</td>
-                <td style={{ padding: '10px 6px', fontSize: 13 }}>{job.category}</td>
-                <td style={{ padding: '10px 6px', fontSize: 13 }}>{job.price.toLocaleString('sv-SE')} kr</td>
+                <td style={{ padding: '10px 6px', fontSize: 13 }}>{job.category?.name || '—'}</td>
+                <td style={{ padding: '10px 6px', fontSize: 12, color: 'var(--muted)' }}>{job.poster?.name || '—'}</td>
+                <td style={{ padding: '10px 6px', fontSize: 13 }}>{Number(job.price || 0).toLocaleString('sv-SE')} kr</td>
                 <td style={{ padding: '10px 6px' }}>
                   <span
                     style={{
@@ -92,7 +112,7 @@ export default function JobTable({ jobs = MOCK_JOBS }) {
                       fontWeight: 700,
                     }}
                   >
-                    {job.status}
+                    {statusLabel(job.status)}
                   </span>
                 </td>
               </tr>

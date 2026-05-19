@@ -48,6 +48,54 @@ function DeltaTag({ delta, trend }) {
   );
 }
 
+function AlertsRow({ stats, apiLive }) {
+  const flaggedStat = stats.find((s) => s.id === 'flagged');
+  const flaggedCount = flaggedStat ? Number(String(flaggedStat.value).replace(/\s/g, '')) || 0 : 0;
+
+  const jobsStat = stats.find((s) => s.id === 'jobs');
+  const openJobsText = jobsStat?.delta || '';
+  const openJobsMatch = openJobsText.match(/(\d[\d\s]*)/);
+  const openJobsCount = openJobsMatch ? Number(openJobsMatch[1].replace(/\s/g, '')) || 0 : 0;
+
+  if (!apiLive) return null;
+
+  const hasWarning = flaggedCount > 0;
+  const hasModeration = openJobsCount > 0;
+
+  if (!hasWarning && !hasModeration) {
+    return (
+      <section className="admin-alerts-row" style={{ marginBottom: 16 }}>
+        <article className="card" style={{ padding: 14, borderLeft: '4px solid var(--green)' }}>
+          <h2 style={{ fontSize: 15, marginBottom: 6 }}>✅ Systemstatus</h2>
+          <p style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.6 }}>
+            Inga flaggade konton eller jobb som kräver uppföljning just nu.
+          </p>
+        </article>
+      </section>
+    );
+  }
+
+  return (
+    <section className="admin-alerts-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+      <article className="card" style={{ padding: 14, borderLeft: `4px solid ${hasWarning ? 'var(--yellow)' : 'var(--green)'}` }}>
+        <h2 style={{ fontSize: 15, marginBottom: 6 }}>{hasWarning ? '⚠️ Systemvarning' : '✅ Inga varningar'}</h2>
+        <p style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.6 }}>
+          {hasWarning
+            ? `${flaggedCount} ${flaggedCount === 1 ? 'konto ligger' : 'konton ligger'} över 80% av hobbyinkomstgränsen och behöver uppföljning.`
+            : 'Inga konton nära hobbyinkomstgränsen just nu.'}
+        </p>
+      </article>
+
+      <article className="card" style={{ padding: 14, borderLeft: `4px solid ${openJobsCount > 10 ? 'var(--yellow)' : 'var(--blue)'}` }}>
+        <h2 style={{ fontSize: 15, marginBottom: 6 }}>📋 Öppna jobb</h2>
+        <p style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.6 }}>
+          {openJobsCount} {openJobsCount === 1 ? 'jobb' : 'jobb'} är öppna och väntar på ansökningar.
+        </p>
+      </article>
+    </section>
+  );
+}
+
 export default function AdminDashboardPage() {
   const [stats, setStats] = useState(FALLBACK_STATS);
   const [apiLive, setApiLive] = useState(false);
@@ -82,7 +130,7 @@ export default function AdminDashboardPage() {
         <header style={{ marginBottom: 20 }}>
           <h1 style={{ fontSize: 28, fontWeight: 800, marginBottom: 4 }}>Admin Dashboard</h1>
           <p style={{ color: 'var(--muted)' }}>
-            {loading ? 'Laddar statistik…' : apiLive ? 'Live-data från admin-API.' : 'Mock-data — admin-API ej tillgängligt.'}
+            {loading ? 'Laddar statistik…' : apiLive ? 'Plattformsöversikt i realtid.' : 'Kunde inte ladda statistik.'}
           </p>
         </header>
 
@@ -96,21 +144,7 @@ export default function AdminDashboardPage() {
           ))}
         </section>
 
-        <section className="admin-alerts-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-          <article className="card" style={{ padding: 14, borderLeft: '4px solid var(--yellow)' }}>
-            <h2 style={{ fontSize: 15, marginBottom: 6 }}>Systemvarning</h2>
-            <p style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.6 }}>
-              5 konton ligger över 80% av hobbyinkomstgränsen och behöver uppföljning.
-            </p>
-          </article>
-
-          <article className="card" style={{ padding: 14, borderLeft: '4px solid var(--blue)' }}>
-            <h2 style={{ fontSize: 15, marginBottom: 6 }}>Moderering</h2>
-            <p style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.6 }}>
-              3 jobb markerade för manuell granskning på grund av otydliga beskrivningar.
-            </p>
-          </article>
-        </section>
+        <AlertsRow stats={stats} apiLive={apiLive} />
 
         <AdminStatsCharts />
 

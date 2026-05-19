@@ -131,7 +131,7 @@ export default function HobbyInfoPage() {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10 }}>
             <a
               className="btn btn-primary"
-              href="https://www.skatteverket.se"
+              href="https://skatteverket.se/hobby"
               target="_blank"
               rel="noreferrer"
             >
@@ -181,6 +181,40 @@ export default function HobbyInfoPage() {
             <li style={listItemStyle}>Jag erbjuder tillfälliga uppdrag, inte företagsverksamhet.</li>
             <li style={listItemStyle}>Jag sparar underlag för korrekt deklaration.</li>
           </ul>
+        </section>
+
+        {/* Ditt ansvar – Beställare & Utförare */}
+        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 14, marginBottom: 20 }} className="hobby-rules-grid">
+          <article className="card" style={{ padding: '22px 20px', borderLeft: '4px solid #16A34A' }}>
+            <span className="badge" style={{ background: '#DCFCE7', color: '#15803D', marginBottom: 10 }}>Beställare</span>
+            <h2 style={{ fontSize: 17, marginBottom: 10, lineHeight: 1.35 }}>Ditt ansvar som beställare</h2>
+            <ul style={{ paddingLeft: 18, color: 'var(--ink)', fontSize: 13.5, lineHeight: 1.8, margin: 0 }}>
+              <li>HobbyJobb förmedlar betalningen via Stripe – vi är inte arbetsgivare.</li>
+              <li>Om du betalar <strong>mer än 10 000 kr</strong> till samma person under ett kalenderår kan du behöva betala arbetsgivaravgifter och göra skatteavdrag.</li>
+              <li>Spara alltid kvitto/bekräftelse från dina betalningar.</li>
+              <li style={{ marginTop: 4 }}>
+                <a href="https://skatteverket.se/hobby" target="_blank" rel="noreferrer" style={{ color: 'var(--blue)', fontWeight: 600, fontSize: 13 }}>
+                  Läs mer hos Skatteverket →
+                </a>
+              </li>
+            </ul>
+          </article>
+
+          <article className="card" style={{ padding: '22px 20px', borderLeft: '4px solid var(--blue)' }}>
+            <span className="badge badge-blue" style={{ marginBottom: 10 }}>Utförare</span>
+            <h2 style={{ fontSize: 17, marginBottom: 10, lineHeight: 1.35 }}>Ditt ansvar som utförare</h2>
+            <ul style={{ paddingLeft: 18, color: 'var(--ink)', fontSize: 13.5, lineHeight: 1.8, margin: 0 }}>
+              <li>Överskott (inkomst minus utgifter) från hobbyverksamhet beskattas som <strong>inkomst av tjänst</strong>.</li>
+              <li>Du deklarerar dina hobbyinkomster på <strong>Bilaga T2</strong> i din inkomstdeklaration.</li>
+              <li>Du betalar själv egenavgifter på ditt överskott. HobbyJobb drar ingen skatt åt dig.</li>
+              <li>Plattformens gräns på 30 000 kr/år är en trygghetsspärr – inte en skattefri gräns.</li>
+              <li style={{ marginTop: 4 }}>
+                <a href="https://skatteverket.se/hobby" target="_blank" rel="noreferrer" style={{ color: 'var(--blue)', fontWeight: 600, fontSize: 13 }}>
+                  Läs mer hos Skatteverket →
+                </a>
+              </li>
+            </ul>
+          </article>
         </section>
 
         <section className="section">

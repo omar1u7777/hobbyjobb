@@ -22,9 +22,10 @@ const getJobs = async (req, res, next) => {
 
     const where = {};
     if (req.query.search) {
+      const q = req.query.search.trim();
       where[Op.or] = [
-        { title: { [Op.iLike]: `%${req.query.search}%` } },
-        { description: { [Op.iLike]: `%${req.query.search}%` } },
+        { title: { [Op.iLike]: `%${q}%` } },
+        { description: { [Op.iLike]: `%${q}%` } },
       ];
     }
     // Geocode location search → distance-based filtering
@@ -40,7 +41,18 @@ const getJobs = async (req, res, next) => {
         where.location = { [Op.iLike]: `%${req.query.location}%` };
       }
     }
-    if (req.query.category) where.category_id = req.query.category;
+    
+    if (req.query.category) {
+      if (isNaN(req.query.category)) {
+        // If it's "Hem & Trädgård", we just extract "Trädgård" to be safe, or do an ILIKE
+        const catName = req.query.category.includes('&') ? req.query.category.split('&')[1].trim() : req.query.category;
+        const cat = await Category.findOne({ where: { name: { [Op.iLike]: `%${catName}%` } } });
+        if (cat) where.category_id = cat.id;
+        else where.category_id = -1; // Force 0 results if category name is invalid
+      } else {
+        where.category_id = req.query.category;
+      }
+    }
     if (req.query.minPrice) where.price = { ...(where.price || {}), [Op.gte]: Number(req.query.minPrice) };
     if (req.query.maxPrice) where.price = { ...(where.price || {}), [Op.lte]: Number(req.query.maxPrice) };
 
@@ -314,6 +326,16 @@ const deleteJob = async (req, res, next) => {
 
     if (job.poster_id !== req.user.id) {
       return res.status(403).json({ success: false, message: 'Only the job owner can delete this job' });
+    }
+
+    // Block deletion if there's an active escrow — deleting would orphan held
+    // funds in Stripe with no way to release or refund through the platform.
+    const activeEscrow = await Payment.findOne({ where: { job_id: job.id, status: 'held' } });
+    if (activeEscrow) {
+      return res.status(400).json({
+        success: false,
+        message: 'Kan inte radera jobb med aktiv escrow. Slutför eller avbryt betalningen först.',
+      });
     }
 
     await Application.destroy({ where: { job_id: job.id } });

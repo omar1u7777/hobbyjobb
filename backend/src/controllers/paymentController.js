@@ -412,7 +412,7 @@ const releaseEscrow = async (req, res, next) => {
           destination: payee.stripe_account_id,
           transfer_group: payment.stripe_payment_id,
         }, {
-          idempotencyKey: `release-${payment.id}-${Date.now()}`,
+          idempotencyKey: `release-${payment.id}`,
         });
         transferId = transfer.id;
       } catch (err) {

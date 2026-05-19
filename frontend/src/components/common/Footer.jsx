@@ -25,7 +25,7 @@ export default function Footer() {
           <FooterCol title="Plattform" links={[
             { to: '/jobs', label: 'Hitta jobb' },
             { to: '/lagg-upp-jobb', label: 'Lägg upp jobb' },
-            { to: '/hobbyinfo', label: 'Hur det fungerar' },
+            { to: '/mina-jobb', label: 'Mina jobb' },
           ]} />
 
           <FooterCol title="Konto" links={[
@@ -37,7 +37,7 @@ export default function Footer() {
           <FooterCol title="Info" links={[
             { to: '/hobbyinfo', label: 'Hobbyinfo' },
             { to: '/om-oss', label: 'Om oss' },
-            { href: 'https://www.skatteverket.se', label: 'Skatteverket ↗' },
+            { href: 'https://skatteverket.se/hobby', label: 'Skatteverket ↗' },
           ]} />
         </div>
 
@@ -46,17 +46,12 @@ export default function Footer() {
           borderTop: '1px solid #1E293B',
           paddingTop: 20,
           display: 'flex',
-          justifyContent: 'space-between',
+          justifyContent: 'center',
           fontSize: 13,
           flexWrap: 'wrap',
           gap: 10,
         }}>
-          <span>© 2026 HobbyJobb · DA219B Grupp 5 · Högskolan Kristianstad</span>
-          <div style={{ display: 'flex', gap: 16 }}>
-            <Link to="#" style={{ color: '#64748B' }}>Integritetspolicy</Link>
-            <Link to="#" style={{ color: '#64748B' }}>Användarvillkor</Link>
-            <Link to="#" style={{ color: '#64748B' }}>Cookies</Link>
-          </div>
+          <span>© 2026 HobbyJobb · DA219B Grupp 18 · Högskolan Kristianstad</span>
         </div>
       </div>
 

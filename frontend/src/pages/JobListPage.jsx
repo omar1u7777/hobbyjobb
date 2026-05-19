@@ -10,12 +10,20 @@ export default function JobListPage() {
   const [urlParams] = useSearchParams();
   const initialSearch = urlParams.get('search') || '';
   const initialLocation = urlParams.get('location') || '';
+  // Support both ID and String from LandingPage
+  const initialCatParam = urlParams.get('category');
+  const initialCategory = initialCatParam 
+    ? (isNaN(initialCatParam) ? initialCatParam : Number(initialCatParam))
+    : null;
+
   const [search, setSearch] = useState(initialSearch);
   const [location, setLocation] = useState(initialLocation);
+  
   const { jobs, total, pages, page, setPage, loading, error, params, updateParams } = useJobs({
     limit: 20,
     search: initialSearch || null,
     location: initialLocation || null,
+    category: initialCategory,
   });
 
   const handleSearch = (e) => {
@@ -69,7 +77,7 @@ export default function JobListPage() {
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 8 }}>
                 <p style={{ fontSize: 15, color: 'var(--muted)' }}>
                   Visar <strong style={{ color: 'var(--dark)' }}>{total} jobb</strong>
-                  {params.search ? ` för "${params.search}"` : ' nära dig'}
+                  {params.search ? ` för "${params.search}"` : params.category ? ` i vald kategori` : ' nära dig'}
                 </p>
               </div>
 

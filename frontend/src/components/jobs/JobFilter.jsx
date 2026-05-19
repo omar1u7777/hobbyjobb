@@ -21,7 +21,6 @@ export default function JobFilter({ params, onChange }) {
     jobService.getCategories().then(setCategories).catch(() => {});
   }, []);
 
-  const setCategory = (id) => onChange({ category: id === params.category ? null : id });
   const setDistance = (km) => onChange({ radius: km });
 
   // BUG FIX: Use callback to read freshest state instead of stale closure values
@@ -47,27 +46,36 @@ export default function JobFilter({ params, onChange }) {
       <div style={{ marginBottom: 24, paddingBottom: 24, borderBottom: '1px solid var(--border-light)' }}>
         <h4 style={{ fontSize: 14, fontWeight: 700, marginBottom: 12 }}>Kategori</h4>
         {categories.map(c => {
-          const active = params.category === c.id;
+          // params.category can be an ID (number) or a string name (from LandingPage URL)
+          const active = params.category == c.id || params.category === c.name;
+          const handleToggle = () => onChange({ category: active ? null : c.id });
+
           return (
-            <div
+            <button
               key={c.id}
-              onClick={() => setCategory(c.id)}
+              type="button"
+              onClick={handleToggle}
+              aria-pressed={active}
               style={{
+                width: '100%',
                 display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                 padding: '8px 10px', borderRadius: 7, cursor: 'pointer',
                 background: active ? 'var(--blue-light)' : 'transparent',
                 color: active ? 'var(--blue)' : 'inherit',
+                border: 'none',
+                font: 'inherit',
+                textAlign: 'left',
                 transition: 'background .12s',
                 marginBottom: 2,
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 500 }}>
+              <span style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 500 }}>
                 <span>{c.icon}</span> {c.name}
-              </div>
+              </span>
               <span style={{ fontSize: 12, color: active ? '#93C5FD' : 'var(--muted)', fontWeight: 600 }}>
                 {c.job_count ?? ''}
               </span>
-            </div>
+            </button>
           );
         })}
       </div>

@@ -227,20 +227,20 @@ export default function ProfilePage() {
                     {saveErr && <Alert type="error" style={{ marginBottom: 16 }}>{saveErr}</Alert>}
                     <form onSubmit={handleSave}>
                       <div className="form-group">
-                        <label>Namn</label>
-                        <input type="text" value={settings.name} onChange={e => setSettings(s => ({ ...s, name: e.target.value }))} />
+                        <label htmlFor="profile-name">Namn</label>
+                        <input id="profile-name" type="text" value={settings.name} onChange={e => setSettings(s => ({ ...s, name: e.target.value }))} />
                       </div>
                       <div className="form-group">
-                        <label>Plats</label>
-                        <input type="text" placeholder="t.ex. Stockholm" value={settings.location} onChange={e => setSettings(s => ({ ...s, location: e.target.value }))} />
+                        <label htmlFor="profile-location">Plats</label>
+                        <input id="profile-location" type="text" placeholder="t.ex. Stockholm" value={settings.location} onChange={e => setSettings(s => ({ ...s, location: e.target.value }))} />
                       </div>
                       <div className="form-group">
-                        <label>Avatar URL</label>
-                        <input type="url" placeholder="https://..." value={settings.avatar} onChange={e => setSettings(s => ({ ...s, avatar: e.target.value }))} />
+                        <label htmlFor="profile-avatar">Avatar URL</label>
+                        <input id="profile-avatar" type="url" placeholder="https://..." value={settings.avatar} onChange={e => setSettings(s => ({ ...s, avatar: e.target.value }))} />
                       </div>
                       <div className="form-group">
-                        <label>Bio</label>
-                        <textarea rows={4} placeholder="Berätta lite om dig själv..." value={settings.bio} onChange={e => setSettings(s => ({ ...s, bio: e.target.value }))} />
+                        <label htmlFor="profile-bio">Bio</label>
+                        <textarea id="profile-bio" rows={4} placeholder="Berätta lite om dig själv..." value={settings.bio} onChange={e => setSettings(s => ({ ...s, bio: e.target.value }))} />
                       </div>
                       <button type="submit" className="btn btn-primary" disabled={saving}>
                         {saving ? <Spinner size={16} color="#fff" /> : 'Spara ändringar'}
@@ -254,27 +254,33 @@ export default function ProfilePage() {
                     {pwErr && <Alert type="error" style={{ marginBottom: 16 }}>{pwErr}</Alert>}
                     <form onSubmit={handleChangePassword}>
                       <div className="form-group">
-                        <label>Nuvarande lösenord</label>
+                        <label htmlFor="pw-current">Nuvarande lösenord</label>
                         <input
+                          id="pw-current"
                           type="password"
+                          autoComplete="current-password"
                           value={pwForm.current}
                           onChange={e => setPwForm(p => ({ ...p, current: e.target.value }))}
                           placeholder="Ditt nuvarande lösenord"
                         />
                       </div>
                       <div className="form-group">
-                        <label>Nytt lösenord</label>
+                        <label htmlFor="pw-new">Nytt lösenord</label>
                         <input
+                          id="pw-new"
                           type="password"
+                          autoComplete="new-password"
                           value={pwForm.new}
                           onChange={e => setPwForm(p => ({ ...p, new: e.target.value }))}
                           placeholder="Minst 8 tecken"
                         />
                       </div>
                       <div className="form-group">
-                        <label>Bekräfta nytt lösenord</label>
+                        <label htmlFor="pw-confirm">Bekräfta nytt lösenord</label>
                         <input
+                          id="pw-confirm"
                           type="password"
+                          autoComplete="new-password"
                           value={pwForm.confirm}
                           onChange={e => setPwForm(p => ({ ...p, confirm: e.target.value }))}
                           placeholder="Upprepa det nya lösenordet"

@@ -90,7 +90,6 @@ export default function FlaggedAccounts() {
       cancelled = true;
       clearTimeout(timer);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, riskFilter]);
 
   const filteredAccounts = useMemo(() => {
@@ -155,7 +154,7 @@ export default function FlaggedAccounts() {
         <div>
           <h3>Flaggade konton</h3>
           <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
-            {loading ? 'Laddar från admin-API…' : apiLive ? 'Live-data från admin-API.' : 'Mock-data — admin-API ej tillgängligt.'}
+            {loading ? 'Laddar…' : apiLive ? 'Konton som närmar sig hobbyinkomstgränsen.' : 'Kunde inte ladda flaggade konton.'}
           </p>
           {error ? <p style={{ marginTop: 6, fontSize: 12, color: 'var(--red)' }}>{error}</p> : null}
         </div>

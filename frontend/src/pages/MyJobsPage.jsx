@@ -228,9 +228,9 @@ export default function MyJobsPage() {
           .myjobs-actions{text-align:left!important;width:100%!important}
           .myjobs-actions>div:last-child{justify-content:flex-start!important}
         }
-        @media(max-width:500px){
-          .myjobs-tabs{width:100%!important}
-          .myjobs-tabs::-webkit-scrollbar{display:none}
+        @media(max-width:600px){
+          .myjobs-tabs{width:100%!important; flex-wrap: wrap!important;}
+          .myjobs-tabs button{flex: 1 1 auto; text-align: center;}
         }
       `}</style>
     </main>

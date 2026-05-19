@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { adminService } from '../../services/adminService.js';
 
 const INITIAL_CATEGORIES = [
-  { id: 1, name: 'Handyman', maxPrice: 1500, status: 'Aktiv', description: 'Montering, enklare reparationer och fix', jobsCount: 0 },
-  { id: 2, name: 'Städning', maxPrice: 1200, status: 'Aktiv', description: 'Hemstädning och storstädning', jobsCount: 0 },
-  { id: 3, name: 'Djurpassning', maxPrice: 900, status: 'Aktiv', description: 'Hundpromenad, kattpassning och tillsyn', jobsCount: 0 },
-  { id: 4, name: 'Flytt & Transport', maxPrice: 2200, status: 'Pausad', description: 'Mindre flyttar och lokal transport', jobsCount: 0 },
+  { id: 1, name: 'Handyman', status: 'Aktiv', description: 'Montering, enklare reparationer och fix', jobsCount: 0 },
+  { id: 2, name: 'Städning', status: 'Aktiv', description: 'Hemstädning och storstädning', jobsCount: 0 },
+  { id: 3, name: 'Djurpassning', status: 'Aktiv', description: 'Hundpromenad, kattpassning och tillsyn', jobsCount: 0 },
+  { id: 4, name: 'Flytt & Transport', status: 'Pausad', description: 'Mindre flyttar och lokal transport', jobsCount: 0 },
 ];
 
 function mapApiCategory(api) {
@@ -30,7 +30,6 @@ function chipStyle(status) {
 
 const EMPTY_FORM = {
   name: '',
-  maxPrice: '',
   status: 'Aktiv',
   description: '',
 };
@@ -90,20 +89,18 @@ export default function CategoryManager() {
 
     const payload = {
       name: form.name.trim(),
-      maxPrice: Number(form.maxPrice),
       status: form.status,
       description: form.description.trim(),
     };
 
-    if (!payload.name || !payload.maxPrice || !payload.description) {
-      setError('Namn, maxpris och beskrivning krävs.');
+    if (!payload.name || !payload.description) {
+      setError('Namn och beskrivning krävs.');
       return;
     }
 
     const apiPayload = {
       name: payload.name,
       description: payload.description,
-      max_price: payload.maxPrice,
     };
 
     if (apiLive) {
@@ -158,7 +155,6 @@ export default function CategoryManager() {
     setEditingId(category.id);
     setForm({
       name: category.name,
-      maxPrice: String(category.maxPrice),
       status: category.status,
       description: category.description,
     });
@@ -170,7 +166,7 @@ export default function CategoryManager() {
         <div>
           <h3>Kategorihantering</h3>
           <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
-            {loading ? 'Laddar kategorier…' : apiLive ? 'Live-CRUD mot /api/admin/categories.' : 'Mock-CRUD — admin-API ej tillgängligt.'}
+            {loading ? 'Laddar kategorier…' : apiLive ? 'Hantera jobbkategorier.' : 'Kunde inte ladda kategorier.'}
           </p>
           {error ? (
             <p style={{ marginTop: 6, fontSize: 12, color: 'var(--red)' }}>{error}</p>
@@ -178,20 +174,12 @@ export default function CategoryManager() {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 150px 130px', gap: 8, marginBottom: 10 }}>
+      <form onSubmit={handleSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 130px', gap: 8, marginBottom: 10 }}>
         <input
           type="text"
           value={form.name}
           onChange={(e) => setForm((current) => ({ ...current, name: e.target.value }))}
           placeholder="Kategorinamn"
-          style={{ border: '1.5px solid var(--border)', borderRadius: 8, padding: '9px 12px', fontSize: 13, fontFamily: 'var(--font)' }}
-        />
-        <input
-          type="number"
-          min="1"
-          value={form.maxPrice}
-          onChange={(e) => setForm((current) => ({ ...current, maxPrice: e.target.value }))}
-          placeholder="Maxpris"
           style={{ border: '1.5px solid var(--border)', borderRadius: 8, padding: '9px 12px', fontSize: 13, fontFamily: 'var(--font)' }}
         />
         <select
@@ -245,7 +233,7 @@ export default function CategoryManager() {
           <thead>
             <tr style={{ textAlign: 'left', fontSize: 12, color: 'var(--muted)' }}>
               <th style={{ padding: '8px 6px' }}>Namn</th>
-              <th style={{ padding: '8px 6px' }}>Maxpris</th>
+              <th style={{ padding: '8px 6px' }}>Jobb</th>
               <th style={{ padding: '8px 6px' }}>Status</th>
               <th style={{ padding: '8px 6px' }}>Handling</th>
             </tr>
@@ -257,7 +245,7 @@ export default function CategoryManager() {
                   <div style={{ fontSize: 13, fontWeight: 600 }}>{category.name}</div>
                   <div style={{ fontSize: 12, color: 'var(--muted)' }}>{category.description}</div>
                 </td>
-                <td style={{ padding: '10px 6px', fontSize: 13 }}>{category.maxPrice.toLocaleString('sv-SE')} kr</td>
+                <td style={{ padding: '10px 6px', fontSize: 13 }}>{category.jobsCount}</td>
                 <td style={{ padding: '10px 6px' }}>
                   <span
                     style={{

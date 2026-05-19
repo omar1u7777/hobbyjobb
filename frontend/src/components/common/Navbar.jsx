@@ -100,7 +100,7 @@ export default function Navbar() {
                 )}
               </Link>
 
-              <Link to="/lagg-upp-jobb" className="btn btn-outline" style={{ fontSize: 14, padding: '8px 16px' }}>
+              <Link to="/lagg-upp-jobb" className="btn btn-outline nav-action-btn" style={{ fontSize: 14, padding: '8px 16px' }}>
                 + Lägg upp jobb
               </Link>
 
@@ -160,13 +160,13 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <Link to="/login" style={{ fontSize: 15, fontWeight: 500, color: 'var(--dark)' }}>
+              <Link to="/login" className="nav-action-link" style={{ fontSize: 15, fontWeight: 500, color: 'var(--dark)' }}>
                 Logga in
               </Link>
-              <Link to="/lagg-upp-jobb" className="btn btn-outline" style={{ fontSize: 14, padding: '8px 16px' }}>
+              <Link to="/lagg-upp-jobb" className="btn btn-outline nav-action-btn" style={{ fontSize: 14, padding: '8px 16px' }}>
                 Lägg upp jobb
               </Link>
-              <Link to="/register" className="btn btn-primary" style={{ fontSize: 14, padding: '8px 18px' }}>
+              <Link to="/register" className="btn btn-primary nav-action-btn-primary" style={{ fontSize: 14, padding: '8px 18px' }}>
                 Kom igång
               </Link>
             </>
@@ -334,6 +334,11 @@ export default function Navbar() {
         @media(max-width:900px){
           .nav-links-desktop{display:none!important}
           .hamburger{display:flex!important}
+        }
+        @media(max-width:768px){
+          .nav-action-btn, .nav-action-link, .nav-action-btn-primary {
+            display: none !important;
+          }
         }
         @media(min-width:901px){
           .mobile-nav-panel,.mobile-nav-backdrop{display:none!important}

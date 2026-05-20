@@ -4,10 +4,12 @@ import ChatInput from './ChatInput.jsx';
 import MessageBubble from './MessageBubble.jsx';
 
 export default function ChatWindow({ conversation, currentUserId, onSend, isSending = false }) {
-  const bottomRef = useRef(null);
+  const messagesRef = useRef(null);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesRef.current) {
+      messagesRef.current.scrollTop = messagesRef.current.scrollHeight;
+    }
   }, [conversation?.messages?.length]);
 
   if (!conversation) {
@@ -103,7 +105,7 @@ export default function ChatWindow({ conversation, currentUserId, onSend, isSend
         </Link>
       </header>
 
-      <div style={{ 
+      <div ref={messagesRef} style={{ 
         flex: 1, 
         overflowY: 'auto', 
         padding: '24px 24px', 
@@ -121,7 +123,7 @@ export default function ChatWindow({ conversation, currentUserId, onSend, isSend
             <MessageBubble key={message.id} message={message} isOwn={message.senderId === currentUserId} />
           ))
         )}
-        <div ref={bottomRef} />
+
       </div>
 
       <ChatInput onSend={onSend} disabled={isSending} />

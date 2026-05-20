@@ -22,11 +22,11 @@ export default function HobbyLimitBanner() {
           <div>
             <strong style={{ fontSize: 14, color: blocked ? 'var(--red)' : 'var(--yellow-text)' }}>
               {blocked
-                ? 'Du har nått hobbyinkomstgränsen på 30 000 kr/år — annonsering inaktiverad.'
+                ? 'Du har nått plattformens inkomstgräns på 30 000 kr/år — annonsering inaktiverad.'
                 : `Varning: Du har tjänat ${totalYear.toLocaleString('sv-SE')} kr av 30 000 kr (${Math.round(pct)}%).`
               }
             </strong>
-            {!blocked && <p style={{ fontSize: 12, color: 'var(--yellow-text)', marginTop: 2 }}>Hobbyinkomst gräns är 30 000 kr/år. Läs mer om reglerna.</p>}
+            {!blocked && <p style={{ fontSize: 12, color: 'var(--yellow-text)', marginTop: 2 }}>Plattformens inkomstgräns är 30 000 kr/år. Läs mer om reglerna.</p>}
           </div>
         </div>
         <Link to="/hobbyinfo" style={{ fontSize: 13, fontWeight: 600, color: blocked ? 'var(--red)' : 'var(--yellow-text)', textDecoration: 'underline', whiteSpace: 'nowrap' }}>

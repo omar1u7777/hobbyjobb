@@ -11,7 +11,7 @@
 
 HobbyJobb is a full-stack web application designed to connect individuals in Sweden who want to earn extra money through small, informal tasks — such as lawn mowing, moving assistance, dog walking, and errands — with people who need help with those tasks.
 
-The platform is built specifically around Sweden's legal framework for **hobbyverksamhet** (hobby-based income), ensuring users stay within Skatteverket's (the Swedish Tax Agency's) annual income threshold of 30,000 SEK. Unlike general freelance marketplaces, HobbyJobb actively monitors each user's annual earnings and automatically warns or restricts posting when they approach the legal limit — making it not just a job board, but a compliance-aware platform.
+The platform is built around Sweden's legal framework for **hobbyverksamhet** (hobby-based income). To protect users from accidentally crossing into professional business territory (näringsverksamhet), HobbyJobb implements a strict platform-enforced annual income threshold of 30,000 SEK. Unlike general freelance marketplaces, HobbyJobb actively monitors each user's annual earnings and automatically warns or restricts posting when they approach this platform limit.
 
 Payments are handled through **Stripe Connect**, which enables an automated escrow system: the buyer's payment is held securely until the task is confirmed complete, at which point 92% is released to the worker and 8% is retained by HobbyJobb as a platform fee.
 

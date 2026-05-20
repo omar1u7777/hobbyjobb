@@ -5,6 +5,7 @@ import { useAuth } from './hooks/useAuth.js';
 import Navbar from './components/common/Navbar.jsx';
 import Footer from './components/common/Footer.jsx';
 import HobbyLimitBanner from './components/common/HobbyLimitBanner.jsx';
+import ScrollToTop from './components/common/ScrollToTop.jsx';
 import Spinner from './components/common/Spinner.jsx';
 
 // Student 3 pages
@@ -68,6 +69,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Navbar />
       {user && <HobbyLimitBanner />}
 

@@ -51,8 +51,8 @@ function BoostForm({ pkg, jobId }) {
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
         try {
           await paymentService.confirmBoost(paymentIntent.id);
-        } catch (syncErr) {
-          console.warn('Backend boost confirm failed (webhook will update):', syncErr.message);
+        } catch {
+          // Webhook will update boost status — safe to proceed
         }
         navigate(`/jobs/${jobId}`, {
           state: { boostSuccess: true, package: pkg.label },

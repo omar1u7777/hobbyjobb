@@ -20,6 +20,11 @@ api.interceptors.request.use(config => {
 api.interceptors.response.use(
   res => res,
   err => {
+    // Auto-logout on 401 (expired or invalid token)
+    if (err?.response?.status === 401) {
+      localStorage.removeItem('hj_token');
+      window.location.href = '/login';
+    }
     const msg =
       err?.response?.data?.message ||
       err?.response?.data?.error ||

@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const { Application, Job, User, Category, Message } = require('../models');
 const { APPLICATION_STATUS, JOB_STATUS } = require('../../config/constants');
 
@@ -24,7 +25,7 @@ const createApplication = async (req, res, next) => {
       where: {
         job_id,
         applicant_id: req.user.id,
-        status: [APPLICATION_STATUS.PENDING, APPLICATION_STATUS.ACCEPTED],
+        status: { [Op.in]: [APPLICATION_STATUS.PENDING, APPLICATION_STATUS.ACCEPTED] },
       },
     });
     if (existing) {

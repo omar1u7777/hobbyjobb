@@ -111,8 +111,7 @@ Hobbyverksamhet är inkomstbringande aktivitet som **inte** bedrivs i vinstsyfte
 
 | Regel | Gräns | Plattformens åtgärd |
 |---|---|---|
-| **Skattegräns hobbyinkomst** | 30 000 kr/år (tumregel) | Varning vid 25 000 kr, spärr vid 30 000 kr |
-| **Momsregistrering** | 80 000 kr/år omsättning | Plattformen stänger annonsering vid 60 000 kr |
+| **Plattformens trygghetsgräns** | 30 000 kr/år | Varning vid 25 000 kr, spärr vid 30 000 kr |
 | **F-skatt ej tillåtet** | Gäller per definition | Verifieras vid registrering |
 | **Löpande karaktär** | Max oregelbunden verksamhet | Systemet flaggar om en användare lägger > 20 jobb/mån |
 

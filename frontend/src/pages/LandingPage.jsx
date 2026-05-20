@@ -21,7 +21,7 @@ const STEPS = [
 ];
 
 const FAQS = [
-  { q: 'Vad är hobbyverksamhet?',          a: 'Hobbyverksamhet är inkomst från aktiviteter du gör utan vinstsyfte och inte som huvudsyssla. Skatteverkets tumregel är max 30 000 kr/år.' },
+  { q: 'Vad är hobbyverksamhet?',          a: 'Hobbyverksamhet är inkomst från aktiviteter du gör utan vinstsyfte och inte som huvudsyssla. För din trygghet tillämpar HobbyJobb en plattformsgräns på max 30 000 kr/år.' },
   { q: 'Behöver jag deklarera intäkterna?', a: 'Ja — inkomster över avdragen kostnad ska deklareras. HobbyJobb hjälper dig hålla koll, men skatteansvar är alltid ditt eget.' },
   { q: 'Kostar det något att använda HobbyJobb?', a: 'Att hitta och ansöka på jobb är helt gratis. Vi tar en 8% provision när ett uppdrag slutförs via plattformen.' },
   { q: 'Hur fungerar betalningen?',         a: 'Beställaren betalar via Stripe. Pengarna hålls i escrow tills uppdraget bekräftas klart, då frigörs 92% till dig automatiskt.' },
@@ -147,7 +147,7 @@ export default function LandingPage() {
             </div>
             <h2 style={{ fontSize:32, fontWeight:900, lineHeight:1.2, marginBottom:16 }}>Vi håller koll på <span style={{ color:'#60A5FA' }}>inkomstgränsen</span> åt dig</h2>
             <p style={{ color:'#94A3B8', lineHeight:1.7, marginBottom:24 }}>
-              Hobbyverksamhet får ge max 30 000 kr/år utan F-skatt. Vår inkomstmätare varnar dig automatiskt — och stoppar annonsering om gränsen nås.
+              Vi rekommenderar max 30 000 kr/år som en trygg gräns för hobbyverksamhet. Vår inkomstmätare varnar dig automatiskt — och stoppar annonsering om plattformsgränsen nås.
             </p>
             <Link to="/hobbyinfo" className="btn btn-outline" style={{ color:'#fff', borderColor:'rgba(255,255,255,.3)' }}>
               Läs mer om hobbyreglerna →

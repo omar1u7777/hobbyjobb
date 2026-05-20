@@ -57,7 +57,7 @@ const getStatus = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const user = await User.findByPk(userId, {
-      attributes: ['stripe_account_id', 'stripe_account_status'],
+      attributes: ['id', 'stripe_account_id', 'stripe_account_status'],
     });
 
     if (!user) {

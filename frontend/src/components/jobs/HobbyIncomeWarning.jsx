@@ -28,7 +28,7 @@ export default function HobbyIncomeWarning({ totalYear, jobPrice = 0 }) {
         <div style={{ flex: 1 }}>
           <strong style={{ fontSize: 14, color: isBlocked ? 'var(--red)' : 'var(--yellow-text)', display: 'block', marginBottom: 4 }}>
             {isBlocked
-              ? 'Du har nått inkomstgränsen för hobbyverksamhet (30 000 kr/år)'
+              ? 'Du har nått plattformens inkomstgräns (30 000 kr/år)'
               : `Varning: detta jobb tar dig nära inkomstgränsen`}
           </strong>
           <p style={{ fontSize: 13, color: isBlocked ? 'var(--red)' : 'var(--yellow-text)', lineHeight: 1.5 }}>

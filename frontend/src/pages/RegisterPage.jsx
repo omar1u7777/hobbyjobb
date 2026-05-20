@@ -108,7 +108,7 @@ export default function RegisterPage() {
             />
             <label htmlFor="hobby-agree" style={{ fontSize: 13, color: '#92400E', lineHeight: 1.5, cursor: 'pointer' }}>
               <strong>Jag bekräftar att jag är över 18 år</strong> och accepterar HobbyJobbs användarvillkor. 
-              Jag förstår även att plattformen endast är för <strong style={{ color: '#78350F' }}>hobbyverksamhet</strong> (max 30 000 kr/år), 
+              Jag förstår även att plattformen endast är för <strong style={{ color: '#78350F' }}>hobbyverksamhet</strong> (vår trygghetsgräns: max 30 000 kr/år), 
               samt att jag själv ansvarar för eventuell inkomstdeklaration.{' '}
               <button type="button" onClick={() => setHobbyModal(true)}
                 style={{ background: 'none', border: 'none', color: 'var(--blue)', fontWeight: 700, cursor: 'pointer', fontSize: 13, padding: 0 }}>
@@ -133,7 +133,7 @@ export default function RegisterPage() {
       <Modal open={hobbyModal} onClose={() => setHobbyModal(false)} title="ℹ️ Vad är hobbyverksamhet?">
         <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.7, marginBottom: 16 }}>
           Hobbyverksamhet är inkomst från aktiviteter du gör <strong>utan vinstsyfte</strong> och inte som din huvudsyssla.
-          Skatteverkets tumregel är att du kan tjäna upp till <strong>30 000 kr/år</strong> utan att behöva registrera F-skatt.
+          Skatteverkets bedömning beror på verksamhetens karaktär. För din säkerhet tillämpar HobbyJobb en <strong>plattformsgräns på 30 000 kr/år</strong> för att minska risken att det klassas som näringsverksamhet.
         </p>
         <p style={{ fontSize: 14, color: 'var(--muted)', lineHeight: 1.7, marginBottom: 16 }}>
           Exempel: gräsklippning, hundpromenad, enklare hantverksarbeten, hjälp med flytt.

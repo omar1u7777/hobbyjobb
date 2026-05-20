@@ -11,12 +11,14 @@ export function formatDate(dateStr) {
   if (!dateStr) return '';
   const d    = new Date(dateStr);
   const now  = new Date();
-  const diff = Math.floor((now - d) / 86_400_000);
+  // Compare calendar dates, not timestamps, to avoid time-of-day errors
+  const stripTime = (dt) => new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+  const diff = Math.round((stripTime(d) - stripTime(now)) / 86_400_000);
   if (diff === 0) return 'Idag';
-  if (diff === 1) return 'Igår';
-  if (diff > 1 && diff < 7)  return `${diff} dagar sedan`;
-  if (diff === -1) return 'Imorgon';
-  if (diff < -1 && diff > -7) return `Om ${Math.abs(diff)} dagar`;
+  if (diff === -1) return 'Igår';
+  if (diff < -1 && diff > -7) return `${Math.abs(diff)} dagar sedan`;
+  if (diff === 1) return 'Imorgon';
+  if (diff > 1 && diff < 7) return `Om ${diff} dagar`;
   return d.toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' });
 }
 

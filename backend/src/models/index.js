@@ -19,6 +19,12 @@ if (config.url) {
     dialect: config.dialect,
     logging: config.logging,
     dialectOptions: config.dialectOptions || {},
+    pool: {
+      max: 10,      // max 10 simultana DB-anslutningar (Sequelize default: 5)
+      min: 0,       // öppna anslutningar vid behov, stäng när de är idle
+      acquire: 30000, // max 30s att vänta på en ledig anslutning
+      idle: 10000,    // stäng anslutning som legat oanvänd i 10s
+    },
   });
   
   // Importera modeller

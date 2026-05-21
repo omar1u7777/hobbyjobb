@@ -6,10 +6,12 @@ const rateLimiter = require('./src/middleware/rateLimiter');
 
 const app = express();
 
-// Trust first proxy (Render/Vercel/Heroku sit behind a load balancer).
+// Trust up to 2 proxy hops (Render uses 2 layers: edge + internal load balancer).
 // Required for express-rate-limit to see the real client IP and for
 // req.secure / secure cookies to work correctly behind HTTPS termination.
-app.set('trust proxy', 1);
+// With trust proxy: 1 on Render, req.ip resolves to Render's internal proxy IP
+// instead of the real client IP, causing all users to share one rate-limit bucket.
+app.set('trust proxy', 2);
 
 // Security middleware.
 // crossOriginResourcePolicy MUST be 'cross-origin' because the API is consumed
@@ -20,11 +22,14 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
 
-// Rate-limit everything EXCEPT the Stripe webhook endpoint. Stripe webhooks come
-// from a small pool of IPs and a load spike must not result in 429s — Stripe
-// will retry, but throttling is a code smell and risks delayed escrow updates.
+// Rate-limit API routes only. Exclude:
+// - Stripe webhook: comes from a small IP pool, throttling risks delayed escrow updates
+// - Health check endpoints (/ and /health): Render pings these every ~30s to keep the
+//   instance alive — counting them against the per-IP budget would exhaust it before
+//   real users make a single API call.
 app.use((req, res, next) => {
   if (req.path === '/api/payments/webhook') return next();
+  if (req.path === '/' || req.path === '/health') return next();
   return rateLimiter(req, res, next);
 });
 

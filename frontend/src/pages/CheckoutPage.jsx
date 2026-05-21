@@ -114,10 +114,8 @@ function CheckoutForm({ job }) {
 
           await paymentService.confirmPayment(paymentIntent.id);
 
-        } catch (syncErr) {
-
-          console.warn('Backend confirm failed (webhook may update later):', syncErr.message);
-
+        } catch {
+          // Webhook will update payment status — safe to proceed
         }
 
         navigate('/betalning-klar', {
@@ -290,13 +288,7 @@ export default function CheckoutPage() {
 
         // Create checkout session
 
-        const checkoutData = await paymentService.createCheckout(
-
-          Number(jobId), 
-
-          jobData.price
-
-        );
+        const checkoutData = await paymentService.createCheckout(Number(jobId));
 
         
 

@@ -22,7 +22,7 @@ export const validators = {
   price: (v) => {
     const n = Number(v);
     if (isNaN(n) || n <= 0) return 'Ange ett giltigt pris';
-    if (n > 30_000)          return 'Priset kan inte överstiga 30 000 kr (hobbyinkomstgräns)';
+    if (n > 30_000)          return 'Priset kan inte överstiga 30 000 kr (plattformens gräns)';
     return null;
   },
 

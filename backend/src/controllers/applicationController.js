@@ -1,3 +1,4 @@
+const { Op } = require('sequelize');
 const { Application, Job, User, Category, Message } = require('../models');
 const { APPLICATION_STATUS, JOB_STATUS } = require('../../config/constants');
 
@@ -7,6 +8,10 @@ const createApplication = async (req, res, next) => {
 
     if (!job_id) {
       return res.status(400).json({ success: false, message: 'job_id is required' });
+    }
+
+    if (message && message.length > 5000) {
+      return res.status(400).json({ success: false, message: 'Message cannot exceed 5000 characters' });
     }
 
     const job = await Job.findByPk(job_id);
@@ -24,7 +29,7 @@ const createApplication = async (req, res, next) => {
       where: {
         job_id,
         applicant_id: req.user.id,
-        status: [APPLICATION_STATUS.PENDING, APPLICATION_STATUS.ACCEPTED],
+        status: { [Op.in]: [APPLICATION_STATUS.PENDING, APPLICATION_STATUS.ACCEPTED] },
       },
     });
     if (existing) {

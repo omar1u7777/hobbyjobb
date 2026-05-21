@@ -43,7 +43,7 @@ export default function PostJobPage() {
       <main style={{ padding: '60px 0' }}>
         <div className="container" style={{ maxWidth: 680 }}>
           <Alert type="error">
-            <strong>Du har nått hobbyinkomstgränsen på 30 000 kr/år.</strong> Du kan inte publicera fler jobb förrän ett nytt kalenderår börjar. Läs mer på <a href="https://skatteverket.se/hobby" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--red)', fontWeight: 700 }}>Skatteverket.se</a>.
+            <strong>Du har nått plattformens inkomstgräns på 30 000 kr/år.</strong> Du kan inte publicera fler jobb förrän ett nytt kalenderår börjar. Läs mer på <a href="https://skatteverket.se/hobby" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--red)', fontWeight: 700 }}>Skatteverket.se</a>.
           </Alert>
         </div>
       </main>

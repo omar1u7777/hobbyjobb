@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 const RULES = [
   {
-    title: 'Hobbyinkomst upp till 30 000 kr/år',
+    title: 'Plattformsgräns: 30 000 kr/år',
     description:
       'Plattformen är byggd för hobbyverksamhet. Du får en varning när du närmar dig gränsen och annonsering stoppas vid uppnådd gräns.',
     badge: 'Skatt',

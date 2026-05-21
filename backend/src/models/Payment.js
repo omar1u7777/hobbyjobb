@@ -37,6 +37,7 @@ module.exports = (sequelize) => {
     stripe_payment_id: {
       type: DataTypes.STRING(255),
       allowNull: true,
+      unique: true,
     },
     stripe_transfer_id: {
       type: DataTypes.STRING(255),

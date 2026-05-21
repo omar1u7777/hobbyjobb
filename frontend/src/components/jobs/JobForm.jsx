@@ -158,7 +158,7 @@ export default function JobForm({ initial = {}, onSubmit, loading, totalYear = 0
         </div>
 
         <div style={{ background: 'var(--blue-light)', borderRadius: 8, padding: '12px 14px', marginTop: 16, fontSize: 13, color: 'var(--blue)' }}>
-          ℹ️ HobbyJobb tar <strong>8% provision</strong> vid genomfört uppdrag. Du får <strong>{form.price ? Math.round(form.price * 0.92) : '—'} kr</strong> om priset är {form.price || '—'} kr.
+          ℹ️ HobbyJobb tar <strong>8% provision</strong> vid genomfört uppdrag. Utföraren får <strong>{form.price ? Math.round(form.price * 0.92) : '—'} kr</strong> av dina {form.price || '—'} kr.
         </div>
       </div>
 

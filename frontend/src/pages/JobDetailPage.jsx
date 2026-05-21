@@ -90,7 +90,6 @@ export default function JobDetailPage() {
       try {
         setJob(await jobService.getJob(id));
       } catch (e) {
-        console.error('JobDetailPage fetch error:', e);
         if (e.message === 'Network Error') {
           setError('Nätverksfel: Kunde inte ansluta till servern. Försök igen senare.');
         } else {
@@ -150,6 +149,7 @@ export default function JobDetailPage() {
     try {
       await applicationService.apply(id, applyMsg, null);
       setApplyOk(true);
+      setApplyOpen(false);
     } catch (e) {
       setApplyErr(e.message);
     } finally {

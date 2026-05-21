@@ -288,13 +288,7 @@ export default function CheckoutPage() {
 
         // Create checkout session
 
-        const checkoutData = await paymentService.createCheckout(
-
-          Number(jobId), 
-
-          jobData.price
-
-        );
+        const checkoutData = await paymentService.createCheckout(Number(jobId));
 
         
 

@@ -10,6 +10,10 @@ const createApplication = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'job_id is required' });
     }
 
+    if (message && message.length > 5000) {
+      return res.status(400).json({ success: false, message: 'Message cannot exceed 5000 characters' });
+    }
+
     const job = await Job.findByPk(job_id);
     if (!job) {
       return res.status(404).json({ success: false, message: 'Job not found' });

@@ -119,6 +119,10 @@ const sendMessage = async (req, res, next) => {
       });
     }
 
+    if (normalizedContent.length > 5000) {
+      return res.status(400).json({ success: false, message: 'Message cannot exceed 5000 characters' });
+    }
+
     if (!receiver_id) {
       return res.status(400).json({
         success: false,

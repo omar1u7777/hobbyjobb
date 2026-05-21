@@ -201,6 +201,14 @@ const createJob = async (req, res, next) => {
       });
     }
 
+    const numericPrice = Number(price);
+    if (isNaN(numericPrice) || numericPrice <= 0 || numericPrice > 30000) {
+      return res.status(400).json({
+        success: false,
+        message: 'price must be a positive number and cannot exceed 30 000 kr',
+      });
+    }
+
     const category = await Category.findByPk(category_id);
     if (!category) {
       return res.status(400).json({ success: false, message: 'Invalid category_id' });
@@ -282,6 +290,16 @@ const updateJob = async (req, res, next) => {
     const updates = {};
     for (const field of allowedFields) {
       if (req.body[field] !== undefined) updates[field] = req.body[field];
+    }
+
+    if (updates.price !== undefined) {
+      const numericPrice = Number(updates.price);
+      if (isNaN(numericPrice) || numericPrice <= 0 || numericPrice > 30000) {
+        return res.status(400).json({
+          success: false,
+          message: 'price must be a positive number and cannot exceed 30 000 kr',
+        });
+      }
     }
 
     if (updates.price_type !== undefined) {

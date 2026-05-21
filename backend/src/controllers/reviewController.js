@@ -88,7 +88,7 @@ const createReview = async (req, res, next) => {
       reviewer_id: reviewerId,
       reviewee_id,
       rating: ratingNum,
-      comment: typeof comment === 'string' && comment.trim() ? comment.trim() : null,
+      comment: typeof comment === 'string' && comment.trim() && comment.length <= 2000 ? comment.trim() : null,
     });
 
     return res.status(201).json({

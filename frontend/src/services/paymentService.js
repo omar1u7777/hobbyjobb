@@ -6,11 +6,10 @@ export const paymentService = {
   /**
    * Create a checkout session for a job payment
    * @param {number} jobId - Job ID
-   * @param {number} amount - Amount in SEK
    * @returns {Promise<{clientSecret: string, paymentIntentId: string}>}
    */
-  async createCheckout(jobId, amount) {
-    const { data } = await api.post('/payments/checkout', { jobId, amount });
+  async createCheckout(jobId) {
+    const { data } = await api.post('/payments/checkout', { jobId });
     return data.data;
   },
 

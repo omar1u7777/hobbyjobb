@@ -20,8 +20,10 @@ api.interceptors.request.use(config => {
 api.interceptors.response.use(
   res => res,
   err => {
-    // Auto-logout on 401 (expired or invalid token)
-    if (err?.response?.status === 401) {
+    // Auto-logout on 401 — but ONLY when a stored token exists (expired session).
+    // If no token is stored (e.g. a failed login attempt), let the error propagate
+    // so the page can show the error message instead of redirecting.
+    if (err?.response?.status === 401 && localStorage.getItem('hj_token')) {
       localStorage.removeItem('hj_token');
       window.location.href = '/login';
     }

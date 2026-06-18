@@ -22,7 +22,8 @@
 10. [Miljövariabler](#miljövariabler)
 11. [Git-arbetsflöde](#git-arbetsflöde)
 12. [Implementerade funktioner](#implementerade-funktioner)
-13. [Kurs & Team](#kurs--team)
+13. [Tekniska beslut](#tekniska-beslut)
+14. [Kurs & Team](#kurs--team)
 
 ---
 
@@ -142,7 +143,7 @@ Hobbyverksamhet är inkomstbringande aktivitet som **inte** bedrivs i vinstsyfte
 | **Kontrolluppgift (KU10)** | ❌ Ej plattformens ansvar | ⚠️ Vid >1 000 kr/år till samma person | – |
 | **Deklaration av hobbyinkomst** | ❌ Ej plattformens ansvar | – | ⚠️ Bilaga T2 i inkomstdeklarationen |
 | **Egenavgifter på överskott** | ❌ Ej plattformens ansvar | – | ⚠️ Betalas av utföraren |
-| **DAC7-rapportering** | 🔜 Framtida krav (2023+) | – | – |
+| **DAC7-rapportering** | ⚠️ Gällande krav (sedan 2023, första rapport 2024) | – | – |
 
 ---
 
@@ -1000,7 +1001,7 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [x] `backend/src/middleware/rateLimiter.js` — Max 100 req/15min — **S1**
 - [x] `backend/src/middleware/requireAuth.js` — JWT-verifiering — **S1**
 - [x] `backend/src/middleware/requireAdmin.js` — Admin-rollkontroll — **S1**
-- [x] `backend/src/middleware/hobbyLimitCheck.js` — Kontrollerar att användaren inte nått 30 000 kr — **S2** ✅
+- [x] `backend/src/middleware/hobbyLimitCheck.js` — Hjälpmiddleware för 30 000 kr-gränsen (ej inkopplad i någon route; den skarpa kontrollen sker inline vid `/payments/release`) — **S2** ✅
 - [x] `POST /api/auth/register` — ✅ Testad & fungerar — **S1**
 - [x] `POST /api/auth/login` — ✅ Testad & fungerar — **S1**
 - [x] `POST /api/auth/logout` — ✅ Testad & fungerar — **S1**
@@ -1011,7 +1012,7 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 > 🔒 Kräver att Job-modellen och requireAuth (1C) är klara
 - [x] `GET /api/categories` — Lista alla kategorier — **S2** ✅
 - [x] `GET /api/jobs` — Lista jobb med filter (kategori, lat/lng/radius, pris, sort, pagination) — **S2** ✅
-- [x] `POST /api/jobs` — Skapa jobb (kräver auth; månadsgräns 20 jobb/postare; hobbyLimitCheck flyttad till `/payments/release` där payee valideras) — **S2** ✅
+- [x] `POST /api/jobs` — Skapa jobb (kräver auth; månadsgräns 20 jobb/postare; hobbygränsen valideras inline vid `/payments/release` där utföraren (payee) kontrolleras) — **S2** ✅
 - [x] `GET /api/jobs/:id` — Hämta ett jobb — **S2** ✅
 - [x] `PUT /api/jobs/:id` — Uppdatera jobb (kräver auth + ägare) — **S2** ✅
 - [x] `DELETE /api/jobs/:id` — Ta bort jobb (kräver auth + ägare) — **S2** ✅
@@ -1202,13 +1203,13 @@ Markera `[ ]` → `[x]` när uppgiften är klar och pushad till `develop`.
 - [x] Vercel-projekt skapat och kopplat till GitHub (`frontend/`, auto-deploy från `main`) — **S1**
 - [x] `VITE_API_URL` satt till Render-backend-URL i Vercel — **S1**
 - [x] Stripe webhook-URL uppdaterad till produktions-URL i Stripe Dashboard — **S1**
-- [x] `.github/workflows/ci-backend.yml` — Kör `npm test` på varje push till `develop` — **S1**
-- [x] `.github/workflows/ci-frontend.yml` — Kör frontend-tester på varje push — **S1**
+- [x] `.github/workflows/ci-backend.yml` — Kör `npm test` på push/PR mot `develop` och `main` — **S1**
+- [x] `.github/workflows/ci-frontend.yml` — Kör frontend-tester på push/PR mot `develop` och `main` — **S1**
 - [x] `.github/workflows/lint.yml` — Kör ESLint på frontend vid PR/push — **S1**
 - [x] Produktions-URL testad (alla sidor, login, jobb, betalning) — **Alla**
 
 **Produktionsfixar i kodbasen (verifierbara):**
-- `server.js`: `app.set('trust proxy', 1)` för Render proxy
+- `server.js`: `app.set('trust proxy', 2)` för Render proxy
 - `server.js`: `helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } })` — CORS/Vercel-kompatibilitet
 - `server.js`: `ALLOWED_ORIGINS`-driven CORS-whitelist
 - `api.js`: Axios timeout 60s för Render Free-tier cold starts
@@ -1228,6 +1229,12 @@ FAS 0  →  FAS 1A  →  FAS 1B  →  FAS 1C  →  FAS 2A  →  FAS 2B
                                      ↓
                               FAS 3B + 3C
                                      ↓
+                       FAS 4  (Betalning / Stripe Connect)
+                                     ↓
+                  FAS 5 + FAS 6  (Admin · Info & Chatt, parallellt)
+                                     ↓
+                       FAS 7  (Deployment & CI/CD)
+```
 
 ---
 

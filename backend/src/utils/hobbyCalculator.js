@@ -48,6 +48,27 @@ async function calculateYearlyIncome(userId) {
   };
 }
 
+/**
+ * Sum a payee's RELEASED escrow income for the CURRENT calendar year.
+ *
+ * Year-scoped from the Payment table (the source of truth) so the annual hobby
+ * limit resets at each new year instead of accumulating forever. Returns a
+ * Number (kr) with no fallback — enforcement must use the precise year figure.
+ */
+async function getReleasedYearIncome(userId) {
+  if (!Payment) return 0;
+  const startOfYear = new Date(new Date().getFullYear(), 0, 1);
+  const totalRaw = await Payment.sum('amount_payee', {
+    where: {
+      payee_id: userId,
+      status: 'released',
+      updated_at: { [Op.gte]: startOfYear },
+    },
+  });
+  return Number(totalRaw || 0);
+}
+
 module.exports = {
   calculateYearlyIncome,
+  getReleasedYearIncome,
 };

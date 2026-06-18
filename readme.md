@@ -1,10 +1,39 @@
 # 🔵 HobbyJobb – Hobbyverksamhet Plattform
 ### DA219B · Fullstack Webbapplikation · Grupp 18
 
+[![Live demo](https://img.shields.io/badge/Live_demo-hobbyjobb.vercel.app-2563eb?style=for-the-badge&logo=vercel&logoColor=white)](https://hobbyjobb.vercel.app)
+[![API](https://img.shields.io/badge/API-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://hobbyjobb-api.onrender.com/api)
+
+[![Backend CI](https://github.com/omar1u7777/hobbyjobb/actions/workflows/ci-backend.yml/badge.svg)](https://github.com/omar1u7777/hobbyjobb/actions/workflows/ci-backend.yml)
+[![Frontend CI](https://github.com/omar1u7777/hobbyjobb/actions/workflows/ci-frontend.yml/badge.svg)](https://github.com/omar1u7777/hobbyjobb/actions/workflows/ci-frontend.yml)
+
+![Node.js](https://img.shields.io/badge/Node.js-20-339933?logo=node.js&logoColor=white)
+![Express](https://img.shields.io/badge/Express-4-000000?logo=express&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
+![Stripe](https://img.shields.io/badge/Stripe-Connect-635BFF?logo=stripe&logoColor=white)
+![Jest](https://img.shields.io/badge/Jest-75%2B%20tester-C21325?logo=jest&logoColor=white)
+
 > **HobbyJobb** är en webbaserad plattform för lokala småjobb och hobbyverksamhet i Sverige.  
 > Privatpersoner kan erbjuda eller hitta tjänster som gräsklippning, flytt, hundpromenad m.m.  
 > Plattformen är **juridiskt begränsad till hobbyverksamhet**, hjälper användare att hålla sig inom lagens gränser  
 > och tjänar pengar via **8% provision på varje genomfört uppdrag** via Stripe Connect.
+
+---
+
+## 🛠️ Min roll i projektet
+
+Jag var projektledare och hade huvudansvar för backend, betalningar och driftsättning. Det jag lade mest tid på var betalningssystemet, där pengarna hålls i escrow tills beställaren markerar jobbet som klart och först då betalas ut.
+
+**Det här byggde jag:**
+
+- **Betalningar med Stripe Connect** – hela flödet från checkout och escrow till utbetalning, med 8% plattformsavgift. Överföringarna är idempotenta och statusbytena sker i en databastransaktion, så en betalning inte kan dubbelköras eller fastna i ett halvt tillstånd när Stripe skickar om ett webhook-anrop.
+- **Inloggning och säkerhet** – JWT, rate limiting, säkerhetsheaders (helmet) och webhooks som signaturverifieras i produktion.
+- **Hobbygränsen** – stoppar en utbetalning som skulle ta utföraren över 30 000 kr på ett kalenderår, plattformens juridiska skyddsräcke.
+- **Drift och CI** – GitHub Actions för testerna, backend och Postgres på Render, frontend på Vercel.
+- **Tester** – 75+ backend-tester (Jest + Supertest) på framför allt betalnings- och auth-flödet.
+
+Det mesta av betalningslogiken ligger i [`paymentController.js`](backend/src/controllers/paymentController.js). [PR #61](https://github.com/omar1u7777/hobbyjobb/pull/61) är ett exempel på hur jag resonerar kring buggar och kantfall.
 
 ---
 

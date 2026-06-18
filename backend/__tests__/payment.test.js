@@ -22,6 +22,7 @@ jest.mock('../src/models', () => ({
     findOne: jest.fn(),
     create: jest.fn(),
     findAll: jest.fn(),
+    sum: jest.fn().mockResolvedValue(0),
   },
   Application: {
     findOne: jest.fn(),
@@ -38,6 +39,9 @@ jest.mock('../config/stripe.js', () => ({
     paymentIntents: {
       create: jest.fn(),
       retrieve: jest.fn(),
+    },
+    transfers: {
+      create: jest.fn(),
     },
     webhooks: {
       constructEvent: jest.fn(),
@@ -245,10 +249,13 @@ describe('Payment Routes', () => {
         update: jest.fn(),
       };
       Payment.findOne.mockResolvedValue(mockP);
+      Payment.sum.mockResolvedValue(0); // no prior released income this year
       User.findByPk.mockResolvedValue({
         hobby_total_year: 0, hobby_job_count: 0, hobby_warned: false,
+        stripe_account_id: 'acct_test', stripe_account_status: 'active',
         update: jest.fn(),
       });
+      stripe.transfers.create.mockResolvedValue({ id: 'tr_test' });
       const tx = { commit: jest.fn(), rollback: jest.fn() };
       sequelize.transaction.mockResolvedValue(tx);
 
@@ -261,7 +268,7 @@ describe('Payment Routes', () => {
       expect(mockP.update).toHaveBeenCalledWith(
         expect.objectContaining({
           status: 'released',
-          stripe_transfer_id: null
+          stripe_transfer_id: 'tr_test'
         }),
         { transaction: tx }
       );
@@ -296,11 +303,14 @@ describe('Payment Routes', () => {
         update: jest.fn(),
       };
       Payment.findOne.mockResolvedValue(mockP);
+      Payment.sum.mockResolvedValue(0); // no prior released income this year
       const mockPayee = {
         hobby_total_year: 0, hobby_job_count: 0, hobby_warned: false,
+        stripe_account_id: 'acct_test', stripe_account_status: 'active',
         update: jest.fn(),
       };
       User.findByPk.mockResolvedValue(mockPayee);
+      stripe.transfers.create.mockResolvedValue({ id: 'tr_test' });
       const tx = { commit: jest.fn(), rollback: jest.fn() };
       sequelize.transaction.mockResolvedValue(tx);
 
@@ -324,11 +334,14 @@ describe('Payment Routes', () => {
         update: jest.fn(),
       };
       Payment.findOne.mockResolvedValue(mockP);
+      Payment.sum.mockResolvedValue(25000); // 25000 already released this year
       const mockPayee = {
         hobby_total_year: 25000, hobby_job_count: 5, hobby_warned: true,
+        stripe_account_id: 'acct_test', stripe_account_status: 'active',
         update: jest.fn(),
       };
       User.findByPk.mockResolvedValue(mockPayee);
+      stripe.transfers.create.mockResolvedValue({ id: 'tr_test' });
       const tx = { commit: jest.fn(), rollback: jest.fn() };
       sequelize.transaction.mockResolvedValue(tx);
 
@@ -351,6 +364,7 @@ describe('Payment Routes', () => {
         update: jest.fn(),
       };
       Payment.findOne.mockResolvedValue(mockP);
+      Payment.sum.mockResolvedValue(28000); // 28000 already released this year; +5000 exceeds 30000
       User.findByPk.mockResolvedValue({
         hobby_total_year: 28000, hobby_job_count: 5, hobby_warned: true,
         update: jest.fn(),
@@ -367,6 +381,37 @@ describe('Payment Routes', () => {
       expect(res.body.success).toBe(false);
       expect(res.body.message).toMatch(/Hobbygränsen/);
       // Critically: transaction must NOT be opened, payment must NOT be released.
+      expect(mockP.update).not.toHaveBeenCalled();
+      expect(sequelize.transaction).not.toHaveBeenCalled();
+    });
+
+    // Funds must stay in escrow if the payee has not finished payout onboarding.
+    // Never mark a payment 'released' without an actual Stripe transfer.
+    it('should BLOCK release with 409 if payee has no active Connect account', async () => {
+      const mockP = {
+        id: 1, payer_id: 1, payee_id: 2, amount_payee: 460, status: 'held',
+        update: jest.fn(),
+      };
+      Payment.findOne.mockResolvedValue(mockP);
+      Payment.sum.mockResolvedValue(0);
+      User.findByPk.mockResolvedValue({
+        hobby_total_year: 0, hobby_job_count: 0, hobby_warned: false,
+        stripe_account_id: null, stripe_account_status: null,
+        update: jest.fn(),
+      });
+      const tx = { commit: jest.fn(), rollback: jest.fn() };
+      sequelize.transaction.mockResolvedValue(tx);
+
+      const res = await request(buildApp())
+        .post('/api/payments/release/10')
+        .set('Authorization', `Bearer ${makeToken(1)}`)
+        .send();
+
+      expect(res.status).toBe(409);
+      expect(res.body.success).toBe(false);
+      expect(res.body.code).toBe('PAYEE_PAYOUT_NOT_READY');
+      // No transfer, no DB mutation — money stays in escrow.
+      expect(stripe.transfers.create).not.toHaveBeenCalled();
       expect(mockP.update).not.toHaveBeenCalled();
       expect(sequelize.transaction).not.toHaveBeenCalled();
     });

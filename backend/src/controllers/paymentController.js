@@ -2,6 +2,7 @@ const { Op } = require('sequelize');
 const stripeConfig = require('../../config/stripe.js');
 const { HOBBY_ANNUAL_LIMIT, HOBBY_WARNING_THRESHOLD } = require('../../config/constants');
 const { Job, User, Payment, Application, sequelize } = require('../models');
+const { getReleasedYearIncome } = require('../utils/hobbyCalculator');
 
 const { stripe } = stripeConfig;
 
@@ -378,54 +379,61 @@ const releaseEscrow = async (req, res, next) => {
     }
 
     // Hobby annual limit enforcement (HobbyJobb's legal protection layer).
+    // Use the payee's RELEASED income for the CURRENT calendar year (summed from
+    // the Payment table — the same source the income display and admin views
+    // use) so the limit resets every new year instead of accumulating forever.
     // Block release if this payout would push the payee over HOBBY_ANNUAL_LIMIT.
-    // The payer must contact the payee/admin to handle it outside escrow.
-    const payeePreCheck = await User.findByPk(payment.payee_id);
-    if (payeePreCheck) {
-      const projectedTotal =
-        Number(payeePreCheck.hobby_total_year || 0) + Number(payment.amount_payee);
-      if (projectedTotal > HOBBY_ANNUAL_LIMIT) {
-        return res.status(403).json({
-          success: false,
-          message: `Hobbygränsen på ${HOBBY_ANNUAL_LIMIT} kr/år skulle överskridas. Kontakta supporten.`,
-          data: {
-            currentTotal: Number(payeePreCheck.hobby_total_year || 0),
-            attemptedAmount: Number(payment.amount_payee),
-            limit: HOBBY_ANNUAL_LIMIT,
-          },
-        });
-      }
+    const currentYearIncome = await getReleasedYearIncome(payment.payee_id);
+    const projectedTotal = currentYearIncome + Number(payment.amount_payee);
+    if (projectedTotal > HOBBY_ANNUAL_LIMIT) {
+      return res.status(403).json({
+        success: false,
+        message: `Hobbygränsen på ${HOBBY_ANNUAL_LIMIT} kr/år skulle överskridas. Kontakta supporten.`,
+        data: {
+          currentTotal: currentYearIncome,
+          attemptedAmount: Number(payment.amount_payee),
+          limit: HOBBY_ANNUAL_LIMIT,
+        },
+      });
     }
 
-    // Validate payee has active Connect account and attempt Stripe transfer BEFORE DB commit
+    // Payee must have completed payout onboarding before we release escrow.
+    // Without an active Connect account there is nowhere to send the money, so
+    // the funds stay in escrow ('held') until KYC is done instead of marking the
+    // payment 'released' with no actual transfer.
     const payee = await User.findByPk(payment.payee_id);
-    let transferId = null;
-
-    if (payee?.stripe_account_id && payee?.stripe_account_status === 'active') {
-      try {
-        // Convert SEK → öre (Stripe requires integer smallest currency unit)
-        const amountInOre = Math.round(Number(payment.amount_payee) * 100);
-
-        const transfer = await stripe.transfers.create({
-          amount: amountInOre,
-          currency: 'sek',
-          destination: payee.stripe_account_id,
-          transfer_group: payment.stripe_payment_id,
-        }, {
-          idempotencyKey: `release-${payment.id}`,
-        });
-        transferId = transfer.id;
-      } catch (err) {
-        // Fail fast: do NOT update DB if transfer fails
-        console.error('Stripe transfer failed:', err.message);
-        return res.status(502).json({
-          success: false,
-          message: 'Överföringen misslyckades. Försök igen senare.',
-        });
-      }
+    if (!payee || !payee.stripe_account_id || payee.stripe_account_status !== 'active') {
+      return res.status(409).json({
+        success: false,
+        message: 'Utföraren har inte slutfört sin utbetalningsregistrering ännu. Pengarna ligger kvar i escrow tills det är klart.',
+        code: 'PAYEE_PAYOUT_NOT_READY',
+      });
     }
 
-    // Only after successful transfer (or no transfer needed), update DB atomically
+    let transferId = null;
+    try {
+      // Convert SEK → öre (Stripe requires integer smallest currency unit)
+      const amountInOre = Math.round(Number(payment.amount_payee) * 100);
+
+      const transfer = await stripe.transfers.create({
+        amount: amountInOre,
+        currency: 'sek',
+        destination: payee.stripe_account_id,
+        transfer_group: payment.stripe_payment_id,
+      }, {
+        idempotencyKey: `release-${payment.id}`,
+      });
+      transferId = transfer.id;
+    } catch (err) {
+      // Fail fast: do NOT update DB if transfer fails
+      console.error('Stripe transfer failed:', err.message);
+      return res.status(502).json({
+        success: false,
+        message: 'Överföringen misslyckades. Försök igen senare.',
+      });
+    }
+
+    // Only after the transfer succeeded, update DB atomically
     const transaction = await sequelize.transaction();
     try {
       await payment.update({
@@ -437,13 +445,15 @@ const releaseEscrow = async (req, res, next) => {
       await Job.update({ status: 'completed' }, { where: { id: jobId }, transaction });
 
       if (payee) {
-        const newTotal = Number(payee.hobby_total_year || 0) + Number(payment.amount_payee);
+        // projectedTotal is the payee's year-to-date released income INCLUDING
+        // this payout, so hobby_total_year mirrors the current-year sum and the
+        // warned/limit flags reset correctly at each new year.
         const newJobCount = Number(payee.hobby_job_count || 0) + 1;
         await payee.update({
-          hobby_total_year: newTotal,
+          hobby_total_year: projectedTotal,
           hobby_job_count: newJobCount,
-          hobby_warned: payee.hobby_warned || newTotal >= HOBBY_WARNING_THRESHOLD,
-          hobby_limit_reached: newTotal >= HOBBY_ANNUAL_LIMIT,
+          hobby_warned: projectedTotal >= HOBBY_WARNING_THRESHOLD,
+          hobby_limit_reached: projectedTotal >= HOBBY_ANNUAL_LIMIT,
         }, { transaction });
       }
 
